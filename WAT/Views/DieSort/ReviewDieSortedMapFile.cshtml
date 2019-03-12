@@ -1,0 +1,39 @@
+﻿
+@{
+    ViewBag.Title = "ReviewDieSortedMapFile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<script type="text/javascript" src="~/Scripts/diesort.js"></script>
+<script type="text/javascript">
+        $(function(){
+            DIESORT.REVIEWINIT();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="form-control">Map File</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="mapfile" name="mapfile" placeholder="Map File" readonly="readonly">
+                    </div>
+                    <div class="col-xs-1 box-search" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="查看">
+                    </div>
+                    <div class="col-xs-1 box-search" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-reconstruct" id="btn-reconstruct" value="重构">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+            </div>
+        </div>
+    </div>
+</div>
+
