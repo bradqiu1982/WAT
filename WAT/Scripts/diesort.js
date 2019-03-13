@@ -105,6 +105,73 @@
 
     }
 
+    var comparediesort = function () {
+
+        $.post('/DieSort/LoadSortedFiles', {
+        }, function (output) {
+            $('#mapfile').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.filelist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#mapfile').attr('readonly', false);
+        });
+
+        var comparedata = function () {
+            var fs = $('#mapfile').val();
+            if (fs == '') {
+                alert('Please input your file!');
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DieSort/CompareDieSortData', {
+                fs: fs
+            }, function (output) {
+                $.bootstrapLoading.end();
+                $('.v-content').empty();
+
+                if (!output.sucess) {
+                    alert('File not exist!');
+                    return false;
+                }
+
+                var appendstr = '<div class="col-xs-6">' +
+                        '<div class="v-box" id="' + output.ochartdata.id + '"></div>' +
+                        '</div>';
+                $('.v-content').append(appendstr);
+
+                appendstr = '<div class="col-xs-6">' +
+                        '<div class="v-box" id="' + output.nchartdata.id + '"></div>' +
+                        '</div>';
+                $('.v-content').append(appendstr);
+
+                drawdiesortmap(output.ochartdata);
+                drawdiesortmap(output.nchartdata);
+            })
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            comparedata();
+        });
+
+    }
+
     var drawdiesortmap = function (line_data)
     {
         var options = {
@@ -113,6 +180,7 @@
             },
             chart: {
                 type: 'heatmap',
+                zoomType: 'xy',
             },
             boost: {
                 useGPUTranslations: true
@@ -204,6 +272,9 @@
     return {
         REVIEWINIT: function () {
             reviewdiesort();
+        },
+        COMPAREINIT: function () {
+            comparediesort();
         }
     }
 }();

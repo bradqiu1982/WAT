@@ -334,8 +334,6 @@ red{
     border-width: 0.5px;
     border-style: solid;
     border-color: #ddd;
-    height:920px!important;
-    /*margin:10px;*/
 }
 
 .row-margin{
@@ -352,7 +350,5 @@ red{
 
 .v-box {
     margin-top:2%;
-    height: 920px!important;
     margin: 20px;
-    /*border: 1px solid #888;*/
 }

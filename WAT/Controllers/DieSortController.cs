@@ -28,43 +28,6 @@ namespace WAT.Controllers
         }
 
 
-        private object RetrieveDieChartData(List<DieSortVM> datalist)
-        {
-            var data = new List<List<object>>();
-            var xlist = new List<int>();
-            var ylist = new List<int>();
-            foreach (var v in datalist)
-            {
-                var templist = new List<object>();
-                templist.Add(v.X);
-                templist.Add(v.Y);
-                templist.Add(v.DieValue);
-                data.Add(templist);
-
-                xlist.Add(v.X);
-                ylist.Add(v.Y);
-            }
-            var serial = new List<object>();
-            serial.Add(new
-            {
-                name = "Die Sort",
-                data = data,
-                boostThreshold = 100,
-                borderWidth =  0,
-                nullColor = "#EFEFEF"
-            });
-
-            xlist.Sort();
-            ylist.Sort();
-            return new {
-                id = "die_sort_id",
-                title = "Die Sort Pick Map",
-                serial = serial,
-                xmax = xlist[xlist.Count -1]+20,
-                ymax = ylist[ylist.Count -1]+20
-            };
-        }
-
         public JsonResult ReviewDieData()
         {
             var fs = Request.Form["fs"].ToUpper();
@@ -88,7 +51,7 @@ namespace WAT.Controllers
                 if (ExternalDataCollector.FileExist(this, filepath))
                 {
                     var datalist = DieSortVM.RetrieveReviewData(filepath);
-                    var chartdata = RetrieveDieChartData(datalist);
+                    var chartdata = DieSortVM.RetrieveDieChartData(datalist);
 
 
                     var ret = new JsonResult();
@@ -121,7 +84,7 @@ namespace WAT.Controllers
                 var reviewfolder = syscfgdict["DIESORTREVIEW"];
                 var filepath = System.IO.Path.Combine(reviewfolder, fs);
                 var datalist = DieSortVM.RetrieveReviewData(filepath);
-                var chartdata = RetrieveDieChartData(datalist);
+                var chartdata = DieSortVM.RetrieveDieChartData(datalist);
 
                 var ret = new JsonResult();
                 ret.MaxJsonLength = Int32.MaxValue;
@@ -142,6 +105,65 @@ namespace WAT.Controllers
                 return ret;
             }
         }
+
+        public ActionResult CompareDieSortedMapFile()
+        {
+            return View();
+        }
+
+        public JsonResult CompareDieSortData()
+        {
+            var fs = Request.Form["fs"].ToUpper();
+            var filetype = "DIESORT";
+            var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
+
+            if (!loadedfiledict.ContainsKey(fs))
+            {
+                var ret = new JsonResult();
+                ret.Data = new
+                {
+                    sucess = false
+                };
+                return ret;
+            }
+            else
+            {
+                var syscfgdict = CfgUtility.GetSysConfig(this);
+                var originalfilefolder = syscfgdict["DIESORTFOLDER"];
+                var newfilefolder = syscfgdict["DIESORTSHARE"];
+
+                var orgfile = System.IO.Path.Combine(originalfilefolder, fs);
+                var newfile = System.IO.Path.Combine(newfilefolder, fs);
+                if (ExternalDataCollector.FileExist(this, orgfile) && ExternalDataCollector.FileExist(this, newfile))
+                {
+                    var orgdatalist = DieSortVM.RetrieveCMPData(orgfile);
+                    var newdatalist = DieSortVM.RetrieveCMPData(newfile);
+
+                    var ochartdata = DieSortVM.RetrieveDieChartData(orgdatalist,"die_sort_org_id","Orignal Die Data");
+                    var nchartdata = DieSortVM.RetrieveDieChartData(orgdatalist, "die_sort_new_id", "New Die Data");
+
+                    var ret = new JsonResult();
+                    ret.MaxJsonLength = Int32.MaxValue;
+                    ret.Data = new
+                    {
+                        sucess = true,
+                        ochartdata = ochartdata,
+                        nchartdata = nchartdata
+                    };
+                    return ret;
+                }
+                else
+                {
+                    var ret = new JsonResult();
+                    ret.Data = new
+                    {
+                        sucess = false
+                    };
+                    return ret;
+                }
+            }//end else
+        }
+
 
     }
 

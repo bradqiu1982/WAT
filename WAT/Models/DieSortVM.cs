@@ -5,11 +5,177 @@ using System.Web;
 using System.Xml;
 using System.IO;
 using System.Web.Mvc;
+using System.Text;
 
 namespace WAT.Models
 {
     public class DieSortVM
     {
+        public static void LoadAllDieSortFile(Controller ctrl)
+        {
+            var filetype = "DIESORT";
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+            var srcfolder = syscfgdict["DIESORTFOLDER"];
+            var srcfiles = ExternalDataCollector.DirectoryEnumerateFiles(ctrl, srcfolder);
+
+            var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
+            foreach (var srcf in srcfiles)
+            {
+                var srcfilename = Path.GetFileName(srcf).ToUpper();
+                if (loadedfiledict.ContainsKey(srcfilename))
+                { continue; }
+
+                var desfile = ExternalDataCollector.DownloadShareFile(srcf, ctrl);
+                if (desfile != null && ExternalDataCollector.FileExist(ctrl, desfile))
+                {
+                    if (SolveDieSortFile(desfile, ctrl))
+                    {
+                        FileLoadedData.UpdateLoadedFile(srcfilename, filetype);
+                    }
+                }
+            }
+        }
+
+        public static bool LoadDieSortFile(Controller ctrl, string srcname)
+        {
+            var filetype = "DIESORT";
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+            var srcfolder = syscfgdict["DIESORTFOLDER"];
+            var srcf = Path.Combine(srcfolder, srcname.ToUpper());
+            if (ExternalDataCollector.FileExist(ctrl, srcf))
+            {
+                var desfile = ExternalDataCollector.DownloadShareFile(srcf, ctrl);
+                if (desfile != null && ExternalDataCollector.FileExist(ctrl, desfile))
+                {
+                    FileLoadedData.RemoveLoadedFile(srcname.ToUpper(), filetype);
+                    if (SolveDieSortFile(desfile, ctrl))
+                    {
+                        FileLoadedData.UpdateLoadedFile(srcname.ToUpper(), filetype);
+                        return true;
+                    }
+                }//end if
+            }//end if
+
+            return false;
+        }
+
+        private static bool SolveDieSortFile(string diefile, Controller ctrl)
+        {
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+            var desfolder = syscfgdict["DIESORTSHARE"];
+            var reviewfolder = syscfgdict["DIESORTREVIEW"];
+
+            try
+            {
+                //get modify information
+                var doc = new XmlDocument();
+                doc.Load(diefile);
+                var namesp = doc.DocumentElement.GetAttribute("xmlns");
+                doc = StripNamespace(doc);
+                XmlElement root = doc.DocumentElement;
+
+                var pn = "";
+                var pnnodes = root.SelectNodes("//Layout[@LayoutId]");
+                if (pnnodes.Count > 0)
+                {
+                    pn = ((XmlElement)pnnodes[0]).GetAttribute("LayoutId");
+                }
+                if (string.IsNullOrEmpty(pn))
+                { return false; }
+
+                var selectcount = GetArrayFromPN(syscfgdict, pn);
+
+                var passedbinxydict = GetPassedBinXYDict(root);
+                if (passedbinxydict.Count == 0)
+                { return false; }
+
+                var selectxydict = GetSelectedXYDict(passedbinxydict, selectcount);
+                if (selectxydict.Count == 0)
+                { return false; }
+
+
+                //try to write review file
+                foreach (var kv in selectxydict)
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                    { nd.SetAttribute("diesort", "selected"); }
+                }
+
+                doc.DocumentElement.SetAttribute("xmlns", namesp);
+                var savename = Path.Combine(reviewfolder, Path.GetFileName(diefile));
+                if (ExternalDataCollector.FileExist(ctrl, savename))
+                { ExternalDataCollector.FileDelete(ctrl, savename); }
+                doc.Save(savename);
+
+                var sb = new StringBuilder();
+                try
+                {
+                    var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile)+".csv");
+                    if (ExternalDataCollector.FileExist(ctrl, csvfile))
+                    { ExternalDataCollector.FileDelete(ctrl, csvfile); }
+                    
+                    sb.Append("X,Y,BIN,\r\n");
+                    foreach (var kv in selectxydict)
+                    {
+                        sb.Append(kv.Key.Replace(":::", ",") + "," + kv.Value + ",\r\n");
+                    }
+                    File.WriteAllText(csvfile, sb.ToString());
+                }
+                catch (Exception e) {
+                    try {
+                        var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile) + "-new.csv");
+                        File.WriteAllText(csvfile, sb.ToString());
+                    }
+                    catch (Exception f) { }
+                }
+
+                //try to write actual file
+                doc = new XmlDocument();
+                doc.Load(diefile);
+                doc = StripNamespace(doc);
+                root = doc.DocumentElement;
+                foreach (var kv in selectxydict)
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                    { nd.InnerText = "A"; }
+                }
+                doc.DocumentElement.SetAttribute("xmlns", namesp);
+                savename = Path.Combine(desfolder, Path.GetFileName(diefile));
+                if (ExternalDataCollector.FileExist(ctrl, savename))
+                { ExternalDataCollector.FileDelete(ctrl, savename); }
+                doc.Save(savename);
+
+                //foreach (var kv in passedbinxydict)
+                //{
+                //    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                //    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                //    { nd.SetAttribute("Q", "pass"); }
+                //}
+                //var nodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass']");
+                //foreach (XmlElement nd in nodes)
+                //{
+                //    nd.SetAttribute("BinCount", "666");
+                //}
+
+                //foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='240' and @Y='74']"))
+                //{
+                //    nd.ParentNode.RemoveChild(nd);
+                //}
+                //doc = new XmlDocument();
+                //doc.Load(diefile);
+                //doc.Save(Path.Combine(desfolder, Path.GetFileName(diefile)));
+            }
+            catch (Exception ex) {
+                return false;
+            }
+
+            return true;
+        }
+
+
+
         private static XmlDocument StripNamespace(XmlDocument doc)
         {
             if (doc.DocumentElement.NamespaceURI.Length > 0)
@@ -61,9 +227,8 @@ namespace WAT.Models
             return ret;
         }
 
-        private static Dictionary<string, string> GetSelectedXYDict(Dictionary<string, string> passedbinxydict,int selectcount=170)
+        private static Dictionary<string, string> GetSelectedXYDict(Dictionary<string, string> passedbinxydict,int selectcount)
         {
-
 
             var ret = new Dictionary<string, string>();
             var xdict = new Dictionary<int,bool>();
@@ -91,17 +256,17 @@ namespace WAT.Models
             if (xlist.Count < 18 || ylist.Count < 27)
             { return new Dictionary<string, string>(); }
 
-            var xsector = (xlist[xlist.Count-1] - xlist[0]) / 6;
-            var ysector = (ylist[ylist.Count-1] - ylist[0]) / 9;
+            var xsector = (xlist[xlist.Count-1] - xlist[0]) / 2;
+            var ysector = (ylist[ylist.Count-1] - ylist[0]) / 3;
 
             var xstarterlist = new List<int>();
-            xstarterlist.Add(xlist[0] + xsector);
-            xstarterlist.Add(xlist[0] + 4 * xsector);
+            xstarterlist.Add(xlist[0]);
+            xstarterlist.Add(xlist[0]+xsector);
 
             var ystarterlist = new List<int>();
+            ystarterlist.Add(ylist[0]);
             ystarterlist.Add(ylist[0] + ysector);
-            ystarterlist.Add(ylist[0] + 4*ysector);
-            ystarterlist.Add(ylist[0] + 7*ysector);
+            ystarterlist.Add(ylist[0] + 2*ysector);
 
 
             var rad = new Random(DateTime.Now.Millisecond);
@@ -109,13 +274,13 @@ namespace WAT.Models
             var maxtimes = selectcount * 100;
             while (true)
             {
-                var xrad = rad.Next(xsector);
-                var yrad = rad.Next(ysector);
-
                 foreach (var xstart in xstarterlist)
                 {
                     foreach (var ystart in ystarterlist)
                     {
+                        var xrad = rad.Next(xsector);
+                        var yrad = rad.Next(ysector);
+
                         var k = (xstart + xrad).ToString() + ":::" + (ystart + yrad).ToString();
                         if (passedbinxydict.ContainsKey(k) && !ret.ContainsKey(k))
                         {
@@ -135,114 +300,9 @@ namespace WAT.Models
             return ret;
         }
 
-        public static bool SolveDieSortFile(string diefile,Controller ctrl)
+        private static int GetArrayFromPN(Dictionary<string, string> syscfgdict, string pn)
         {
-            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
-            var desfolder = syscfgdict["DIESORTSHARE"];
-            var reviewfolder = syscfgdict["DIESORTREVIEW"];
-
-            try
-            {
-                var doc = new XmlDocument();
-                doc.Load(diefile);
-                var namesp = doc.DocumentElement.GetAttribute("xmlns");
-                doc = StripNamespace(doc);
-
-                XmlElement root = doc.DocumentElement;
-                var passedbinxydict = GetPassedBinXYDict(root);
-                if (passedbinxydict.Count == 0)
-                { return false; }
-
-                var selectxydict = GetSelectedXYDict(passedbinxydict);
-                if (selectxydict.Count == 0)
-                { return false; }
-
-                //foreach (var kv in passedbinxydict)
-                //{
-                //    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
-                //    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
-                //    { nd.SetAttribute("Q", "pass"); }
-                //}
-
-                foreach (var kv in selectxydict)
-                {
-                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='"+xystr[0]+"' and @Y='"+xystr[1]+"']"))
-                    { nd.SetAttribute("diesort","selected"); }
-                }
-
-                //var nodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass']");
-                //foreach (XmlElement nd in nodes)
-                //{
-                //    nd.SetAttribute("BinCount", "666");
-                //}
-
-                //foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='240' and @Y='74']"))
-                //{
-                //    nd.ParentNode.RemoveChild(nd);
-                //}
-
-                doc.DocumentElement.SetAttribute("xmlns", namesp);
-                var savename = Path.Combine(reviewfolder, Path.GetFileName(diefile));
-                if (ExternalDataCollector.FileExist(ctrl, savename))
-                { ExternalDataCollector.FileDelete(ctrl, savename); }
-                doc.Save(savename);
-
-                //doc = new XmlDocument();
-                //doc.Load(diefile);
-                //doc.Save(Path.Combine(desfolder, Path.GetFileName(diefile)));
-            }
-            catch (Exception ex) { return false; }
-
-            return true;
-        }
-
-        public static void LoadAllDieSortFile(Controller ctrl)
-        {
-            var filetype = "DIESORT";
-            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
-            var srcfolder = syscfgdict["DIESORTFOLDER"];
-            var srcfiles = ExternalDataCollector.DirectoryEnumerateFiles(ctrl, srcfolder);
-
-            var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
-            foreach (var srcf in srcfiles)
-            {
-                var srcfilename = Path.GetFileName(srcf).ToUpper();
-                if (loadedfiledict.ContainsKey(srcfilename))
-                { continue; }
-
-                var desfile = ExternalDataCollector.DownloadShareFile(srcf, ctrl);
-                if (desfile != null && ExternalDataCollector.FileExist(ctrl, desfile))
-                {
-                    if (SolveDieSortFile(desfile, ctrl))
-                    {
-                        FileLoadedData.UpdateLoadedFile(srcfilename, filetype);
-                    }
-                }
-            }
-        }
-
-        public static bool LoadDieSortFile(Controller ctrl,string srcname)
-        {
-            var filetype = "DIESORT";
-            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
-            var srcfolder = syscfgdict["DIESORTFOLDER"];
-            var srcf = Path.Combine(srcfolder, srcname.ToUpper());
-            if (ExternalDataCollector.FileExist(ctrl, srcf))
-            {
-                var desfile = ExternalDataCollector.DownloadShareFile(srcf, ctrl);
-                if (desfile != null && ExternalDataCollector.FileExist(ctrl, desfile))
-                {
-                    FileLoadedData.RemoveLoadedFile(srcname.ToUpper(), filetype);
-                    if (SolveDieSortFile(desfile, ctrl))
-                    {
-                        FileLoadedData.UpdateLoadedFile(srcname.ToUpper(), filetype);
-                        return true;
-                    }
-                }//end if
-            }//end if
-
-            return false;
+            return 170;
         }
 
         public static List<DieSortVM> RetrieveReviewData(string diefile)
@@ -304,6 +364,82 @@ namespace WAT.Models
             }
 
             return ret;
+        }
+
+
+        public static List<DieSortVM> RetrieveCMPData(string diefile)
+        {
+            var ret = new List<DieSortVM>();
+
+            var max = 1000;
+            var idx = 1;
+
+            var doc = new XmlDocument();
+            doc.Load(diefile);
+            var namesp = doc.DocumentElement.GetAttribute("xmlns");
+            doc = StripNamespace(doc);
+            XmlElement root = doc.DocumentElement;
+            var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+            foreach (XmlElement nd in bincodelist)
+            {
+                try
+                {
+                    var x = Convert.ToInt32(nd.GetAttribute("X"));
+                    var y = Convert.ToInt32(nd.GetAttribute("Y"));
+                    if (idx % 100 == 0)
+                    {
+                        ret.Add(new DieSortVM(x, y, 10));
+                    }
+                    else
+                    {
+                        ret.Add(new DieSortVM(x, y, 5));
+                    }
+                    if (idx == max)
+                    { break; }
+                    idx = idx + 1;
+                }
+                catch (Exception ex) { }
+            }
+
+            return ret;
+        }
+
+        public static object RetrieveDieChartData(List<DieSortVM> datalist,string id = "die_sort_id",string title="Die Sort Pick Map")
+        {
+            var data = new List<List<object>>();
+            var xlist = new List<int>();
+            var ylist = new List<int>();
+            foreach (var v in datalist)
+            {
+                var templist = new List<object>();
+                templist.Add(v.X);
+                templist.Add(v.Y);
+                templist.Add(v.DieValue);
+                data.Add(templist);
+
+                xlist.Add(v.X);
+                ylist.Add(v.Y);
+            }
+            var serial = new List<object>();
+            serial.Add(new
+            {
+                name = "Die Sort",
+                data = data,
+                boostThreshold = 100,
+                borderWidth = 0,
+                nullColor = "#EFEFEF"
+            });
+
+            xlist.Sort();
+            ylist.Sort();
+            return new
+            {
+                id = id,
+                title = title,
+                serial = serial,
+                xmax = xlist[xlist.Count - 1] + 20,
+                ymax = ylist[ylist.Count - 1] + 20
+            };
         }
 
 
