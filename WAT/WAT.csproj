@@ -677,6 +677,8 @@
     <Content Include="Scripts\copy2clipboard.js" />
     <Content Include="Scripts\diesort.js" />
     <Content Include="Scripts\exporting.js" />
+    <Content Include="Scripts\heartbeat.txt" />
+    <Content Include="Scripts\HeartBeatWAT.exe" />
     <Content Include="Scripts\heatmap.js" />
     <Content Include="Scripts\highcharts-modal.js" />
     <Content Include="Scripts\highcharts-more.js" />
@@ -695,7 +697,6 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\WAT-db-script.txt" />
     <Content Include="Scripts\WATCfg.txt" />
-    <Content Include="Scripts\MetisHeartBeat.exe" />
     <Content Include="Scripts\WATsheartbeat.txt" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\moment-with-locales.js" />
@@ -725,6 +726,7 @@
     <Content Include="Views\Main\HeartBeat.cshtml" />
     <Content Include="Views\Main\Index.cshtml" />
     <Content Include="Views\DieSort\ReviewDieSortedMapFile.cshtml" />
+    <Content Include="Views\DieSort\CompareDieSortedMapFile.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
