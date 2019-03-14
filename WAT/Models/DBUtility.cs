@@ -66,11 +66,11 @@ namespace WAT.Models
                 //conn.ConnectionString = "Data Source = (LocalDb)\\MSSQLLocalDB; AttachDbFilename = ~\\App_Data\\Prometheus.mdf; Integrated Security = True";
                 if (IsDebug())
                 {
-                    conn.ConnectionString = "Server=wuxinpi;User ID=BSApp;Password=magic@123;Database=BSSupport;Connection Timeout=120;";
+                    conn.ConnectionString = "Server=wuxinpi;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
                 }
                 else
                 {
-                    conn.ConnectionString = "Server=wuxinpi;User ID=BSApp;Password=magic@123;Database=BSSupport;Connection Timeout=120;";
+                    conn.ConnectionString = "Server=wuxinpi;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
                 }
 
                 conn.Open();

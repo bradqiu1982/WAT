@@ -13,7 +13,7 @@ namespace WAT.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@AppV_A", filename);
             dict.Add("@AppV_B", filetype);
-            var dbret = DBUtility.ExeNPITraceSqlWithRes(sql, dict);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql,null, dict);
             if (dbret.Count == 0)
             {
                 sql = "insert into FileLoadedData(AppV_A,AppV_B,databackuptm) values(@AppV_A,@AppV_B,@databackuptm)";
@@ -21,7 +21,7 @@ namespace WAT.Models
                 dict.Add("@AppV_A", filename);
                 dict.Add("@AppV_B", filetype);
                 dict.Add("@databackuptm", DateTime.Now.ToString());
-                DBUtility.ExeNPITraceSqlNoRes(sql, dict);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
             }//end if
         }
 
@@ -33,7 +33,7 @@ namespace WAT.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@AppV_B", filetype);
 
-            var dbret = DBUtility.ExeNPITraceSqlWithRes(sql, dict);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql,null, dict);
             foreach (var line in dbret)
             {
                 ret.Add(Convert.ToString(line[0]), true);
@@ -47,7 +47,7 @@ namespace WAT.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@AppV_A", filename);
             dict.Add("@AppV_B", filetype);
-            DBUtility.ExeNPITraceSqlNoRes(sql, dict);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
     }
 }

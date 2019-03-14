@@ -9,6 +9,13 @@ using System.Text;
 
 namespace WAT.Models
 {
+
+    public class WAFERARRAY {
+        public static string ARRAY1X1 = "1X1";
+        public static string ARRAY1X4 = "1X4";
+        public static string ARRAY1X12 = "1X12";
+    }
+
     public class DieSortVM
     {
         public static void LoadAllDieSortFile(Controller ctrl)
@@ -74,22 +81,29 @@ namespace WAT.Models
                 doc = StripNamespace(doc);
                 XmlElement root = doc.DocumentElement;
 
-                var pn = "";
-                var pnnodes = root.SelectNodes("//Layout[@LayoutId]");
+                var wafer = "";
+                var pnnodes = root.SelectNodes("//Substrate[@SubstrateId]");
                 if (pnnodes.Count > 0)
                 {
-                    pn = ((XmlElement)pnnodes[0]).GetAttribute("LayoutId");
+                    wafer = ((XmlElement)pnnodes[0]).GetAttribute("SubstrateId").Trim();
                 }
-                if (string.IsNullOrEmpty(pn))
+                if (string.IsNullOrEmpty(wafer))
                 { return false; }
 
-                var selectcount = GetArrayFromPN(syscfgdict, pn);
+                var array = GetArrayFromWafer(wafer);
+                var selectcount = 0;
+                if (syscfgdict.ContainsKey("DIESORTSAMPLE"+array))
+                {
+                    selectcount = Convert.ToInt32(syscfgdict["DIESORTSAMPLE" + array]);
+                }
+                else
+                { return false; }
 
                 var passedbinxydict = GetPassedBinXYDict(root);
                 if (passedbinxydict.Count == 0)
                 { return false; }
 
-                var selectxydict = GetSelectedXYDict(passedbinxydict, selectcount);
+                var selectxydict = GetSelectedXYDict(passedbinxydict, selectcount,array);
                 if (selectxydict.Count == 0)
                 { return false; }
 
@@ -227,8 +241,26 @@ namespace WAT.Models
             return ret;
         }
 
-        private static Dictionary<string, string> GetSelectedXYDict(Dictionary<string, string> passedbinxydict,int selectcount)
+        private static bool CheckNextXDie(int xval, int yval, int count, Dictionary<string, string> passedbinxydict)
         {
+            var idx = 0;
+            var newxval = xval;
+            while (idx < count)
+            {
+                newxval = newxval + 1;
+                var k = newxval.ToString() + ":::" + yval.ToString();
+                if (!passedbinxydict.ContainsKey(k))
+                {
+                    return false;
+                }
+                idx = idx + 1;
+            }
+            return true;
+        }
+
+        private static Dictionary<string, string> GetSelectedXYDict(Dictionary<string, string> passedbinxydict,int selectcount,string array)
+        {
+            var channel = Convert.ToInt32(array.Replace("1X", ""));
 
             var ret = new Dictionary<string, string>();
             var xdict = new Dictionary<int,bool>();
@@ -247,21 +279,27 @@ namespace WAT.Models
                 } catch (Exception ex) { }
             }
 
-            var xlist = xdict.Keys.ToList();
+            var tempxlist = xdict.Keys.ToList();
             var ylist = ydict.Keys.ToList();
 
-            xlist.Sort();
+            tempxlist.Sort();
             ylist.Sort();
 
-            if (xlist.Count < 18 || ylist.Count < 27)
-            { return new Dictionary<string, string>(); }
+            var xlist = new List<int>();
+            foreach (var x in tempxlist)
+            {
+                if ((x - 1) % channel == 0)
+                {
+                    xlist.Add(x);
+                }
+            }
+            var xsector = xlist.Count / 2;
 
-            var xsector = (xlist[xlist.Count-1] - xlist[0]) / 2;
             var ysector = (ylist[ylist.Count-1] - ylist[0]) / 3;
 
             var xstarterlist = new List<int>();
-            xstarterlist.Add(xlist[0]);
-            xstarterlist.Add(xlist[0]+xsector);
+            xstarterlist.Add(0);
+            xstarterlist.Add(1);
 
             var ystarterlist = new List<int>();
             ystarterlist.Add(ylist[0]);
@@ -279,11 +317,26 @@ namespace WAT.Models
                     foreach (var ystart in ystarterlist)
                     {
                         var xrad = rad.Next(xsector);
-                        var yrad = rad.Next(ysector);
+                        var xval = 0;
+                        var xidx = xstart * xsector + xrad;
+                        if (xidx < xlist.Count)
+                        { xval = xlist[xidx]; }
+                        else
+                        { xval = xlist[xidx-1]; }
+                        
 
-                        var k = (xstart + xrad).ToString() + ":::" + (ystart + yrad).ToString();
+                        var yrad = rad.Next(ysector);
+                        var yval = ystart + yrad;
+                        var k = xval.ToString() + ":::" + yval.ToString();
+
                         if (passedbinxydict.ContainsKey(k) && !ret.ContainsKey(k))
                         {
+                            if (channel > 1)
+                            {
+                                if (!CheckNextXDie(xval,yval,channel-1,passedbinxydict))
+                                { continue; }
+                            }
+
                             ret.Add(k, passedbinxydict[k]);
                             if (ret.Count == selectcount)
                             { return ret; }
@@ -300,9 +353,37 @@ namespace WAT.Models
             return ret;
         }
 
-        private static int GetArrayFromPN(Dictionary<string, string> syscfgdict, string pn)
+        private static string GetArrayFromWafer(string wafer)
         {
-            return 170;
+            //var sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
+            //                select ProductBaseId from  [InsiteDB].[insite].Product
+            //                where ProductId  in (
+            //                    SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_AOC_ManualInspection] (nolock) aoc 
+            //                    left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
+            //                    where ParamValueString like '%<wafer>%'))";
+            //sql = sql.Replace("<wafer>", wafer);
+            //var pnlist = new List<string>();
+            //var dbret = DBUtility.ExeMESSqlWithRes(sql);
+            //foreach (var line in dbret)
+            //{
+            //    pnlist.Add(Convert.ToString(line[0]));
+            //}
+
+            //if (pnlist.Count > 0)
+            //{
+            //    var pncond = "('" + string.Join("','", pnlist) + "')";
+            //    sql = "Select distinct PArray from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
+            //    sql = sql.Replace("<pncond>", pncond);
+            //    dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
+            //    foreach (var line in dbret)
+            //    {
+            //        return Convert.ToString(line[0]).Trim().ToUpper();
+            //    }
+            //}
+
+            //return string.Empty;
+
+            return "1X12";
         }
 
         public static List<DieSortVM> RetrieveReviewData(string diefile)
