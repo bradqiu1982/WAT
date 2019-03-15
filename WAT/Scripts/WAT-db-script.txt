@@ -32,3 +32,12 @@ CREATE TABLE [dbo].[WaferArray] (
 	[Appv_3]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[Appv_4]   NVARCHAR (MAX) DEFAULT ('') NOT NULL
 	);
+
+
+CREATE TABLE [dbo].[WebLog] (
+	[Machine]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Name]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[MSGType]   NVARCHAR (MAX) DEFAULT ('') NOT NULL,
+	[MSG]   NVARCHAR (MAX) DEFAULT ('') NOT NULL,
+	[UpdateTime]   DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+);

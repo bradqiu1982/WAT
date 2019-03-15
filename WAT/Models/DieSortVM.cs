@@ -88,7 +88,10 @@ namespace WAT.Models
                     wafer = ((XmlElement)pnnodes[0]).GetAttribute("SubstrateId").Trim();
                 }
                 if (string.IsNullOrEmpty(wafer))
-                { return false; }
+                {
+                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get wafer");
+                    return false;
+                }
 
                 var array = GetArrayFromWafer(wafer);
                 var selectcount = 0;
@@ -97,15 +100,24 @@ namespace WAT.Models
                     selectcount = Convert.ToInt32(syscfgdict["DIESORTSAMPLE" + array]);
                 }
                 else
-                { return false; }
+                {
+                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get select count by array info DIESORTSAMPLE" + array);
+                    return false;
+                }
 
                 var passedbinxydict = GetPassedBinXYDict(root);
                 if (passedbinxydict.Count == 0)
-                { return false; }
+                {
+                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get good bin xy dict");
+                    return false;
+                }
 
                 var selectxydict = GetSelectedXYDict(passedbinxydict, selectcount,array);
                 if (selectxydict.Count == 0)
-                { return false; }
+                {
+                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get sample xy dict");
+                    return false;
+                }
 
 
                 //try to write review file
@@ -137,11 +149,12 @@ namespace WAT.Models
                     File.WriteAllText(csvfile, sb.ToString());
                 }
                 catch (Exception e) {
+                    WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:"+e.Message);
                     try {
                         var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile) + "-new.csv");
                         File.WriteAllText(csvfile, sb.ToString());
                     }
-                    catch (Exception f) { }
+                    catch (Exception f) { WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + f.Message); }
                 }
 
                 //try to write actual file
@@ -182,6 +195,7 @@ namespace WAT.Models
                 //doc.Save(Path.Combine(desfolder, Path.GetFileName(diefile)));
             }
             catch (Exception ex) {
+                WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + ex.Message);
                 return false;
             }
 

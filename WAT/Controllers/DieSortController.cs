@@ -31,11 +31,16 @@ namespace WAT.Controllers
         public JsonResult ReviewDieData()
         {
             var fs = Request.Form["fs"].ToUpper();
+
+            WebLog.LogVisitor(Request.UserHostName, "try to review file:" + fs);
+
             var filetype = "DIESORT";
             var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
 
             if (!loadedfiledict.ContainsKey(fs))
             {
+                WebLog.Log("DieSort", "try to review file:" + fs + ", has not been converted");
+
                 var ret = new JsonResult();
                 ret.Data = new
                 {
@@ -65,6 +70,8 @@ namespace WAT.Controllers
                 }
                 else
                 {
+                    WebLog.Log("DieSort", "try to review file:" + fs + ", not exist in review folder");
+
                     var ret = new JsonResult();
                     ret.Data = new
                     {
@@ -78,6 +85,9 @@ namespace WAT.Controllers
         public JsonResult ReConstructDieSort()
         {
             var fs = Request.Form["fs"].ToUpper();
+
+            WebLog.LogVisitor(Request.UserHostName, "try to re-construct file:" + fs);
+
             if (DieSortVM.LoadDieSortFile(this, fs))
             {
                 var syscfgdict = CfgUtility.GetSysConfig(this);
@@ -97,6 +107,8 @@ namespace WAT.Controllers
             }
             else
             {
+                WebLog.Log("DieSort", "fail to re-construct file:" + fs );
+
                 var ret = new JsonResult();
                 ret.Data = new
                 {
@@ -114,11 +126,16 @@ namespace WAT.Controllers
         public JsonResult CompareDieSortData()
         {
             var fs = Request.Form["fs"].ToUpper();
+
+            WebLog.LogVisitor(Request.UserHostName, "try to compare file:" + fs);
+
             var filetype = "DIESORT";
             var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
 
             if (!loadedfiledict.ContainsKey(fs))
             {
+                WebLog.Log("DieSort", "try to compare file:" + fs+", has not been converted");
+
                 var ret = new JsonResult();
                 ret.Data = new
                 {
