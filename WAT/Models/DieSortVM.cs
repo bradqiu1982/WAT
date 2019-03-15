@@ -393,6 +393,12 @@ namespace WAT.Models
                 {
                     return Convert.ToString(line[0]).Trim().ToUpper();
                 }
+
+                WebLog.Log("DieSort", "fail to get array by pn " + pncond);
+            }
+            else
+            {
+                WebLog.Log("DieSort", "fail to get pn by wafer " + wafer);
             }
 
             return string.Empty;
