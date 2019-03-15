@@ -355,35 +355,35 @@ namespace WAT.Models
 
         private static string GetArrayFromWafer(string wafer)
         {
-            //var sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
-            //                select ProductBaseId from  [InsiteDB].[insite].Product
-            //                where ProductId  in (
-            //                    SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_AOC_ManualInspection] (nolock) aoc 
-            //                    left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
-            //                    where ParamValueString like '%<wafer>%'))";
-            //sql = sql.Replace("<wafer>", wafer);
-            //var pnlist = new List<string>();
-            //var dbret = DBUtility.ExeMESSqlWithRes(sql);
-            //foreach (var line in dbret)
-            //{
-            //    pnlist.Add(Convert.ToString(line[0]));
-            //}
+            var sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
+                            select ProductBaseId from  [InsiteDB].[insite].Product
+                            where ProductId  in (
+                                SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_AOC_ManualInspection] (nolock) aoc 
+                                left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
+                                where ParamValueString like '%<wafer>%'))";
+            sql = sql.Replace("<wafer>", wafer);
+            var pnlist = new List<string>();
+            var dbret = DBUtility.ExeMESSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                pnlist.Add(Convert.ToString(line[0]));
+            }
 
-            //if (pnlist.Count > 0)
-            //{
-            //    var pncond = "('" + string.Join("','", pnlist) + "')";
-            //    sql = "Select distinct PArray from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
-            //    sql = sql.Replace("<pncond>", pncond);
-            //    dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
-            //    foreach (var line in dbret)
-            //    {
-            //        return Convert.ToString(line[0]).Trim().ToUpper();
-            //    }
-            //}
+            if (pnlist.Count > 0)
+            {
+                var pncond = "('" + string.Join("','", pnlist) + "')";
+                sql = "Select distinct PArray from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
+                sql = sql.Replace("<pncond>", pncond);
+                dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
+                foreach (var line in dbret)
+                {
+                    return Convert.ToString(line[0]).Trim().ToUpper();
+                }
+            }
 
-            //return string.Empty;
+            return string.Empty;
 
-            return "1X12";
+            //return "1X12";
         }
 
         public static List<DieSortVM> RetrieveReviewData(string diefile)
