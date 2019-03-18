@@ -414,11 +414,12 @@ namespace WAT.Models
 
         private static List<string> GetArrayFromWafer(string wafer)
         {
-            var sql = @"SELECT distinct pb.ProductName
-                          FROM [InsiteDB].[insite].[Container]  (nolock) c
-                          left join [InsiteDB].[insite].Product (nolock) p on c.ProductId = p.ProductId
-                          left join [InsiteDB].[insite].ProductBase (nolock) pb on pb.ProductBaseId = p.ProductBaseId
-                           where c.SupplierLotNumber like '%<wafer>%'";
+            var sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
+                            select ProductBaseId from  [InsiteDB].[insite].Product
+                            where ProductId  in (
+                                SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) aoc 
+                                left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
+                                where ParamValueString like '%<wafer>%'))";
 
             sql = sql.Replace("<wafer>", wafer);
             var pnlist = new List<string>();
@@ -428,6 +429,7 @@ namespace WAT.Models
                 pnlist.Add(Convert.ToString(line[0]));
             }
 
+
             if (pnlist.Count == 0)
             {
                 sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
@@ -436,6 +438,22 @@ namespace WAT.Models
                                 SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_AOC_ManualInspection] (nolock) aoc 
                                 left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
                                 where ParamValueString like '%<wafer>%'))";
+                sql = sql.Replace("<wafer>", wafer);
+                dbret = DBUtility.ExeMESSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    pnlist.Add(Convert.ToString(line[0]));
+                }
+            }
+
+            if (pnlist.Count == 0)
+            {
+                sql = @"SELECT distinct pb.ProductName
+                          FROM [InsiteDB].[insite].[Container]  (nolock) c
+                          left join [InsiteDB].[insite].Product (nolock) p on c.ProductId = p.ProductId
+                          left join [InsiteDB].[insite].ProductBase (nolock) pb on pb.ProductBaseId = p.ProductBaseId
+                           where c.SupplierLotNumber like '%<wafer>%'";
+
                 sql = sql.Replace("<wafer>", wafer);
                 dbret = DBUtility.ExeMESSqlWithRes(sql);
                 foreach (var line in dbret)
