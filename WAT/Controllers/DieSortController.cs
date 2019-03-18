@@ -57,14 +57,16 @@ namespace WAT.Controllers
                 {
                     var datalist = DieSortVM.RetrieveReviewData(filepath);
                     var chartdata = DieSortVM.RetrieveDieChartData(datalist);
-
+                    var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(filepath);
 
                     var ret = new JsonResult();
                     ret.MaxJsonLength = Int32.MaxValue;
                     ret.Data = new
                     {
                         sucess = true,
-                        chartdata = chartdata
+                        chartdata = chartdata,
+                        pn = pnarrayinfo[0],
+                        warray = pnarrayinfo[1]
                     };
                     return ret;
                 }
@@ -95,13 +97,17 @@ namespace WAT.Controllers
                 var filepath = System.IO.Path.Combine(reviewfolder, fs);
                 var datalist = DieSortVM.RetrieveReviewData(filepath);
                 var chartdata = DieSortVM.RetrieveDieChartData(datalist);
+                var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(filepath);
 
                 var ret = new JsonResult();
                 ret.MaxJsonLength = Int32.MaxValue;
                 ret.Data = new
                 {
                     sucess = true,
-                    chartdata = chartdata
+                    chartdata = chartdata,
+                    pn = pnarrayinfo[0],
+                    warray = pnarrayinfo[1]
+
                 };
                 return ret;
             }
@@ -157,7 +163,8 @@ namespace WAT.Controllers
                     var newdatalist = DieSortVM.RetrieveCMPData(newfile);
 
                     var ochartdata = DieSortVM.RetrieveDieChartData(orgdatalist,"die_sort_org_id","Orignal Die Data");
-                    var nchartdata = DieSortVM.RetrieveDieChartData(orgdatalist, "die_sort_new_id", "New Die Data");
+                    var nchartdata = DieSortVM.RetrieveDieChartData(newdatalist, "die_sort_new_id", "New Die Data");
+                    var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(newfile);
 
                     var ret = new JsonResult();
                     ret.MaxJsonLength = Int32.MaxValue;
@@ -165,7 +172,9 @@ namespace WAT.Controllers
                     {
                         sucess = true,
                         ochartdata = ochartdata,
-                        nchartdata = nchartdata
+                        nchartdata = nchartdata,
+                        pn = pnarrayinfo[0],
+                        warray = pnarrayinfo[1]
                     };
                     return ret;
                 }

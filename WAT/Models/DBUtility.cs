@@ -778,8 +778,8 @@ namespace WAT.Models
             var conn = new SqlConnection();
             try
             {
-                //conn.ConnectionString = "Server=CN-CSSQL;uid=SHG_Read;pwd=shgread;Database=InsiteDB;Connection Timeout=30;";
-                conn.ConnectionString = "Server=wux-csods;uid=NPI_FA;pwd=msW2TH95Pd;Database=InsiteDB;Connection Timeout=30;";
+                conn.ConnectionString = "Server=CN-CSSQL;uid=SHG_Read;pwd=shgread;Database=InsiteDB;Connection Timeout=30;";
+                //conn.ConnectionString = "Server=wux-csods;uid=NPI_FA;pwd=msW2TH95Pd;Database=InsiteDB;Connection Timeout=30;";
                 conn.Open();
                 return conn;
             }

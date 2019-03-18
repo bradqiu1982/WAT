@@ -665,6 +665,7 @@
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff" />
     <Content Include="Content\fonts\glyphicons-halflings-regular.woff2" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.min.js.map" />
+    <None Include="Properties\PublishProfiles\watpublish.pubxml" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.css" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.js" />

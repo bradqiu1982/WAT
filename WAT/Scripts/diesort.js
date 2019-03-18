@@ -48,6 +48,9 @@
                     return false;
                 }
 
+                $('#bompn').val(output.pn);
+                $('#bomarray').val(output.warray);
+
                 var appendstr = '<div class="col-xs-12">' +
                         '<div class="v-box" id="' + output.chartdata.id + '"></div>' +
                         '</div>';
@@ -83,6 +86,9 @@
                     alert('Fail to re-construct this file!');
                     return false;
                 }
+
+                $('#bompn').val(output.pn);
+                $('#bomarray').val(output.warray);
 
                 var appendstr = '<div class="col-xs-12">' +
                         '<div class="v-box" id="' + output.chartdata.id + '"></div>' +
@@ -150,6 +156,9 @@
                     alert('File not exist!');
                     return false;
                 }
+
+                $('#bompn').val(output.pn);
+                $('#bomarray').val(output.warray);
 
                 var appendstr = '<div class="col-xs-6">' +
                         '<div class="v-box" id="' + output.ochartdata.id + '"></div>' +

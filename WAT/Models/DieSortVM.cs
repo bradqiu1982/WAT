@@ -82,10 +82,10 @@ namespace WAT.Models
                 XmlElement root = doc.DocumentElement;
 
                 var wafer = "";
-                var pnnodes = root.SelectNodes("//Substrate[@SubstrateId]");
-                if (pnnodes.Count > 0)
+                var wfnodes = root.SelectNodes("//Substrate[@SubstrateId]");
+                if (wfnodes.Count > 0)
                 {
-                    wafer = ((XmlElement)pnnodes[0]).GetAttribute("SubstrateId").Trim();
+                    wafer = ((XmlElement)wfnodes[0]).GetAttribute("SubstrateId").Trim();
                 }
                 if (string.IsNullOrEmpty(wafer))
                 {
@@ -93,7 +93,16 @@ namespace WAT.Models
                     return false;
                 }
 
-                var array = GetArrayFromWafer(wafer);
+                var arrayinfo = GetArrayFromWafer(wafer);
+                if (arrayinfo.Count == 0)
+                {
+                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get array info by wafer " + wafer);
+                    return false;
+                }
+
+                var array = arrayinfo[0];
+                var bompn = arrayinfo[1];
+
                 var selectcount = 0;
                 if (syscfgdict.ContainsKey("DIESORTSAMPLE"+array))
                 {
@@ -126,6 +135,13 @@ namespace WAT.Models
                     var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
                     { nd.SetAttribute("diesort", "selected"); }
+                }
+
+                var layoutnodes = root.SelectNodes("//Layout[@LayoutId]");
+                if (layoutnodes.Count > 0)
+                {
+                    ((XmlElement)layoutnodes[0]).SetAttribute("BOMPN", bompn);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("ARRAY", array);
                 }
 
                 doc.DocumentElement.SetAttribute("xmlns", namesp);
@@ -168,6 +184,14 @@ namespace WAT.Models
                     foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
                     { nd.InnerText = "A"; }
                 }
+
+                layoutnodes = root.SelectNodes("//Layout[@LayoutId]");
+                if (layoutnodes.Count > 0)
+                {
+                    ((XmlElement)layoutnodes[0]).SetAttribute("BOMPN", bompn);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("ARRAY", array);
+                }
+
                 doc.DocumentElement.SetAttribute("xmlns", namesp);
                 savename = Path.Combine(desfolder, Path.GetFileName(diefile));
                 if (ExternalDataCollector.FileExist(ctrl, savename))
@@ -202,7 +226,28 @@ namespace WAT.Models
             return true;
         }
 
+        public static List<string> GetBomPNArrayInfo(string diefile)
+        {
+            var doc = new XmlDocument();
+            doc.Load(diefile);
+            var namesp = doc.DocumentElement.GetAttribute("xmlns");
+            doc = StripNamespace(doc);
+            XmlElement root = doc.DocumentElement;
 
+            var layoutnodes = root.SelectNodes("//Layout[@BOMPN and @ARRAY]");
+            if (layoutnodes.Count > 0)
+            {
+                var pn = ((XmlElement)layoutnodes[0]).GetAttribute("BOMPN");
+                var array = ((XmlElement)layoutnodes[0]).GetAttribute("ARRAY");
+                var tempvm = new List<string>();
+                tempvm.Add(pn);tempvm.Add(array);
+                return tempvm;
+            }
+
+            var ret = new List<string>();
+            ret.Add("");ret.Add("");
+            return ret;
+        }
 
         private static XmlDocument StripNamespace(XmlDocument doc)
         {
@@ -222,7 +267,7 @@ namespace WAT.Models
 
         private static Dictionary<string,string> GetPassedBinXYDict(XmlElement root,string defbin="")
         {
-            var passbinnodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode]");
+            var passbinnodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode and @Pick='true']");
             if (passbinnodes.Count == 0)
             { return new Dictionary<string, string>(); }
 
@@ -367,7 +412,7 @@ namespace WAT.Models
             return ret;
         }
 
-        private static string GetArrayFromWafer(string wafer)
+        private static List<string> GetArrayFromWafer(string wafer)
         {
             var sql = @"SELECT distinct pb.ProductName
                           FROM [InsiteDB].[insite].[Container]  (nolock) c
@@ -383,6 +428,22 @@ namespace WAT.Models
                 pnlist.Add(Convert.ToString(line[0]));
             }
 
+            if (pnlist.Count == 0)
+            {
+                sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
+                            select ProductBaseId from  [InsiteDB].[insite].Product
+                            where ProductId  in (
+                                SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_AOC_ManualInspection] (nolock) aoc 
+                                left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
+                                where ParamValueString like '%<wafer>%'))";
+                sql = sql.Replace("<wafer>", wafer);
+                dbret = DBUtility.ExeMESSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    pnlist.Add(Convert.ToString(line[0]));
+                }
+            }
+
             if (pnlist.Count > 0)
             {
                 var pncond = "('" + string.Join("','", pnlist) + "')";
@@ -391,7 +452,10 @@ namespace WAT.Models
                 dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
                 foreach (var line in dbret)
                 {
-                    return Convert.ToString(line[0]).Trim().ToUpper();
+                    var tempvm = new List<string>();
+                    tempvm.Add(Convert.ToString(line[0]).Trim().ToUpper());
+                    tempvm.AddRange(pnlist);
+                    return tempvm;
                 }
 
                 WebLog.Log("DieSort", "fail to get array by pn " + pncond);
@@ -401,7 +465,7 @@ namespace WAT.Models
                 WebLog.Log("DieSort", "fail to get pn by wafer " + wafer);
             }
 
-            return string.Empty;
+            return new List<string>();
 
             //return "1X12";
         }
