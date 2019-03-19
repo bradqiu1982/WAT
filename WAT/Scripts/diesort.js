@@ -50,6 +50,7 @@
 
                 $('#bompn').val(output.pn);
                 $('#bomarray').val(output.warray);
+                $('#bomdesc').val(output.desc);
 
                 var appendstr = '<div class="col-xs-12">' +
                         '<div class="v-box" id="' + output.chartdata.id + '"></div>' +
@@ -89,6 +90,7 @@
 
                 $('#bompn').val(output.pn);
                 $('#bomarray').val(output.warray);
+                $('#bomdesc').val(output.desc);
 
                 var appendstr = '<div class="col-xs-12">' +
                         '<div class="v-box" id="' + output.chartdata.id + '"></div>' +
@@ -159,6 +161,7 @@
 
                 $('#bompn').val(output.pn);
                 $('#bomarray').val(output.warray);
+                $('#bomdesc').val(output.desc);
 
                 var appendstr = '<div class="col-xs-6">' +
                         '<div class="v-box" id="' + output.ochartdata.id + '"></div>' +

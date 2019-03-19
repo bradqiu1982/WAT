@@ -101,7 +101,10 @@ namespace WAT.Models
                 }
 
                 var array = arrayinfo[0];
-                var bompn = arrayinfo[1];
+                var bomdesc = System.Security.SecurityElement.Escape(arrayinfo[1]);
+                var bompn = arrayinfo[2];
+                var fpn = arrayinfo[3];
+                var product = System.Security.SecurityElement.Escape(arrayinfo[4]);
 
                 var selectcount = 0;
                 if (syscfgdict.ContainsKey("DIESORTSAMPLE"+array))
@@ -141,7 +144,10 @@ namespace WAT.Models
                 if (layoutnodes.Count > 0)
                 {
                     ((XmlElement)layoutnodes[0]).SetAttribute("BOMPN", bompn);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("FPN", fpn);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("PRODUCT", product);
                     ((XmlElement)layoutnodes[0]).SetAttribute("ARRAY", array);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("BOMDES", bomdesc);
                 }
 
                 doc.DocumentElement.SetAttribute("xmlns", namesp);
@@ -150,28 +156,7 @@ namespace WAT.Models
                 { ExternalDataCollector.FileDelete(ctrl, savename); }
                 doc.Save(savename);
 
-                var sb = new StringBuilder();
-                try
-                {
-                    var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile)+".csv");
-                    if (ExternalDataCollector.FileExist(ctrl, csvfile))
-                    { ExternalDataCollector.FileDelete(ctrl, csvfile); }
-                    
-                    sb.Append("X,Y,BIN,\r\n");
-                    foreach (var kv in selectxydict)
-                    {
-                        sb.Append(kv.Key.Replace(":::", ",") + "," + kv.Value + ",\r\n");
-                    }
-                    File.WriteAllText(csvfile, sb.ToString());
-                }
-                catch (Exception e) {
-                    WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:"+e.Message);
-                    try {
-                        var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile) + "-new.csv");
-                        File.WriteAllText(csvfile, sb.ToString());
-                    }
-                    catch (Exception f) { WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + f.Message); }
-                }
+
 
                 //try to write actual file
                 doc = new XmlDocument();
@@ -189,7 +174,10 @@ namespace WAT.Models
                 if (layoutnodes.Count > 0)
                 {
                     ((XmlElement)layoutnodes[0]).SetAttribute("BOMPN", bompn);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("FPN", fpn);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("PRODUCT", product);
                     ((XmlElement)layoutnodes[0]).SetAttribute("ARRAY", array);
+                    ((XmlElement)layoutnodes[0]).SetAttribute("BOMDES", bomdesc);
                 }
 
                 doc.DocumentElement.SetAttribute("xmlns", namesp);
@@ -198,25 +186,39 @@ namespace WAT.Models
                 { ExternalDataCollector.FileDelete(ctrl, savename); }
                 doc.Save(savename);
 
-                //foreach (var kv in passedbinxydict)
-                //{
-                //    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
-                //    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
-                //    { nd.SetAttribute("Q", "pass"); }
-                //}
-                //var nodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass']");
-                //foreach (XmlElement nd in nodes)
-                //{
-                //    nd.SetAttribute("BinCount", "666");
-                //}
 
-                //foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='240' and @Y='74']"))
-                //{
-                //    nd.ParentNode.RemoveChild(nd);
-                //}
-                //doc = new XmlDocument();
-                //doc.Load(diefile);
-                //doc.Save(Path.Combine(desfolder, Path.GetFileName(diefile)));
+                //write sample X,Y csv file for sharing
+                var sb = new StringBuilder();
+                try
+                {
+                    var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile) + ".csv");
+                    if (ExternalDataCollector.FileExist(ctrl, csvfile))
+                    { ExternalDataCollector.FileDelete(ctrl, csvfile); }
+
+                    sb.Append("X,Y,BIN,\r\n");
+                    foreach (var kv in selectxydict)
+                    {
+                        sb.Append(kv.Key.Replace(":::", ",") + "," + kv.Value + ",\r\n");
+                    }
+                    File.WriteAllText(csvfile, sb.ToString());
+                }
+                catch (Exception e)
+                {
+                    WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + e.Message);
+                    try
+                    {
+                        var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile) + "-new.csv");
+                        File.WriteAllText(csvfile, sb.ToString());
+                    }
+                    catch (Exception f) { WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + f.Message); }
+                }
+
+                var mapfile = Path.GetFileName(diefile);
+                //write sample X,Y database
+                StoreWaferSampleData(mapfile, wafer, selectxydict, array, bompn, fpn);
+                //write wafer related data
+                StoreWaferPassBinData(mapfile, wafer, selectxydict,passedbinxydict, array, bompn, fpn,bomdesc,product);
+
             }
             catch (Exception ex) {
                 WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + ex.Message);
@@ -224,6 +226,83 @@ namespace WAT.Models
             }
 
             return true;
+        }
+
+        private static void StoreWaferSampleData(string mapfile, string wafer, Dictionary<string, string> selectxy, string array,string mpn,string fpn)
+        {
+            var sql = "delete from WaferSampleData where MAPFILE = '<MAPFILE>'";
+            sql = sql.Replace("<MAPFILE>", mapfile);
+            DBUtility.ExeLocalSqlNoRes(sql);
+
+            var updatetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            foreach (var kv in selectxy)
+            {
+                var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var x = xystr[0];
+                var y = xystr[1];
+                sql = "insert into WaferSampleData(WAFER,X,Y,BIN,MPN,FPN,PArray,MAPFILE,UpdateTime) values(@WAFER,@X,@Y,@BIN,@MPN,@FPN,@PArray,@MAPFILE,@UpdateTime)";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@WAFER",wafer);
+                dict.Add("@X",x);
+                dict.Add("@Y",y);
+                dict.Add("@BIN",kv.Value);
+                dict.Add("@MPN",mpn);
+                dict.Add("@FPN",fpn);
+                dict.Add("@PArray", array);
+                dict.Add("@MAPFILE",mapfile);
+                dict.Add("@UpdateTime", updatetime);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+            }
+        }
+
+
+        private static void StoreWaferPassBinData(string mapfile, string wafer, Dictionary<string, string> selectxy, Dictionary<string, string> passxy, string array, string mpn, string fpn,string pdesc,string product)
+        {
+            var sql = "delete from WaferPassBinData where MAPFILE = '<MAPFILE>'";
+            sql = sql.Replace("<MAPFILE>", mapfile);
+            DBUtility.ExeLocalSqlNoRes(sql);
+
+            var channel = Convert.ToInt32(array.Replace("1X", ""));
+            var passbincountdict = new Dictionary<string, int>();
+            foreach (var kv in passxy)
+            {
+                if (passbincountdict.ContainsKey(kv.Value))
+                {passbincountdict[kv.Value] += 1;}
+                else
+                {passbincountdict.Add(kv.Value, 1);}
+            }
+
+            var samplecountdict = new Dictionary<string, int>();
+            foreach (var kv in selectxy)
+            {
+                if (samplecountdict.ContainsKey(kv.Value))
+                {samplecountdict[kv.Value] += channel;}
+                else
+                {samplecountdict.Add(kv.Value, channel);}
+            }
+
+            var updatetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            foreach (var binkv in passbincountdict)
+            {
+                var bincount = binkv.Value;
+                if (samplecountdict.ContainsKey(binkv.Key))
+                { bincount = bincount - samplecountdict[binkv.Key]; }
+
+                sql = "insert into WaferPassBinData(WAFER,MPN,FPN,PArray,PDesc,Product,BIN,BINCount,MAPFILE,UpdateTime) values(@WAFER,@MPN,@FPN,@PArray,@PDesc,@Product,@BIN,@BINCount,@MAPFILE,@UpdateTime)";
+
+                var dict = new Dictionary<string, string>();
+                dict.Add("@WAFER", wafer);
+                dict.Add("@MPN", mpn);
+                dict.Add("@FPN", fpn);
+                dict.Add("@PArray", array);
+                dict.Add("@PDesc", pdesc);
+                dict.Add("@Product", product);
+                dict.Add("@BIN",binkv.Key);
+                dict.Add("@BINCount",bincount.ToString());
+                dict.Add("@MAPFILE", mapfile);
+                dict.Add("@UpdateTime", updatetime);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+            }
         }
 
         public static List<string> GetBomPNArrayInfo(string diefile)
@@ -234,18 +313,20 @@ namespace WAT.Models
             doc = StripNamespace(doc);
             XmlElement root = doc.DocumentElement;
 
-            var layoutnodes = root.SelectNodes("//Layout[@BOMPN and @ARRAY]");
+            var layoutnodes = root.SelectNodes("//Layout[@BOMPN and @ARRAY and @BOMDES]");
             if (layoutnodes.Count > 0)
             {
                 var pn = ((XmlElement)layoutnodes[0]).GetAttribute("BOMPN");
                 var array = ((XmlElement)layoutnodes[0]).GetAttribute("ARRAY");
+                var desc = ((XmlElement)layoutnodes[0]).GetAttribute("BOMDES");
+
                 var tempvm = new List<string>();
-                tempvm.Add(pn);tempvm.Add(array);
+                tempvm.Add(pn);tempvm.Add(array);tempvm.Add(desc);
                 return tempvm;
             }
 
             var ret = new List<string>();
-            ret.Add("");ret.Add("");
+            ret.Add("");ret.Add(""); ret.Add(""); ret.Add("");
             return ret;
         }
 
@@ -465,14 +546,17 @@ namespace WAT.Models
             if (pnlist.Count > 0)
             {
                 var pncond = "('" + string.Join("','", pnlist) + "')";
-                sql = "Select distinct PArray from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
+                sql = "Select distinct PArray,[Desc],MPN,FPN,Product from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
                 sql = sql.Replace("<pncond>", pncond);
                 dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
                 foreach (var line in dbret)
                 {
                     var tempvm = new List<string>();
                     tempvm.Add(Convert.ToString(line[0]).Trim().ToUpper());
-                    tempvm.AddRange(pnlist);
+                    tempvm.Add(Convert.ToString(line[1]).Trim().ToUpper());
+                    tempvm.Add(Convert.ToString(line[2]).Trim().ToUpper());
+                    tempvm.Add(Convert.ToString(line[3]).Trim().ToUpper());
+                    tempvm.Add(Convert.ToString(line[4]).Trim().ToUpper());
                     return tempvm;
                 }
 

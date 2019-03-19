@@ -66,7 +66,8 @@ namespace WAT.Controllers
                         sucess = true,
                         chartdata = chartdata,
                         pn = pnarrayinfo[0],
-                        warray = pnarrayinfo[1]
+                        warray = pnarrayinfo[1],
+                        desc = pnarrayinfo[2]
                     };
                     return ret;
                 }
@@ -106,7 +107,8 @@ namespace WAT.Controllers
                     sucess = true,
                     chartdata = chartdata,
                     pn = pnarrayinfo[0],
-                    warray = pnarrayinfo[1]
+                    warray = pnarrayinfo[1],
+                    desc = pnarrayinfo[2]
 
                 };
                 return ret;
@@ -174,7 +176,8 @@ namespace WAT.Controllers
                         ochartdata = ochartdata,
                         nchartdata = nchartdata,
                         pn = pnarrayinfo[0],
-                        warray = pnarrayinfo[1]
+                        warray = pnarrayinfo[1],
+                        desc = pnarrayinfo[2]
                     };
                     return ret;
                 }
