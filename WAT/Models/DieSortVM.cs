@@ -81,6 +81,11 @@ namespace WAT.Models
                 doc = StripNamespace(doc);
                 XmlElement root = doc.DocumentElement;
 
+                var bin1exist = false;
+                var bin1nodes = root.SelectNodes("//BinDefinition[@BinCode='1']");
+                if (bin1nodes.Count > 0)
+                { bin1exist = true; }
+
                 var wafer = "";
                 var wfnodes = root.SelectNodes("//Substrate[@SubstrateId]");
                 if (wfnodes.Count > 0)
@@ -167,7 +172,12 @@ namespace WAT.Models
                 {
                     var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
-                    { nd.InnerText = "A"; }
+                    {
+                        if (bin1exist)
+                        { nd.InnerText = "A"; }
+                        else
+                        { nd.InnerText = "1"; }
+                    }
                 }
 
                 layoutnodes = root.SelectNodes("//Layout[@LayoutId]");
