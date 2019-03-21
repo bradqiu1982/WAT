@@ -31,16 +31,16 @@ namespace WAT
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             try
             {
-                //if (!IsDebug())
-                //{
-                //    using (Process myprocess = new Process())
-                //    {
-                //        myprocess.StartInfo.FileName = Path.Combine(System.Web.Hosting.HostingEnvironment.ApplicationPhysicalPath, @"Scripts\HeartBeatWAT.exe").Replace("\\", "/");
-                //        //System.Windows.MessageBox.Show(myprocess.StartInfo.FileName);
-                //        //myprocess.StartInfo.CreateNoWindow = true;
-                //        myprocess.Start();
-                //    }
-                //}
+                if (!IsDebug())
+                {
+                    using (Process myprocess = new Process())
+                    {
+                        myprocess.StartInfo.FileName = Path.Combine(System.Web.Hosting.HostingEnvironment.ApplicationPhysicalPath, @"Scripts\HeartBeatWAT.exe").Replace("\\", "/");
+                        //System.Windows.MessageBox.Show(myprocess.StartInfo.FileName);
+                        //myprocess.StartInfo.CreateNoWindow = true;
+                        myprocess.Start();
+                    }
+                }
             }
             catch (Exception ex)
             { }
