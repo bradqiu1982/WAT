@@ -15,6 +15,7 @@ namespace WAT.Controllers
             var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
             var fs = loadedfiledict.Keys.ToList();
             var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
             {
                 filelist = fs
