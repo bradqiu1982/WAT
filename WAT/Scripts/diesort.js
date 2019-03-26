@@ -248,7 +248,9 @@
                 zoomType: 'xy',
             },
             boost: {
-                useGPUTranslations: true
+                useGPUTranslations: true,
+                usePreallocated: true,
+                seriesThreshold: 1
             },
             xAxis:{
                 title: {

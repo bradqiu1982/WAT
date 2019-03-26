@@ -698,7 +698,8 @@ namespace WAT.Models
                 data = data,
                 boostThreshold = 100,
                 borderWidth = 0,
-                nullColor = "#EFEFEF"
+               nullColor = "#EFEFEF",
+               turboThreshold = 100
             });
 
             xlist.Sort();
