@@ -677,6 +677,10 @@
     <Content Include="Scripts\bootstrap\npm.js" />
     <Content Include="Scripts\canvg.js" />
     <Content Include="Scripts\copy2clipboard.js" />
+    <Content Include="Scripts\datatables\buttons.dataTables.min.css" />
+    <Content Include="Scripts\datatables\buttons.html5.min.js" />
+    <Content Include="Scripts\datatables\dataTables.buttons.min.js" />
+    <Content Include="Scripts\datatables\jszip.min.js" />
     <Content Include="Scripts\diesort.js" />
     <Content Include="Scripts\exporting.js" />
     <Content Include="Scripts\heartbeat.txt" />
@@ -729,6 +733,7 @@
     <Content Include="Views\Main\Index.cshtml" />
     <Content Include="Views\DieSort\ReviewDieSortedMapFile.cshtml" />
     <Content Include="Views\DieSort\CompareDieSortedMapFile.cshtml" />
+    <Content Include="Views\DieSort\DieSortFiailedConvertFiles.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

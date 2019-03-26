@@ -48,10 +48,51 @@ namespace WAT.Models
             SortLog(machine, username, "VISIT", msg);
         }
 
-        public static void Log(string msgtype,string msg)
+        public static void Log(string filename,string msgtype,string msg)
         {
-            SortLog("", "", msgtype, msg);
+            var sql = "select Name from WebLog where MSGType='IGNDIESORT' and Name = '<Name>'";
+            sql = sql.Replace("<Name>", filename);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
+            if (dbret.Count == 0)
+            {
+                SortLog("", filename, msgtype, msg);
+            }
         }
 
+        public static void UpdateIgnoreDieSort(string filename)
+        {
+            SortLog("", filename, "IGNDIESORT", "");
+        }
+
+        public static List<WebLog> GetFailedConvertFiles()
+        {
+            var ret = new List<WebLog>();
+
+            var sql = "select Name,MSG,UpdateTime from WebLog where MSGType='DIESORT' and Name not in (select distinct Name from WebLog where MSGType='IGNDIESORT') order by Name,UpdateTime desc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
+            foreach (var line in dbret)
+            {
+                ret.Add(new WebLog(Convert.ToString(line[0]), Convert.ToString(line[1]), Convert.ToDateTime(line[2]).ToString()));
+            }
+
+            return ret;
+        }
+
+
+        public WebLog() {
+            Name = "";
+            MSG = "";
+            UpdateTime = "";
+        }
+        public WebLog(string name,string msg,string updatetime)
+        {
+            Name = name;
+            MSG = msg;
+            UpdateTime = updatetime;
+        }
+
+        public string Name { set; get; }
+        public string MSG { set; get; }
+        public string UpdateTime { set; get; }
     }
 }

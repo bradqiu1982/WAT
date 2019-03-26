@@ -72,6 +72,8 @@ namespace WAT.Models
             var desfolder = syscfgdict["DIESORTSHARE"];
             var reviewfolder = syscfgdict["DIESORTREVIEW"];
 
+            var fs = Path.GetFileName(diefile);
+
             try
             {
                 //get modify information
@@ -89,14 +91,14 @@ namespace WAT.Models
                 }
                 if (string.IsNullOrEmpty(wafer))
                 {
-                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get wafer");
+                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get wafer");
                     return false;
                 }
 
-                var arrayinfo = GetArrayFromWafer(wafer);
+                var arrayinfo = GetArrayFromWafer(fs,wafer);
                 if (arrayinfo.Count == 0)
                 {
-                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get array info by wafer " + wafer);
+                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get array info by wafer " + wafer);
                     return false;
                 }
 
@@ -113,21 +115,21 @@ namespace WAT.Models
                 }
                 else
                 {
-                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get select count by array info DIESORTSAMPLE" + array);
+                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get select count by array info DIESORTSAMPLE" + array);
                     return false;
                 }
 
                 var passedbinxydict = GetPassedBinXYDict(root);
                 if (passedbinxydict.Count == 0)
                 {
-                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get good bin xy dict");
+                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get good bin xy dict");
                     return false;
                 }
 
                 var selectxydict = GetSelectedXYDict(passedbinxydict, selectcount,array);
                 if (selectxydict.Count == 0)
                 {
-                    WebLog.Log("DieSort", "fail to convert file:" + diefile + ", fail to get sample xy dict");
+                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get sample xy dict");
                     return false;
                 }
 
@@ -206,13 +208,13 @@ namespace WAT.Models
                 }
                 catch (Exception e)
                 {
-                    WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + e.Message);
+                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + " reason:" + e.Message);
                     try
                     {
                         var csvfile = Path.Combine(reviewfolder, Path.GetFileName(diefile) + "-new.csv");
                         File.WriteAllText(csvfile, sb.ToString());
                     }
-                    catch (Exception f) { WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + f.Message); }
+                    catch (Exception f) { WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + " reason:" + f.Message); }
                 }
 
                 var mapfile = Path.GetFileName(diefile);
@@ -223,7 +225,7 @@ namespace WAT.Models
 
             }
             catch (Exception ex) {
-                WebLog.Log("DieSort", "fail to convert file:" + diefile + " reason:" + ex.Message);
+                WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + " reason:" + ex.Message);
                 return false;
             }
 
@@ -495,7 +497,7 @@ namespace WAT.Models
             return ret;
         }
 
-        private static List<string> GetArrayFromWafer(string wafer)
+        private static List<string> GetArrayFromWafer(string fs,string wafer)
         {
             var sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
                             select ProductBaseId from  [InsiteDB].[insite].Product
@@ -562,11 +564,11 @@ namespace WAT.Models
                     return tempvm;
                 }
 
-                WebLog.Log("DieSort", "fail to get array by pn " + pncond);
+                WebLog.Log(fs,"DIESORT", "fail to get array by pn " + pncond);
             }
             else
             {
-                WebLog.Log("DieSort", "fail to get pn by wafer " + wafer);
+                WebLog.Log(fs,"DIESORT", "fail to get pn by wafer " + wafer);
             }
 
             return new List<string>();

@@ -40,7 +40,7 @@ namespace WAT.Controllers
 
             if (!loadedfiledict.ContainsKey(fs))
             {
-                WebLog.Log("DieSort", "try to review file:" + fs + ", has not been converted");
+                WebLog.Log(fs,"DIESORT", "try to review file:" + fs + ", has not been converted");
 
                 var ret = new JsonResult();
                 ret.Data = new
@@ -74,7 +74,7 @@ namespace WAT.Controllers
                 }
                 else
                 {
-                    WebLog.Log("DieSort", "try to review file:" + fs + ", not exist in review folder");
+                    WebLog.Log(fs,"DIESORT", "try to review file:" + fs + ", not exist in review folder");
 
                     var ret = new JsonResult();
                     ret.Data = new
@@ -116,7 +116,7 @@ namespace WAT.Controllers
             }
             else
             {
-                WebLog.Log("DieSort", "fail to re-construct file:" + fs );
+                WebLog.Log(fs,"DIESORT", "fail to re-construct file:" + fs );
 
                 var ret = new JsonResult();
                 ret.Data = new
@@ -143,7 +143,7 @@ namespace WAT.Controllers
 
             if (!loadedfiledict.ContainsKey(fs))
             {
-                WebLog.Log("DieSort", "try to compare file:" + fs+", has not been converted");
+                WebLog.Log(fs,"DIESORT", "try to compare file:" + fs+", has not been converted");
 
                 var ret = new JsonResult();
                 ret.Data = new
@@ -194,6 +194,30 @@ namespace WAT.Controllers
             }//end else
         }
 
+        public JsonResult UpdateIgnoreDieSort()
+        {
+            var fs = Request.Form["fs"].ToUpper();
+            WebLog.UpdateIgnoreDieSort(fs);
+            var ret = new JsonResult();
+            ret.Data = new { sucess = true };
+            return ret;
+        }
+
+        public JsonResult GetFailedConvertFile()
+        {
+            var datalist = WebLog.GetFailedConvertFiles();
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new {
+                datalist = datalist
+            };
+            return ret;
+        }
+
+        public ActionResult DieSortFiailedConvertFiles()
+        {
+            return View();
+        }
 
     }
 

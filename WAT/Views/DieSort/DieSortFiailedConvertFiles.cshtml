@@ -1,0 +1,35 @@
+﻿
+@{
+    ViewBag.Title = "DieSortFiailedConvertFiles";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/diesort.js"></script>
+<script type="text/javascript">
+        $(function(){
+            DIESORT.MANAGEINIT();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+            </div>
+            <div class="v-content">
+                <table class="table table-hover  table-condensed table-striped" id="diesorttable" style="margin-top:1%">
+                    <caption class="tb-caption">DieSort File Failed Info</caption>
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>MSG</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="diesortcontent"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

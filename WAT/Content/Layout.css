@@ -352,3 +352,10 @@ red{
     margin-top:2%;
     margin: 20px;
 }
+
+.tb-caption {
+    text-align: center;
+    font-size: 20px;
+    color: #000;
+    font-weight: bold;
+}

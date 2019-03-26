@@ -184,6 +184,59 @@
 
     }
 
+    var managediesort = function ()
+    {
+        var diesorttable = null;
+        function searchdata() {
+            $.post('/DieSort/GetFailedConvertFile',
+                {},
+                function (output) {
+
+                    if (diesorttable) {
+                        diesorttable.destroy();
+                        diesorttable = null;
+                    }
+                    $("#diesortcontent").empty();
+
+                    $.each(output.datalist, function (i, val) {
+                        $("#diesortcontent").append('<tr>' +
+                            '<td>' + val.Name + '</td>' +
+                            '<td>' + val.MSG + '</td>' +
+                            '<td>' + val.UpdateTime + '</td>' +
+                            '<td><button class = "btn btn-primary action" fs= "' + val.Name + '">Action</button></td>'
+                            + '</tr>');
+                    });
+
+                    diesorttable = $('#diesorttable').DataTable({
+                        'iDisplayLength': 50,
+                        'aLengthMenu': [[20, 50, 100, -1],
+                        [20, 50, 100, "All"]],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+                });
+        }
+
+        $(function () {
+            searchdata();
+        });
+
+        $('body').on('click', '.action', function () {
+            var fs = $(this).attr('fs');
+            if (confirm('Do you really want to ignore file:' + fs + ' ?'))
+            {
+                $.post('/DieSort/UpdateIgnoreDieSort',
+                    {fs:fs},
+                    function (output) {
+                        window.location.reload(true);
+                    });
+            }
+        });
+
+    }
+
     var drawdiesortmap = function (line_data)
     {
         var options = {
@@ -287,6 +340,9 @@
         },
         COMPAREINIT: function () {
             comparediesort();
+        },
+        MANAGEINIT: function () {
+            managediesort();
         }
     }
 }();
