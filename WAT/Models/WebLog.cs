@@ -50,9 +50,11 @@ namespace WAT.Models
 
         public static void Log(string filename,string msgtype,string msg)
         {
-            var sql = "select Name from WebLog where MSGType='IGNDIESORT' and Name = '<Name>'";
-            sql = sql.Replace("<Name>", filename);
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
+            var sql = "select Name from WebLog where MSGType='IGNDIESORT' and Name = @Name";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@Name", filename);
+
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, null,dict);
             if (dbret.Count == 0)
             {
                 SortLog("", filename, msgtype, msg);
@@ -78,6 +80,21 @@ namespace WAT.Models
             return ret;
         }
 
+        public static bool CheckEmailRecord(string fs, string emailtype)
+        {
+            var sql = "select Name from WebLog where MSGType=@MSGType and Name = @Name";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@MSGType", emailtype);
+            dict.Add("@Name", fs);
+
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, null, dict);
+            if (dbret.Count == 0)
+            {
+                SortLog("", fs, emailtype,"");
+                return false;
+            }
+            return true;
+        }
 
         public WebLog() {
             Name = "";

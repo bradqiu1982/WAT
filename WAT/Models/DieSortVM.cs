@@ -66,9 +66,135 @@ namespace WAT.Models
             return false;
         }
 
+
+        private static void CleanWaferSrcData(string fs)
+        {
+            var sql = "delete from WaferSrcData where MAPFILE = @MAPFILE";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@MAPFILE", fs);
+            DBUtility.ExeLocalSqlNoRes(sql,dict);
+        }
+
+        private static void StoreWaferSrcData(string MAPFILE, string WAFER, string BinCode
+            , string BinCount, string BinQuality, string BinDescription, string Pick, string Yield,string LayoutId,string BinRate)
+        {
+            var sql = @"insert into WaferSrcData(MAPFILE,WAFER,BinCode,BinCount,BinQuality,BinDescription,Pick,Yield,LayoutId,BinRate,UpdateTime) 
+                         values(@MAPFILE,@WAFER,@BinCode,@BinCount,@BinQuality,@BinDescription,@Pick,@Yield,@LayoutId,@BinRate,@UpdateTime)";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@MAPFILE", MAPFILE);
+            dict.Add("@WAFER", WAFER);
+            dict.Add("@BinCode", BinCode);
+            dict.Add("@BinCount", BinCount);
+            dict.Add("@BinQuality", BinQuality);
+            dict.Add("@BinDescription", BinDescription);
+            dict.Add("@Pick", Pick);
+            dict.Add("@Yield", Yield);
+            dict.Add("@LayoutId", LayoutId);
+            dict.Add("@BinRate", BinRate);
+            dict.Add("@UpdateTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
+
+        private static bool CheckSourceFile(XmlElement root,string fs, Controller ctrl)
+        {
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+            var towho = syscfgdict["DIESORTWARINGLIST"].Split(new string[] { ";" },StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            var wafer = "";
+            var wfnodes = root.SelectNodes("//Substrate[@SubstrateId]");
+            if (wfnodes.Count > 0)
+            {
+                wafer = ((XmlElement)wfnodes[0]).GetAttribute("SubstrateId").Trim();
+            }
+
+            var layoutid = "";
+            var layoutnodes = root.SelectNodes("//Layout[@LayoutId]");
+            if (layoutnodes.Count > 0)
+            {
+                layoutid = ((XmlElement)layoutnodes[0]).GetAttribute("LayoutId").Trim();
+            }
+
+            var goodbin = 0;
+            var allbin = 0;
+
+            var binnodes = root.SelectNodes("//BinDefinition[@BinCode and @BinCount and @BinQuality and @BinDescription and @Pick]");
+            foreach (XmlElement node in binnodes)
+            {
+                try
+                {
+                    var BinCount = node.GetAttribute("BinCount");
+                    var BinQuality = node.GetAttribute("BinQuality");
+                    allbin += Convert.ToInt32(BinCount);
+                    if (string.Compare(BinQuality, "pass", true) == 0)
+                    { goodbin += Convert.ToInt32(BinCount); }
+                }
+                catch (Exception ex) { }
+            }
+
+            if (allbin == 0)
+            {
+                if (!WebLog.CheckEmailRecord(fs, "EM-BINCOUNT0"))
+                {
+                    EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " FATAL ERROR", towho, "Detail: Failed to get any Bin count");
+                    new System.Threading.ManualResetEvent(false).WaitOne(300);
+                }
+                WebLog.Log(fs, "DIESORT", "fail to check source file,all bin count is 0!");
+                return false;
+            }
+
+            var yield = (double)goodbin / (double)allbin * 100.0;
+            var yieldstr = Math.Round(yield, 2).ToString();
+            if (yield < 80.0)
+            {
+                if (!WebLog.CheckEmailRecord(fs, "EM-YIELD"))
+                {
+                    EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " WARNING", towho, "Detail:  Wafer yield is less than 80%, it is " + yieldstr + "%");
+                    new System.Threading.ManualResetEvent(false).WaitOne(300);
+                }
+            }
+
+
+            CleanWaferSrcData(fs);
+            foreach (XmlElement node in binnodes)
+            {
+                try
+                {
+                    var BinCode = node.GetAttribute("BinCode");
+                    var BinCount = node.GetAttribute("BinCount");
+                    var BinQuality = node.GetAttribute("BinQuality");
+                    var BinDescription = node.GetAttribute("BinDescription");
+                    var Pick = node.GetAttribute("Pick");
+                        
+                    var c = Convert.ToInt32(BinCount);
+                    var binrate = Math.Round( (double)c / (double)allbin * 100.0,2).ToString();
+                    StoreWaferSrcData(fs, wafer, BinCode, BinCount, BinQuality, BinDescription, Pick, yieldstr,layoutid,binrate);
+                }
+                catch (Exception ex) { }
+            }
+
+            var bin1nodes = root.SelectNodes("//BinDefinition[@BinCode='1']");
+            if (bin1nodes.Count > 0)
+            {
+                if (!WebLog.CheckEmailRecord(fs, "EM-BIN1"))
+                {
+                    EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " FATAL ERROR", towho, "Detail: Wafer contains BIN 1 ");
+                    new System.Threading.ManualResetEvent(false).WaitOne(300);
+                }
+
+                WebLog.Log(fs, "DIESORT", "fail to check source file,bin 1 exist");
+                return false;
+            }
+
+            return true;
+        }
+
+
         private static bool SolveDieSortFile(string diefile, Controller ctrl)
         {
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+            var towho = syscfgdict["DIESORTWARINGLIST"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
             var desfolder = syscfgdict["DIESORTSHARE"];
             var reviewfolder = syscfgdict["DIESORTREVIEW"];
 
@@ -82,6 +208,9 @@ namespace WAT.Models
                 var namesp = doc.DocumentElement.GetAttribute("xmlns");
                 doc = StripNamespace(doc);
                 XmlElement root = doc.DocumentElement;
+
+                if (!CheckSourceFile(root, fs,ctrl))
+                { return false; }
 
                 var wafer = "";
                 var wfnodes = root.SelectNodes("//Substrate[@SubstrateId]");
@@ -98,6 +227,12 @@ namespace WAT.Models
                 var arrayinfo = GetArrayFromWafer(fs,wafer);
                 if (arrayinfo.Count == 0)
                 {
+                    if (!WebLog.CheckEmailRecord(fs, "EM-ARRAY"))
+                    {
+                        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " FATAL ERROR", towho, "Detail: Fail to get array info by wafer " + wafer);
+                        new System.Threading.ManualResetEvent(false).WaitOne(300);
+                    }
+
                     WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get array info by wafer " + wafer);
                     return false;
                 }
@@ -115,13 +250,25 @@ namespace WAT.Models
                 }
                 else
                 {
-                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get select count by array info DIESORTSAMPLE" + array);
+                    if (!WebLog.CheckEmailRecord(fs, "EM-CFG"))
+                    {
+                        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " FATAL ERROR", towho, "Detail: Fail to get configured select count by array info DIESORTSAMPLE" + array);
+                        new System.Threading.ManualResetEvent(false).WaitOne(300);
+                    }
+
+                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get configured select count by array info DIESORTSAMPLE" + array);
                     return false;
                 }
 
                 var passedbinxydict = GetPassedBinXYDict(root);
                 if (passedbinxydict.Count == 0)
                 {
+                    if (!WebLog.CheckEmailRecord(fs, "EM-PASSBIN"))
+                    {
+                        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " FATAL ERROR", towho, "Detail: Fail to get good bin xy dict");
+                        new System.Threading.ManualResetEvent(false).WaitOne(300);
+                    }
+
                     WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get good bin xy dict");
                     return false;
                 }
@@ -129,6 +276,12 @@ namespace WAT.Models
                 var selectxydict = GetSelectedXYDict(passedbinxydict, selectcount,array);
                 if (selectxydict.Count == 0)
                 {
+                    if (!WebLog.CheckEmailRecord(fs, "EM-SELECT"))
+                    {
+                        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " FATAL ERROR", towho, "Detail: Fail to get sample xy dict");
+                        new System.Threading.ManualResetEvent(false).WaitOne(300);
+                    }
+
                     WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get sample xy dict");
                     return false;
                 }
@@ -170,7 +323,7 @@ namespace WAT.Models
                     var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
                     {
-                        nd.InnerText = "A";
+                        nd.InnerText = "1";
                     }
                 }
 
