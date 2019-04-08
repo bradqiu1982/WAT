@@ -13,7 +13,7 @@ namespace WAT.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@AppV_A", filename);
             dict.Add("@AppV_B", filetype);
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql,null, dict);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             if (dbret.Count == 0)
             {
                 sql = "insert into FileLoadedData(AppV_A,AppV_B,databackuptm) values(@AppV_A,@AppV_B,@databackuptm)";
@@ -33,7 +33,7 @@ namespace WAT.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@AppV_B", filetype);
 
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql,null, dict);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
                 ret.Add(Convert.ToString(line[0]), true);

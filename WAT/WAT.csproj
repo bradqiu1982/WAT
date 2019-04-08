@@ -191,6 +191,7 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Controllers\DieSortController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\WaferController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -202,6 +203,9 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\WaferPN.cs" />
+    <Compile Include="Models\WaferQUALVM.cs" />
+    <Compile Include="Models\WaferReport.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -702,6 +706,7 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\waferqual.js" />
     <Content Include="Scripts\WAT-db-script.txt" />
     <Content Include="Scripts\WATCfg.txt" />
     <Content Include="Scripts\WATsheartbeat.txt" />
@@ -735,6 +740,7 @@
     <Content Include="Views\DieSort\ReviewDieSortedMapFile.cshtml" />
     <Content Include="Views\DieSort\CompareDieSortedMapFile.cshtml" />
     <Content Include="Views\DieSort\DieSortFiailedConvertFiles.cshtml" />
+    <Content Include="Views\Wafer\WaferQUAL.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

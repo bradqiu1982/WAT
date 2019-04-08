@@ -54,5 +54,12 @@ namespace WAT.Controllers
 
             return View();
         }
+
+        public ActionResult LoadWaferQUAL()
+        {
+            WaferQUALVM.LoadNewWaferFromMES();
+            WaferQUALVM.LoadWUXIWaferQUAL();
+            return View("HeartBeat");
+        }
     }
 }

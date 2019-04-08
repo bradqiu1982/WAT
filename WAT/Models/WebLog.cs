@@ -54,7 +54,7 @@ namespace WAT.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@Name", filename);
 
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, null,dict);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql,dict);
             if (dbret.Count == 0)
             {
                 SortLog("", filename, msgtype, msg);
@@ -87,7 +87,7 @@ namespace WAT.Models
             dict.Add("@MSGType", emailtype);
             dict.Add("@Name", fs);
 
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, null, dict);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             if (dbret.Count == 0)
             {
                 SortLog("", fs, emailtype,"");

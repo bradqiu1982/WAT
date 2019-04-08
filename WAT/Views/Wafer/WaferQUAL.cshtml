@@ -1,0 +1,32 @@
+﻿
+@{
+    ViewBag.Title = "WaferQUAL";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/waferqual.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WAFERQUAL.init();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+
+                </div>
+            </div>
+            <div class="v-content">
+                <table class="table table-hover  table-condensed table-striped" id="wafertable" style="margin-top:1%">
+                    <caption class="tb-caption">WAFER QUAL</caption>
+                    <thead id="waferhead"></thead>
+                    <tbody id="wafercontent"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
