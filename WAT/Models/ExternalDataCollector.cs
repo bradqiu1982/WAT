@@ -162,7 +162,7 @@ namespace WAT.Models
 
         }
 
-        private static void FileCopy(Controller ctrl, string src, string des, bool overwrite, bool checklocal = false)
+        public static void FileCopy(Controller ctrl, string src, string des, bool overwrite, bool checklocal = false)
         {
             try
             {

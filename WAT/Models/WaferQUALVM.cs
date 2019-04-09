@@ -208,7 +208,7 @@ namespace WAT.Models
                 if (vdict.ContainsKey(vm.PN))
                 {
                     vm.VArray = vdict[vm.PN].PArray;
-                    vm.VRate = vdict[vm.PN].Desc;
+                    vm.VRate = vdict[vm.PN].Desc.Split(new string[] {",","-" },StringSplitOptions.RemoveEmptyEntries)[0];
                     vm.VTech = vdict[vm.PN].Tech;
                 }
             }

@@ -17,3 +17,5 @@ DIESORTSHARE:::\\wux-engsys01.china.ads.finisar.com\DieSortingNew
 DIESORTSAMPLE1X1:::170
 DIESORTSAMPLE1X4:::120
 DIESORTSAMPLE1X12:::100
+
+WAFERQUALREPORT:::\\wux-engsys01.china.ads.finisar.com

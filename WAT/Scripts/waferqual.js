@@ -1,6 +1,6 @@
 ﻿var WAFERQUAL = function () {
     var show = function () {
-        $('.date').datepicker({ autoclose: true, viewMode: "months", minViewMode: "months" });
+        $('.date').datepicker({ autoclose: true, viewMode: "months", minViewMode: "months", pickerPosition: "bottom-left" });
         var wafertable = null;
 
         function searchdata() {
@@ -46,10 +46,14 @@
 
                 $.each(output.waferdata, function (i, val) {
                     var reportcell = '<td></td>';
+                    var yieldcell = '<td></td>';
+                    var totalcell = '<td></td>';
                     if (val.WXQUALPass != val.WXQUALTotal)
-                    {
-                        reportcell = '<td><button class = "btn btn-primary action" myid= "' + val.WaferNum + '">Report</button></td>'
-                    }
+                    { reportcell = '<td><button class = "btn btn-primary btn-waferreport" myid= "' + val.WaferNum + '">Report</button></td>' }
+                    if (val.WXQUALYield != '')
+                    { yieldcell = '<td>' + val.WXQUALYield + '%</td>'; }
+                    if (val.WXQUALTotal != 0)
+                    { totalcell = '<td>' + val.WXQUALTotal + '</td>'; }
 
                     $("#wafercontent").append(
                         '<tr>' +
@@ -59,8 +63,8 @@
                             '<td>' + val.VArray + '</td>' +
                             '<td>' + val.VRate + '</td>' +
                             '<td>' + val.VTech + '</td>' +
-                            '<td>' + val.WXQUALYield + '</td>' +
-                            '<td>' + val.WXQUALTotal + '</td>' +
+                            yieldcell +
+                            totalcell +
                             reportcell +
                         '</tr>'
                         );

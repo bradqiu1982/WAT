@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -53,6 +54,50 @@ namespace WAT.Controllers
             return ret;
         }
 
+        private void CopyFileToLocal(string src)
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var startidx = 0;
+            while (src.IndexOf("/userfiles/", startidx) != -1)
+            {
+                var imgsidx = src.IndexOf("/userfiles/", startidx);
+                var imgeidx = src.IndexOf("target", imgsidx);
+                if (imgeidx != -1)
+                {
+                    startidx = imgeidx;
+                    imgeidx = imgeidx + 1;
+                    var imgstr = src.Substring(imgsidx, (imgeidx - imgsidx - 1));
+                    var url = imgstr.Replace("\"", "").Trim();
+
+                    var sharefile = syscfg["WAFERQUALREPORT"] + url.Replace("/", "\\");
+                    var fn = Path.GetFileName(sharefile);
+
+
+                    var folders = url.Split(new string[] { "/" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                    if (url.Contains("/docs/"))
+                    {
+                        string imgdir = Server.MapPath("~/userfiles") + "\\docs\\" + folders[folders.Count - 2] + "\\";
+                        if (!Directory.Exists(imgdir))
+                        { Directory.CreateDirectory(imgdir); }
+                        ExternalDataCollector.FileCopy(this, sharefile, imgdir + fn, false);
+                    }
+                    else if (url.Contains("/images/"))
+                    {
+                        string imgdir = Server.MapPath("~/userfiles") + "\\images\\" + folders[folders.Count - 2] + "\\";
+                        if (!Directory.Exists(imgdir))
+                        { Directory.CreateDirectory(imgdir); }
+                        ExternalDataCollector.FileCopy(this, sharefile, imgdir + fn, false);
+                    }
+                }
+                else
+                {
+                    startidx = imgsidx + 3;
+                }
+            }
+        }
+
+
         public JsonResult WaferQUALReport()
         {
             var wkey = Request.Form["wkey"];
@@ -77,6 +122,7 @@ namespace WAT.Controllers
             }
             else
             {
+                CopyFileToLocal(wreportlist[0].Comment);
                 var report = new
                 {
                     time = wreportlist[0].CommentDate.ToString("yyyy-MM-dd HH:mm:ss"),

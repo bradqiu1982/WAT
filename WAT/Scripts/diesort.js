@@ -203,7 +203,7 @@
                             '<td>' + val.Name + '</td>' +
                             '<td>' + val.MSG + '</td>' +
                             '<td>' + val.UpdateTime + '</td>' +
-                            '<td><button class = "btn btn-primary action" fs= "' + val.Name + '">Action</button></td>'
+                            '<td><button class = "btn btn-primary action" fs= "' + val.Name + '">Ignore</button></td>'
                             + '</tr>');
                     });
 
