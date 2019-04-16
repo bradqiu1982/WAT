@@ -11,6 +11,19 @@
         })
 </script>
 
+<style type="text/css">
+    .allenrawdatacla {
+        cursor:pointer;
+    }
+    .smallth {
+        padding: 10px 8px!important;
+    }
+
+    .smalltd {
+        padding: 8px 5px!important;
+    }
+</style>
+
 <div class="row" style="margin-top:10px;">
     <div class="col-xs-12">
         <div class="v-container">
@@ -54,7 +67,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="boxplot-alert" tabindex="-1" role="dialog" style="margin-top:10%">
+<div class="modal fade" id="wxwaferreport" tabindex="-1" role="dialog" style="margin-top:10%">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -85,6 +98,27 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" id="btn-wf-cancel" name="btn-wf-cancel" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="allenrawdatamd" tabindex="-1" role="dialog" style="margin-top:10%">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">ALLEN RAW DATA</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-hover  table-condensed table-striped" id="allentable" style="margin-top:1%">
+                    <caption class="tb-caption">ALLEN RAW DATA</caption>
+                    <thead id="allenhead"></thead>
+                    <tbody id="allencontent"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="btn-al-cancel" name="btn-al-cancel" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

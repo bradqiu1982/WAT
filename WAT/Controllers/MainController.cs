@@ -61,5 +61,12 @@ namespace WAT.Controllers
             WaferQUALVM.LoadWUXIWaferQUAL();
             return View("HeartBeat");
         }
+
+        public ActionResult LoadAllenData()
+        {
+            AllenEVALData.LoadAllenData();
+            return View("HeartBeat");
+        }
+
     }
 }

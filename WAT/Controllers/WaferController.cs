@@ -141,7 +141,18 @@ namespace WAT.Controllers
         }
 
 
-
+        public JsonResult AllenRawData()
+        {
+            var wf = Request.Form["wf"];
+            var waferdata = AllenEVALData.RetriewAllenData(wf);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                waferdata = waferdata
+            };
+            return ret;
+        }
 
 
     }

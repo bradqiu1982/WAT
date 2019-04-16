@@ -189,7 +189,7 @@ namespace WAT.Models
             var vdict = WaferPN.GetVcselDict();
             var ret = new List<WaferQUALVM>();
 
-            var sql = "select WaferNum,ComingDate,PN,WXQUALPass,WXQUALTotal from WaferQUALVM where ComingDate > '<startdate>' and ComingDate < '<enddate>' order by ComingDate desc";
+            var sql = "select WaferNum,ComingDate,PN,WXQUALPass,WXQUALTotal,AllenValCheck,AllenWATResult from WaferQUALVM where ComingDate > '<startdate>' and ComingDate < '<enddate>' order by ComingDate desc";
             sql = sql.Replace("<startdate>", startdate).Replace("<enddate>", enddate);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
@@ -200,6 +200,8 @@ namespace WAT.Models
                 tempvm.PN = Convert.ToString(line[2]);
                 tempvm.WXQUALPass = Convert.ToInt32(line[3]);
                 tempvm.WXQUALTotal = Convert.ToInt32(line[4]);
+                tempvm.AllenValCheck = Convert.ToString(line[5]);
+                tempvm.AllenWATResult = Convert.ToString(line[6]);
                 ret.Add(tempvm);
             }
 
@@ -213,6 +215,27 @@ namespace WAT.Models
                 }
             }
             return ret;
+        }
+
+        public static List<string> LoadToDoAllenWafers()
+        {
+            var ret = new List<string>();
+            var sql = "select distinct WaferNum FROM WaferQUALVM where AllenValCheck = '' order by WaferNum desc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                ret.Add(Convert.ToString(line[0]));
+            }
+            return ret;
+        }
+
+        public static void UpdateAllenWATData(string datafield, string dataval, string wafer)
+        {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafer);
+            dict.Add("@dataval", dataval);
+            var sql = "update WaferQUALVM set "+ datafield + " = @dataval where WaferNum=@WaferNum";
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
         public WaferQUALVM()
@@ -243,5 +266,8 @@ namespace WAT.Models
         public string VArray { set; get; }
         public string VRate { set; get; }
         public string VTech { set; get; }
+
+        public string AllenValCheck { set; get; }
+        public string AllenWATResult { set; get; }
     }
 }
