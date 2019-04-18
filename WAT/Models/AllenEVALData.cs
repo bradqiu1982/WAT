@@ -134,8 +134,6 @@ namespace WAT.Models
                       LEFT JOIN [EngrData].[dbo].[Wafer_Shipment] ship with(nolock) on ship.wafer=left(c.containername,9)
 
                       where left(c.containername,9) in ('<wafernum>') 
-                      AND Left(rj.runpkt,1) in ('1','2','3','4','5','6','7','8','9') 
-                      AND c.[containertype] in ('w','n','q','t','e','d') 
                        and (spc.LowerSpecLimit is not null or UpperSpecLimit is not null) and d.[TEST_VALUE] is not null
                        and WB.WORKFLOWNAME in ('Eval_VCSEL_50up_4inc','Eval_VCSEL_50up_3inc','Eval_VCSEL_ubDH_COB_4inc','Eval_VCSEL_HASTbDH_COB_2inc')
                       and exclusion = 0 order by d.[CONTAINER_NUMBER] ,d.[TIME_STAMP]";
@@ -159,6 +157,8 @@ namespace WAT.Models
 
             if (ret.Count > 0)
             { UpdateWaferQualStatus(wafer); }
+            else
+            { WaferQUALVM.UpdateAllenWATData("AllenNoData", "TRUE", wafer); }
 
             if (ret.Count > 0)
             { return true; }
@@ -309,6 +309,53 @@ namespace WAT.Models
             return ret;
         }
 
+        private void ApplyWATPassLogic()
+        {
+            ValueCheck = "PASS";
+            WATResult = "PASS";
+            var vl = Convert.ToDouble(TestValue);
+            if (!string.IsNullOrEmpty(LowLimit) && !string.IsNullOrEmpty(HighLimit))
+            {
+                var ll = Convert.ToDouble(LowLimit);
+                var hl = Convert.ToDouble(HighLimit);
+                if (vl >= ll && vl <= hl) { }
+                else
+                {
+                    ValueCheck = "FAIL";
+                    if (!WorkFlow.Contains("HASTbDH"))
+                    {
+                        WATResult = "FAIL";
+                    }
+                }
+            }
+            else if (!string.IsNullOrEmpty(LowLimit))
+            {
+                var ll = Convert.ToDouble(LowLimit);
+                if (vl >= ll) { }
+                else
+                {
+                    ValueCheck = "FAIL";
+                    if (!WorkFlow.Contains("HASTbDH"))
+                    {
+                        WATResult = "FAIL";
+                    }
+                }
+            }
+            else if (!string.IsNullOrEmpty(HighLimit))
+            {
+                var hl = Convert.ToDouble(HighLimit);
+                if (vl <= hl) { }
+                else
+                {
+                    ValueCheck = "FAIL";
+                    if (!WorkFlow.Contains("HASTbDH"))
+                    {
+                        WATResult = "FAIL";
+                    }
+                }
+            }
+        }
+
         public AllenEVALData(string waf,string cn,string tm,string cs,string ct,string pd,string pdt,string fab,string rnum,string rseq,
                                 string react,string bat,string bou,string ship,string tool,string tn,string param,string dcd,string wf,string wft,string val,
                                 string low,string high,string pn,string spcpn,string rp,string rpn,string un,string die,string x,string y,string wfv,string cu) {
@@ -346,45 +393,7 @@ namespace WAT.Models
             WorkFlowRev =   wfv;
             ContainerUnit =   cu;
 
-            ValueCheck = "PASS";
-            WATResult = "PASS";
-            var vl = Convert.ToDouble(TestValue);
-            if (!string.IsNullOrEmpty(low) && !string.IsNullOrEmpty(high))
-            {
-                var ll = Convert.ToDouble(low);
-                var hl = Convert.ToDouble(high);
-                if (vl >= ll && vl <= hl) { }
-                else {
-                    ValueCheck = "FAIL";
-                    if (!WorkFlow.Contains("HASTbDH")) {
-                        WATResult = "FAIL";
-                    }
-                }
-            }
-            else if(!string.IsNullOrEmpty(low))
-            {
-                var ll = Convert.ToDouble(low);
-                if (vl >= ll) { }
-                else {
-                    ValueCheck = "FAIL";
-                    if (!WorkFlow.Contains("HASTbDH"))
-                    {
-                        WATResult = "FAIL";
-                    }
-                }
-            }
-            else if (!string.IsNullOrEmpty(high))
-            {
-                var hl = Convert.ToDouble(high);
-                if (vl <= hl) { }
-                else {
-                    ValueCheck = "FAIL";
-                    if (!WorkFlow.Contains("HASTbDH"))
-                    {
-                        WATResult = "FAIL";
-                    }
-                }
-            }
+            ApplyWATPassLogic();
         }
 
         public AllenEVALData()

@@ -42,6 +42,7 @@
                             '<th>Allen-ValueCheck</th>' +
                             '<th>Allen-WAT</th>' +
                             '<th>Allen-RawData</th>' +
+                            '<th>Allen-Comment</th>' +
                             '<th>WXQUAL-Yield</th>' +
                             '<th>WXQUAL-QTY</th>' +
                             '<th>WUQUAL-Report</th>' +
@@ -52,6 +53,7 @@
                     var allenvalcheckcell = '<td>' + val.AllenValCheck + '</td>';
                     var allenwatrescell = '<td>' + val.AllenWATResult + '</td>';
                     var allenrawdatacell = '<td></td>';
+                    var allencommentcell = '<td></td>';
 
                     var reportcell = '<td></td>';
                     var yieldcell = '<td></td>';
@@ -60,6 +62,12 @@
                     if (val.AllenValCheck != '' && val.AllenValCheck != 'PASS')
                     {
                         allenvalcheckcell = '<td><font color="red">' + val.AllenValCheck + '</font></td>';
+                        if (val.AllenComment != '') {
+                            allencommentcell = '<td><span class="glyphicon glyphicon-comment viewallencomment" style="color:#00539f" aria-hidden="true" myid= "' + val.WaferNum + '"></span></td>';
+                        }
+                        else {
+                            allencommentcell = '<td><span class="glyphicon glyphicon-pencil addallencomment" style="color:#00539f" aria-hidden="true" myid= "' + val.WaferNum + '"></span></td>';
+                        }
                     }
 
                     if (val.AllenWATResult != '' && val.AllenWATResult != 'PASS') {
@@ -70,9 +78,16 @@
                     { allenrawdatacell = '<td class="allenrawdatacla" myid= "' + val.WaferNum + '">Raw Data</td>'; }
 
                     if (val.WXQUALPass != val.WXQUALTotal)
-                    { reportcell = '<td><button class = "btn btn-primary btn-waferreport" myid= "' + val.WaferNum + '">Report</button></td>' }
+                    { reportcell = '<td><span class="glyphicon glyphicon-blackboard btn-waferreport" myid= "' + val.WaferNum + '"></span></td>' }
                     if (val.WXQUALYield != '')
-                    { yieldcell = '<td>' + val.WXQUALYield + '%</td>'; }
+                    {
+                        if (val.WXQUALYield != '100')
+                        { yieldcell = '<td><font color="red">' + val.WXQUALYield + '%</font></td>'; }
+                        else
+                        { yieldcell = '<td>' + val.WXQUALYield + '%</td>'; }
+                        
+                    }
+
                     if (val.WXQUALTotal != 0)
                     { totalcell = '<td>' + val.WXQUALTotal + '</td>'; }
 
@@ -87,6 +102,7 @@
                             allenvalcheckcell +
                             allenwatrescell +
                             allenrawdatacell +
+                            allencommentcell +
                             yieldcell +
                             totalcell +
                             reportcell +
@@ -98,6 +114,9 @@
                     'iDisplayLength': 50,
                     'aLengthMenu': [[20, 50, 100, -1],
                     [20, 50, 100, "All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
                     "aaSorting": [],
                     "order": [],
                     dom: 'lBfrtip',
@@ -120,11 +139,14 @@
             $.post('/Wafer/WaferQUALReport', {
                 wkey: wkey
             }, function (output) {
+                
                 if (output.success) {
                     $('#rc-info').html(output.report.content);
                     $('#rc-reporter').html(output.report.reporter);
                     $('#rc-datetime').html(output.report.time);
                 }
+                $('#modifycomment').attr('myid', '');
+                $('#modifycomment').removeClass('hidden').addClass('hidden');
                 $('#wxwaferreport').modal('show');
             });
         })
@@ -194,6 +216,58 @@
             });
         })
 
+        $('body').on('click', '.addallencomment', function () {
+            var wf = $(this).attr('myid');
+            $('#HWafer').val(wf);
+            $('#allencommenteditor').modal('show');
+        })
+
+        $('body').on('click', '#allencmsubmit', function () {
+            var comment = CKEDITOR.instances.editor1.getData();
+            var wf = $('#HWafer').val();
+            if (comment != '' && wf != '') {
+                $.base64.utf8encode = true;
+                comment = $.base64.btoa(comment);
+                $.post('/Wafer/StoreAllenComment',
+                    {
+                        comment: comment,
+                        wf: wf
+                    },
+                    function (output) {
+                        window.location.reload(true);
+                    });
+            }
+        })
+
+        $('body').on('click', '.viewallencomment', function () {
+            var wf = $(this).attr('myid');
+            $.post('/Wafer/LoadAllenComment', {
+                wf: wf
+            }, function (output) {
+                $('#modifycomment').attr('myid', wf);
+                $('#modifycomment').removeClass('hidden');
+                $('#rc-info').html(output.comment);
+                $('#rc-reporter').html('');
+                $('#rc-datetime').html('');
+                $('#wxwaferreport').modal('show');
+            });
+        })
+
+        $('body').on('click', '#modifycomment', function () {
+            
+            var wf = $(this).attr('myid');
+            if (wf == '') { return false; }
+
+            $('#wxwaferreport').modal('hide');
+
+            $.post('/Wafer/LoadAllenComment', {
+                wf: wf
+            }, function (output) {
+                CKEDITOR.instances.editor1.setData(output.comment);
+                $('#HWafer').val(wf);
+                $('#allencommenteditor').modal('show');
+            });
+        })
 
     }
 

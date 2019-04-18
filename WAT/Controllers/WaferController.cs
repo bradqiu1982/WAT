@@ -154,6 +154,37 @@ namespace WAT.Controllers
             return ret;
         }
 
+        private string ParseJSBase64(string msg)
+        {
+            string dummyData = msg.Trim().Replace(" ", "+");
+            if (dummyData.Length % 4 > 0)
+                dummyData = dummyData.PadRight(dummyData.Length + 4 - dummyData.Length % 4, '=');
+
+            var bytes = Convert.FromBase64String(dummyData);
+            return System.Text.Encoding.UTF8.GetString(bytes);
+        }
+
+        public JsonResult StoreAllenComment()
+        {
+            var comment = ParseJSBase64(Request.Form["comment"]);
+            var wf = Request.Form["wf"];
+            WaferQUALVM.UpdateAllenWATComment(wf, comment);
+            var ret = new JsonResult();
+            ret.Data = new { };
+            return ret;
+        }
+
+        public JsonResult LoadAllenComment()
+        {
+            var wf = Request.Form["wf"];
+            var comment = WaferQUALVM.RetrieveAllenWATComment(wf);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new {
+                comment= comment
+            };
+            return ret;
+        }
 
     }
 }
