@@ -11,6 +11,7 @@
     .v-box {
         height: 920px!important;
     }
+    th.dt-center, td.dt-center { text-align: center; }
 </style>
 
 <script type="text/javascript" src="~/Scripts/diesort.js"></script>
@@ -32,10 +33,10 @@
                         <input class="form-control" type="text" id="mapfile" name="mapfile" placeholder="Map File" readonly="readonly">
                     </div>
                     <div class="col-xs-1 box-search" style="padding-left:0">
-                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="查看">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="Review">
                     </div>
-                    <div class="col-xs-1 box-search" style="padding-left:0">
-                        <input type="button" class="btn btn-danger" name="btn-reconstruct" id="btn-reconstruct" value="重构">
+                    <div class="col-xs-2 box-search" style="padding-left:0">
+                        <input type="button" class="btn btn-danger" name="btn-reconstruct" id="btn-reconstruct" value="Re-Construct">
                     </div>
                 </div>
                 <div class="row row-margin">
@@ -55,7 +56,47 @@
             </div>
             <div class="v-content">
             </div>
+            <div style="margin-top:20px">
+                <table class="table table-hover  table-condensed table-striped" id="wafertable" style="margin-top:1%">
+                    <caption class="tb-caption">WUXI WAFER SAMPLE DATA</caption>
+                    <thead id="waferhead"></thead>
+                    <tbody id="wafercontent"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="confirmdlg" tabindex="-1" role="dialog" style="margin-top:2%">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Re-Construct Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-10"><h5>Do you really want to re-construct this file? Your action will be recorded!</h5></div>
+                    <div class="col-sm-1"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-4"><label class="form-control">PassWord</label></div>
+                    <div class="col-sm-6"><input class="form-control" type="password" id="cfmpwd" name="cfmpwd"/></div>
+                    <div class="col-sm-1"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-4"><label class="form-control">Wafer-PN(optional)</label></div>
+                    <div class="col-sm-6"><input class="form-control" type="text" id="cmf-pn" name="cmf-pn" /></div>
+                    <div class="col-sm-1"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="btn-cmf" name="btn-cmf">Confirm</button>
+                <button type="button" class="btn btn-danger" id="btn-al-cancel" name="btn-al-cancel" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

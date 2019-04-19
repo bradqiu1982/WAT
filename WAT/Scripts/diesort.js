@@ -1,6 +1,8 @@
 ﻿var DIESORT = function () {
 
     var reviewdiesort = function () {
+        var wafertable = null;
+
         $.post('/DieSort/LoadSortedFiles', {
         }, function (output) {
             $('#mapfile').autoComplete({
@@ -48,6 +50,12 @@
                     return false;
                 }
 
+                showdiedata(output);
+            })
+        }
+
+        var showdiedata = function (output)
+        {
                 $('#bompn').val(output.pn);
                 $('#bomarray').val(output.warray);
                 $('#bomdesc').val(output.desc);
@@ -57,7 +65,62 @@
                         '</div>';
                 $('.v-content').append(appendstr);
                 drawdiesortmap(output.chartdata);
-            })
+
+                if (wafertable) {
+                    wafertable.destroy();
+                    wafertable = null;
+                }
+                $("#waferhead").empty();
+                $("#wafercontent").empty();
+
+                $("#waferhead").append(
+                        '<tr>' +
+                            '<th>Wafer</th>' +
+                            '<th>X</th>' +
+                            '<th>Y</th>' +
+                            '<th>BIN</th>' +
+                            '<th>LayoutID</th>' +
+                            '<th>MPN</th>' +
+                            '<th>FPN</th>' +
+                            '<th>Array</th>' +
+                            '<th>Desc</th>' +
+                            '<th>Tech</th>' +
+                            '<th>MAPFILE</th>' +
+                            '<th>Time</th>' +
+                         '</tr>'
+                    );
+
+                $.each(output.sampledata, function (i, val) {
+                    $("#wafercontent").append(
+                        '<tr>' +
+                            '<td>' + val.Wafer + '</td>' +
+                            '<td>' + val.XX + '</td>' +
+                            '<td>' + val.YY + '</td>' +
+                            '<td>' + val.BIN + '</td>' +
+                            '<td>' + val.LayoutId + '</td>' +
+                            '<td>' + val.MPN + '</td>' +
+                            '<td>' + val.FPN + '</td>' +
+                            '<td>' + val.PArray + '</td>' +
+                            '<td>' + val.Des + '</td>' +
+                            '<td>' + val.Tech + '</td>' +
+                            '<td>' + val.MapFile + '</td>' +
+                            '<td>' + val.UpdateTime + '</td>' +
+                        '</tr>'
+                        );
+                });
+
+                wafertable = $('#wafertable').DataTable({
+                    'iDisplayLength': 20,
+                    'aLengthMenu': [[20, 50, 100, -1],
+                    [20, 50, 100, "All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
         }
 
         var reconstructdata = function () {
@@ -66,6 +129,8 @@
                 alert('Please input your file!');
                 return false;
             }
+
+            var pn = $('#cmf-pn').val();
 
             var options = {
                 loadingTips: "loading data......",
@@ -78,7 +143,8 @@
             $.bootstrapLoading.start(options);
 
             $.post('/DieSort/ReConstructDieSort', {
-                fs: fs
+                fs: fs,
+                pn: pn
             }, function (output) {
                 $.bootstrapLoading.end();
 
@@ -88,15 +154,7 @@
                     return false;
                 }
 
-                $('#bompn').val(output.pn);
-                $('#bomarray').val(output.warray);
-                $('#bomdesc').val(output.desc);
-
-                var appendstr = '<div class="col-xs-12">' +
-                        '<div class="v-box" id="' + output.chartdata.id + '"></div>' +
-                        '</div>';
-                $('.v-content').append(appendstr);
-                drawdiesortmap(output.chartdata);
+                showdiedata(output);
             })
         }
 
@@ -105,12 +163,17 @@
         });
 
         $('body').on('click', '#btn-reconstruct', function () {
-            if (confirm('Do you really want to re-construct this file? Your action will be recorded!'))
-            {
-                reconstructdata();
-            }
+            $('#confirmdlg').modal('show');
         });
 
+        $('body').on('click', '#btn-cmf', function () {
+            $('#confirmdlg').modal('hide');
+            var pwd = $('#cfmpwd').val();
+            if (pwd != '10086')
+            { return false; }
+            reconstructdata();
+        });
+        
     }
 
     var comparediesort = function () {

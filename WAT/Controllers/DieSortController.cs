@@ -59,6 +59,7 @@ namespace WAT.Controllers
                     var datalist = DieSortVM.RetrieveReviewData(filepath);
                     var chartdata = DieSortVM.RetrieveDieChartData(datalist);
                     var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(filepath);
+                    var sampledata = DieSortVM.RetrieveSampleData(fs);
 
                     var ret = new JsonResult();
                     ret.MaxJsonLength = Int32.MaxValue;
@@ -68,7 +69,8 @@ namespace WAT.Controllers
                         chartdata = chartdata,
                         pn = pnarrayinfo[0],
                         warray = pnarrayinfo[1],
-                        desc = pnarrayinfo[2]
+                        desc = pnarrayinfo[2],
+                        sampledata = sampledata
                     };
                     return ret;
                 }
@@ -89,10 +91,11 @@ namespace WAT.Controllers
         public JsonResult ReConstructDieSort()
         {
             var fs = Request.Form["fs"].ToUpper();
+            var offeredpn = Request.Form["pn"];
 
             WebLog.LogVisitor(Request.UserHostName, "try to re-construct file:" + fs);
 
-            if (DieSortVM.LoadDieSortFile(this, fs))
+            if (DieSortVM.LoadDieSortFile(this, fs, offeredpn))
             {
                 var syscfgdict = CfgUtility.GetSysConfig(this);
                 var reviewfolder = syscfgdict["DIESORTREVIEW"];
@@ -100,6 +103,7 @@ namespace WAT.Controllers
                 var datalist = DieSortVM.RetrieveReviewData(filepath);
                 var chartdata = DieSortVM.RetrieveDieChartData(datalist);
                 var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(filepath);
+                var sampledata = DieSortVM.RetrieveSampleData(fs);
 
                 var ret = new JsonResult();
                 ret.MaxJsonLength = Int32.MaxValue;
@@ -109,8 +113,8 @@ namespace WAT.Controllers
                     chartdata = chartdata,
                     pn = pnarrayinfo[0],
                     warray = pnarrayinfo[1],
-                    desc = pnarrayinfo[2]
-
+                    desc = pnarrayinfo[2],
+                    sampledata = sampledata
                 };
                 return ret;
             }

@@ -43,7 +43,7 @@ namespace WAT.Models
             }
         }
 
-        public static bool LoadDieSortFile(Controller ctrl, string srcname)
+        public static bool LoadDieSortFile(Controller ctrl, string srcname,string offeredpn)
         {
             var filetype = "DIESORT";
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
@@ -55,7 +55,7 @@ namespace WAT.Models
                 if (desfile != null && ExternalDataCollector.FileExist(ctrl, desfile))
                 {
                     FileLoadedData.RemoveLoadedFile(srcname.ToUpper(), filetype);
-                    if (SolveDieSortFile(desfile, ctrl))
+                    if (SolveDieSortFile(desfile, ctrl, offeredpn))
                     {
                         FileLoadedData.UpdateLoadedFile(srcname.ToUpper(), filetype);
                         return true;
@@ -190,7 +190,7 @@ namespace WAT.Models
         }
 
 
-        private static bool SolveDieSortFile(string diefile, Controller ctrl)
+        private static bool SolveDieSortFile(string diefile, Controller ctrl,string offeredpn=null)
         {
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
             var towho = syscfgdict["DIESORTWARINGLIST"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -224,7 +224,12 @@ namespace WAT.Models
                     return false;
                 }
 
-                var arrayinfo = GetArrayFromWafer(fs,wafer);
+                var pnlist = GetPnFromWafer(fs, wafer, offeredpn);
+                if (pnlist.Count == 0)
+                { return false; }
+
+
+                var arrayinfo = GetArrayFromPNList(fs,wafer,pnlist);
                 if (arrayinfo.Count == 0)
                 {
                     if (!WebLog.CheckEmailRecord(fs, "EM-ARRAY"))
@@ -650,62 +655,79 @@ namespace WAT.Models
             return ret;
         }
 
-        private static List<string> GetArrayFromWafer(string fs,string wafer)
+        private static List<string> GetPnFromWafer(string fs,string wafer,string offeredpn)
         {
-            var sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
-                            select ProductBaseId from  [InsiteDB].[insite].Product
-                            where ProductId  in (
-                                SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) aoc 
-                                left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
-                                where ParamValueString like '%<wafer>%'))";
-
-            sql = sql.Replace("<wafer>", wafer);
+            
             var pnlist = new List<string>();
-            var dbret = DBUtility.ExeMESSqlWithRes(sql);
-            foreach (var line in dbret)
+
+            if (!string.IsNullOrEmpty(offeredpn))
             {
-                pnlist.Add(Convert.ToString(line[0]));
+                pnlist.Add(offeredpn);
             }
-
-
-            if (pnlist.Count == 0)
+            else
             {
+                var sql = "";
                 sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
-                            select ProductBaseId from  [InsiteDB].[insite].Product
-                            where ProductId  in (
-                                SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_AOC_ManualInspection] (nolock) aoc 
-                                left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
-                                where ParamValueString like '%<wafer>%'))";
+                                select ProductBaseId from  [InsiteDB].[insite].Product
+                                where ProductId  in (
+                                    SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) aoc 
+                                    left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
+                                    where ParamValueString like '%<wafer>%'))";
+
                 sql = sql.Replace("<wafer>", wafer);
-                dbret = DBUtility.ExeMESSqlWithRes(sql);
+            
+                var dbret = DBUtility.ExeMESSqlWithRes(sql);
                 foreach (var line in dbret)
                 {
                     pnlist.Add(Convert.ToString(line[0]));
                 }
-            }
 
-            if (pnlist.Count == 0)
-            {
-                sql = @"SELECT distinct pb.ProductName
-                          FROM [InsiteDB].[insite].[Container]  (nolock) c
-                          left join [InsiteDB].[insite].Product (nolock) p on c.ProductId = p.ProductId
-                          left join [InsiteDB].[insite].ProductBase (nolock) pb on pb.ProductBaseId = p.ProductBaseId
-                           where c.SupplierLotNumber like '%<wafer>%'";
 
-                sql = sql.Replace("<wafer>", wafer);
-                dbret = DBUtility.ExeMESSqlWithRes(sql);
-                foreach (var line in dbret)
+                if (pnlist.Count == 0)
                 {
-                    pnlist.Add(Convert.ToString(line[0]));
+                    sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
+                                select ProductBaseId from  [InsiteDB].[insite].Product
+                                where ProductId  in (
+                                    SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_AOC_ManualInspection] (nolock) aoc 
+                                    left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
+                                    where ParamValueString like '%<wafer>%'))";
+                    sql = sql.Replace("<wafer>", wafer);
+                    dbret = DBUtility.ExeMESSqlWithRes(sql);
+                    foreach (var line in dbret)
+                    {
+                        pnlist.Add(Convert.ToString(line[0]));
+                    }
+                }
+
+                if (pnlist.Count == 0)
+                {
+                    sql = @"SELECT distinct pb.ProductName
+                              FROM [InsiteDB].[insite].[Container]  (nolock) c
+                              left join [InsiteDB].[insite].Product (nolock) p on c.ProductId = p.ProductId
+                              left join [InsiteDB].[insite].ProductBase (nolock) pb on pb.ProductBaseId = p.ProductBaseId
+                               where c.SupplierLotNumber like '%<wafer>%'";
+
+                    sql = sql.Replace("<wafer>", wafer);
+                    dbret = DBUtility.ExeMESSqlWithRes(sql);
+                    foreach (var line in dbret)
+                    {
+                        pnlist.Add(Convert.ToString(line[0]));
+                    }
                 }
             }
 
+            return pnlist;
+        }
+
+
+        public static List<string> GetArrayFromPNList(string fs, string wafer, List<string> pnlist)
+        {
             if (pnlist.Count > 0)
             {
                 var pncond = "('" + string.Join("','", pnlist) + "')";
-                sql = "Select distinct PArray,[Desc],MPN,FPN,Product from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
+                var sql = "Select distinct PArray,[Desc],MPN,FPN,Product from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
                 sql = sql.Replace("<pncond>", pncond);
-                dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
+                var dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
                 foreach (var line in dbret)
                 {
                     var tempvm = new List<string>();
@@ -717,17 +739,12 @@ namespace WAT.Models
                     return tempvm;
                 }
 
-                WebLog.Log(fs,"DIESORT", "fail to get array by pn " + pncond);
-            }
-            else
-            {
-                WebLog.Log(fs,"DIESORT", "fail to get pn by wafer " + wafer);
+                WebLog.Log(fs, "DIESORT", "fail to get array by pn " + pncond);
             }
 
             return new List<string>();
-
-            //return "1X12";
         }
+
 
         public static List<DieSortVM> RetrieveReviewData(string diefile)
         {
@@ -867,12 +884,57 @@ namespace WAT.Models
             };
         }
 
+        public static List<DieSortVM> RetrieveSampleData(string mf)
+        {
+            var ret = new List<DieSortVM>();
+            var sql = @"select distinct ws.WAFER,ws.X,ws.Y,ws.BIN,wc.LayoutId,ws.MPN,ws.FPN,ws.PArray,wa.[Desc],wa.Tech,ws.MAPFILE
+                          ,ws.UpdateTime from [WAT].[dbo].[WaferSampleData] (nolock) ws
+                          inner join  [WAT].[dbo].WaferArray (nolock) wa on wa.MPN = ws.MPN
+                          inner join  [WAT].[dbo].[WaferSrcData] (nolock) wc on wc.MAPFILE = ws.MAPFILE
+                          where ws.MAPFILE = @MAPFILE";
+
+            var dict = new Dictionary<string, string>();
+            dict.Add("@MAPFILE", mf);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var l in dbret)
+            {
+                ret.Add(new DieSortVM(O2S(l[0]), O2S(l[1]), O2S(l[2]), O2S(l[3])
+                                    , O2S(l[4]), O2S(l[5]), O2S(l[6]), O2S(l[7])
+                                    , O2S(l[8]), O2S(l[9]), O2S(l[10]),Convert.ToDateTime(l[11]).ToString("yyyy-MM-dd HH:mm:ss")));
+            }
+            return ret;
+        }
+
+        private static string O2S(object obj)
+        {
+            if (obj == null)
+            { return string.Empty; }
+
+            try
+            {
+                return Convert.ToString(obj);
+            }
+            catch (Exception ex) { return string.Empty; }
+        }
 
         public DieSortVM()
         {
             X = 0;
             Y = 0;
             DieValue = 0;
+
+            Wafer = "";
+            XX = "";
+            YY = "";
+            BIN = "";
+            LayoutId = "";
+            MPN = "";
+            FPN = "";
+            PArray = "";
+            Des = "";
+            Tech = "";
+            MapFile = "";
+            UpdateTime = "";
         }
 
         public DieSortVM(int x, int y, int val)
@@ -880,12 +942,55 @@ namespace WAT.Models
             X = x;
             Y = y;
             DieValue = val;
+
+            Wafer = "";
+            XX = "";
+            YY = "";
+            BIN = "";
+            LayoutId = "";
+            MPN = "";
+            FPN = "";
+            PArray = "";
+            Des = "";
+            Tech = "";
+            MapFile = "";
+            UpdateTime = "";
         }
+
+        public DieSortVM(string wf, string x, string y, string bin, string lid, string mpn
+            , string fpn, string array, string des, string tec, string mf, string ut)
+        {
+            Wafer = wf;
+            XX = x;
+            YY = y;
+            BIN = bin;
+            LayoutId = lid;
+            MPN = mpn;
+            FPN = fpn;
+            PArray = array;
+            Des = des;
+            Tech = tec;
+            MapFile = mf;
+            UpdateTime = ut;
+        }
+
 
         public int X { set; get; }
         public int Y { set; get; }
         public double DieValue {set;get;}
 
 
+        public string Wafer { set; get; }
+        public string XX { set; get; }
+        public string YY { set; get; }
+        public string BIN { set; get; }
+        public string LayoutId { set; get; }
+        public string MPN { set; get; }
+        public string FPN { set; get; }
+        public string PArray { set; get; }
+        public string Des { set; get; }
+        public string Tech { set; get; }
+        public string MapFile { set; get; }
+        public string UpdateTime { set; get; }
     }
 }
