@@ -75,7 +75,7 @@
                     }
 
                     if (val.AllenValCheck != '')
-                    { allenrawdatacell = '<td class="allenrawdatacla" myid= "' + val.WaferNum + '">Raw Data</td>'; }
+                    { allenrawdatacell = '<td><span class="glyphicon glyphicon-th-list allenrawdataicon" myid= "' + val.WaferNum + '"></span></td>'; }
 
                     if (val.WXQUALPass != val.WXQUALTotal)
                     { reportcell = '<td><span class="glyphicon glyphicon-blackboard btn-waferreport" myid= "' + val.WaferNum + '"></span></td>' }
@@ -151,7 +151,7 @@
             });
         })
 
-        $('body').on('click', '.allenrawdatacla', function () {
+        $('body').on('click', '.allenrawdataicon', function () {
             var wf = $(this).attr('myid');
             $.post('/Wafer/AllenRawData', {
                 wf: wf
