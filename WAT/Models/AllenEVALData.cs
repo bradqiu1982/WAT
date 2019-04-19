@@ -135,7 +135,8 @@ namespace WAT.Models
 
                       where left(c.containername,9) in ('<wafernum>') 
                        and (spc.LowerSpecLimit is not null or UpperSpecLimit is not null) and d.[TEST_VALUE] is not null
-                       and WB.WORKFLOWNAME in ('Eval_VCSEL_50up_4inc','Eval_VCSEL_50up_3inc','Eval_VCSEL_ubDH_COB_4inc','Eval_VCSEL_HASTbDH_COB_2inc')
+                       and (WB.WORKFLOWNAME like 'Eval_VCSEL_50up_4inc%' or WB.WORKFLOWNAME like 'Eval_VCSEL_50up_3inc%' 
+					   or WB.WORKFLOWNAME like 'Eval_VCSEL_ubDH_COB_4inc%' or WB.WORKFLOWNAME like 'Eval_VCSEL_HASTbDH_COB_2inc%')
                       and exclusion = 0 order by d.[CONTAINER_NUMBER] ,d.[TIME_STAMP]";
 
             sql = sql.Replace("<wafernum>", wafer);
