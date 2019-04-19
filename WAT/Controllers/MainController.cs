@@ -48,6 +48,22 @@ namespace WAT.Controllers
                 }
                 catch (Exception ex) { }
 
+                heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
+                try
+                {
+                    WaferQUALVM.LoadNewWaferFromMES();
+                    WaferQUALVM.LoadWUXIWaferQUAL();
+                }
+                catch (Exception ex) { }
+
+
+                heartbeatlog("AllenEVALData.LoadAllenData");
+                try
+                {
+                    AllenEVALData.LoadAllenData();
+                }
+                catch (Exception ex) { }
+
                 heartbeatlog("end heartbeat");
             }
             catch (Exception ex) { }
