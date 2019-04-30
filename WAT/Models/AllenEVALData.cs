@@ -90,16 +90,6 @@ namespace WAT.Models
                       inner join insite.insite.workflowbase wb with (nolock) on w.workflowbaseid = wb.workflowbaseid
 
                       left join engrdata.dbo.[Eval_XY_Coordinates] xy with(nolock) on xy.container=c.containername and xy.devicenumber=d.UNIT_NUMBER
-
-
-                       LEFT JOIN(
-                        SELECT c.containername, cw.containername as wcar_name, wcar.description as wcar_cause FROM insite.insite.container c with(nolock) 
-                        LEFT JOIN [Insite].[insite].[IssueActualsHistory] iah with(nolock) on iah.[FromContainerId]=c.containerid
-                        INNER JOIN insite.insite.container cw with(nolock) on cw.containerid=iah.[toContainerId]
-                        LEFT JOIN insite.insite.view_WCAR_Information wcar with(nolock) on wcar.containername=cw.containername
-
-                        where cw.containername like '%wcar%'
-                       ) wsq on wsq.containername=LEFT(d.Container_number,charindex('-',d.Container_number)+2)
    
                       left join 
                         (
