@@ -226,7 +226,10 @@ namespace WAT.Models
 
                 var pnlist = GetPnFromWafer(fs, wafer, offeredpn);
                 if (pnlist.Count == 0)
-                { return false; }
+                {
+                    WebLog.Log(fs, "DIESORT", "fail to convert file:" + diefile + ", fail to get pn by wafer " + wafer);
+                    return false;
+                }
 
 
                 var arrayinfo = GetArrayFromPNList(fs,wafer,pnlist);
@@ -657,7 +660,6 @@ namespace WAT.Models
 
         private static List<string> GetPnFromWafer(string fs,string wafer,string offeredpn)
         {
-            
             var pnlist = new List<string>();
 
             if (!string.IsNullOrEmpty(offeredpn))
@@ -667,21 +669,32 @@ namespace WAT.Models
             else
             {
                 var sql = "";
-                sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
+
+                sql = @"SELECT distinct Product FROM [Insite].[insite].[Rpt_ReleasedJob] 
+                        where left(ContainerName,9) = '<wafer>' and Factory = 'BIN'";
+                sql = sql.Replace("<wafer>", wafer);
+                var dbret = DBUtility.ExeAllenSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    pnlist.Add(Convert.ToString(line[0]));
+                }
+
+                if (pnlist.Count == 0)
+                {
+                    sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
                                 select ProductBaseId from  [InsiteDB].[insite].Product
                                 where ProductId  in (
                                     SELECT distinct hml.ProductId FROM [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) aoc 
                                     left join [InsiteDB].[insite].HistoryMainline (nolock) hml on aoc.[HistoryMainlineId] = hml.HistoryMainlineId
                                     where ParamValueString like '%<wafer>%'))";
 
-                sql = sql.Replace("<wafer>", wafer);
-            
-                var dbret = DBUtility.ExeMESSqlWithRes(sql);
-                foreach (var line in dbret)
-                {
-                    pnlist.Add(Convert.ToString(line[0]));
+                    sql = sql.Replace("<wafer>", wafer);
+                    dbret = DBUtility.ExeMESSqlWithRes(sql);
+                    foreach (var line in dbret)
+                    {
+                        pnlist.Add(Convert.ToString(line[0]));
+                    }
                 }
-
 
                 if (pnlist.Count == 0)
                 {

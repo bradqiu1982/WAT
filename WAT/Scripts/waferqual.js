@@ -176,7 +176,7 @@
                             '<th class="smallth">LL</th>' +
                             '<th class="smallth">HL</th>' +
                             '<th class="smallth">RP</th>' +
-                            '<th class="smallth">WorkFlow</th>' +
+                            '<th class="smallth">DCDName</th>' +
                             '<th class="smallth">ValueCheck</th>' +
                             '<th class="smallth">TestTime</th>' +
                          '</tr>'
@@ -195,7 +195,7 @@
                             '<td class="smalltd">'+val.LowLimit+'</td>' +
                             '<td class="smalltd">'+val.HighLimit+'</td>' +
                             '<td class="smalltd">'+val.RPNum+'</td>' +
-                            '<td class="smalltd">'+val.WorkFlow+'</td>' +
+                            '<td class="smalltd">' + val.DCDName + '</td>' +
                             '<td class="smalltd">'+val.ValueCheck+'</td>' +
                             '<td class="smalltd">' + val.TimeStamp + '</td>' +
                          '</tr>'

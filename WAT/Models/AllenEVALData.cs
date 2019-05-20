@@ -273,7 +273,7 @@ namespace WAT.Models
         {
             var ret = new List<AllenEVALData>();
 
-            var sql = @"select [WaferNum],[ContainerNum],[X],[Y],[Product],[Parameter],[TestValue],[LowLimit],[HighLimit],[RPNum],[WorkFlow],[ValueCheck],[TimeStamp],[WATResult]
+            var sql = @"select [WaferNum],[ContainerNum],[X],[Y],[Product],[Parameter],[TestValue],[LowLimit],[HighLimit],[RPNum],[DCDName],[ValueCheck],[TimeStamp],[WATResult]
                         from [WAT].[dbo].[AllenEVALData] where WaferNum = @WaferNum  order by [ContainerNum],[TimeStamp] asc";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", wafer);
@@ -291,7 +291,7 @@ namespace WAT.Models
                 tempvm.LowLimit = O2S(line[7]);
                 tempvm.HighLimit = O2S(line[8]);
                 tempvm.RPNum = O2S(line[9]);
-                tempvm.WorkFlow = O2S(line[10]);
+                tempvm.DCDName = O2S(line[10]);
                 tempvm.ValueCheck = O2S(line[11]);
                 tempvm.TimeStamp = Convert.ToDateTime(line[12]).ToString("yyyy-MM-dd HH:mm:ss");
                 tempvm.WATResult = O2S(line[13]);

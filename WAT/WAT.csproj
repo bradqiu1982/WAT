@@ -196,14 +196,22 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AllenEVALData.cs" />
+    <Compile Include="Models\Logic\AllenWATLogic.cs" />
     <Compile Include="Models\CfgUtility.cs" />
+    <Compile Include="Models\Logic\ContainerInfo.cs" />
     <Compile Include="Models\CookieUtility.cs" />
+    <Compile Include="Models\Logic\DataBaseUT.cs" />
     <Compile Include="Models\DBUtility.cs" />
     <Compile Include="Models\DieSortVM.cs" />
     <Compile Include="Models\EmailUtility.cs" />
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\Logic\DUTMinQTY.cs" />
+    <Compile Include="Models\Logic\ProbeDataQty.cs" />
+    <Compile Include="Models\Logic\UT.cs" />
+    <Compile Include="Models\Logic\WATProbeTestData.cs" />
+    <Compile Include="Models\Logic\WATProbeTestDataFiltered.cs" />
     <Compile Include="Models\WaferPN.cs" />
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />

@@ -84,5 +84,13 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult AllenLogic()
+        {
+            AllenWATLogic.PassFaile("184051-80E01", "Eval_50up_rp03");
+            return View("HeartBeat");
+        }
+
+
+
     }
 }
