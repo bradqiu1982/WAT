@@ -20,7 +20,14 @@ namespace WAT.Models
                 return;
             }
 
-            var dutminqty = DUTMinQTY.GetCount(containinfo.ProductName, dcdname);
+            var allspec = SpecBinPassFail.GetAllSpec();
+            var dutminitem = SpecBinPassFail.GetMinDUT(containinfo.ProductName, dcdname, allspec);
+            if (dutminitem.Count == 0)
+            {
+                System.Windows.MessageBox.Show("Fail to get min DUT count.....");
+                return;
+            }
+
             var shippable = 1;
             var probecount = ProbeDataQty.GetCount(containinfo.containername);
 
@@ -31,7 +38,20 @@ namespace WAT.Models
                 return;
             }
 
-            
+            var watprobevalfiltered = WATProbeTestDataFiltered.GetFilteredData(watprobeval, rp.ToString());
+            if (watprobevalfiltered.Count == 0)
+            {
+                System.Windows.MessageBox.Show("Fail to get wat prob filtered data.....");
+                return;
+            }
+
+            var binpndict = SpecBinPassFail.RetrieveBinDict(containinfo.ProductName, allspec);
+            var coupondata = WATCouponStats.GetCouponData(watprobevalfiltered, binpndict);
+            if (coupondata.Count == 0)
+            {
+                System.Windows.MessageBox.Show("Fail to get wat coupon data.....");
+                return;
+            }
 
             return;
         }

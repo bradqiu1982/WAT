@@ -7,13 +7,13 @@ namespace WAT.Models
 {
     public class WATProbeTestDataFiltered : WATProbeTestData
     {
-        public List<WATProbeTestDataFiltered> GetData(List<WATProbeTestData> srcdatalist,string rp)
+        public static List<WATProbeTestDataFiltered> GetFilteredData(List<WATProbeTestData> srcdatalist,string rp)
         {
             var rptimedict = new Dictionary<string, DateTime>();
             foreach (var item in srcdatalist)
             {
                 var key =  item.UnitNum + "::" + item.CommonTestName+ "::" +item.RP ;
-                if (rptimedict.ContainsKey(key))
+                if (!rptimedict.ContainsKey(key))
                 {
                     rptimedict.Add(key, item.TimeStamp);
                 }
@@ -76,7 +76,11 @@ namespace WAT.Models
                         if (RPWATPBData[key].TestValue != 0)
                         {
                             dv.ratiodeltaref = ((fitem.TestValue - RPWATPBData[key].TestValue) / RPWATPBData[key].TestValue).ToString();
-                            dv.dBdeltaref = (10 * Math.Log10(fitem.TestValue / RPWATPBData[key].TestValue)).ToString();
+                            if (fitem.TestValue > 0 && RPWATPBData[key].TestValue > 0)
+                            { dv.dBdeltaref = (10 * Math.Log10(fitem.TestValue / RPWATPBData[key].TestValue)).ToString(); }
+                            else
+                            { dv.dBdeltaref = ""; }
+                           
                         }
                         else
                         {
@@ -117,6 +121,7 @@ namespace WAT.Models
                 }
                 else
                 {
+                    fitem.PrevTestValue = PRERPWATPBData[prekey].TestValue.ToString();
                     foreach (var p in rplist)
                     {
                         var key = fitem.UnitNum + "::" + fitem.CommonTestName + "::" + p;
@@ -130,22 +135,26 @@ namespace WAT.Models
                         {
                             var dv = new WATDeltaVal();
                             dv.TestValue = RPWATPBData[key].TestValue.ToString();
-                            dv.absolutedeltaref = (fitem.TestValue - RPWATPBData[key].TestValue).ToString();
+                            dv.absolutedeltaref = (PRERPWATPBData[prekey].TestValue - RPWATPBData[key].TestValue).ToString();
                             if (RPWATPBData[key].TestValue != 0)
                             {
-                                dv.ratiodeltaref = ((fitem.TestValue - RPWATPBData[key].TestValue) / RPWATPBData[key].TestValue).ToString();
-                                dv.dBdeltaref = (10 * Math.Log10(fitem.TestValue / RPWATPBData[key].TestValue)).ToString();
+                                dv.ratiodeltaref = ((PRERPWATPBData[prekey].TestValue - RPWATPBData[key].TestValue) / RPWATPBData[key].TestValue).ToString();
+                                if (PRERPWATPBData[prekey].TestValue > 0 && RPWATPBData[key].TestValue > 0)
+                                { dv.dBdeltaref = (10 * Math.Log10(PRERPWATPBData[prekey].TestValue / RPWATPBData[key].TestValue)).ToString(); }
+                                else
+                                { dv.dBdeltaref = ""; }
+                                
                             }
                             else
                             {
                                 dv.ratiodeltaref = "";
                                 dv.dBdeltaref = "";
                             }
-                            fitem.DeltaList.Add(dv);
+                            fitem.PreDeltaList.Add(dv);
                         }
                         else
                         {
-                            fitem.DeltaList.Add(new WATDeltaVal());
+                            fitem.PreDeltaList.Add(new WATDeltaVal());
                         }
                     }//end foreach rp
                 }
@@ -157,7 +166,7 @@ namespace WAT.Models
             return filtereddata;
         }
 
-        public WATProbeTestDataFiltered(WATProbeTestData data)
+        private WATProbeTestDataFiltered(WATProbeTestData data)
         {
             TimeStamp = data.TimeStamp;
             ContainerNum = data.ContainerNum;
@@ -190,6 +199,11 @@ namespace WAT.Models
                 couponminusprobePCT = "";
             }
 
+        }
+
+        public WATProbeTestDataFiltered()
+        {
+            
         }
 
         public List<WATDeltaVal> DeltaList { set; get; }
