@@ -63,6 +63,50 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<SpecBinPassFail> GetParam4FailMode(string evalpn, string rp, List<SpecBinPassFail> alldata)
+        {
+            var ret = new List<SpecBinPassFail>();
+            var dpo = false;
+            var dvf = false;
+            foreach (var item in alldata)
+            {
+                if (string.Compare(item.Eval_PN, evalpn, true) == 0
+                    && string.Compare(item.RP, rp, true) == 0)
+                {
+                    if (!dpo && item.ParamName.ToUpper().Contains("PO_LD_W_RD_REF"))
+                    {
+                        dpo = true;
+                        ret.Add(item);
+                    }
+
+                    if (!dvf && item.ParamName.ToUpper().Contains("VF_LD_V_AD_REF"))
+                    {
+                        dvf = true;
+                        ret.Add(item);
+                    }
+
+                    if (ret.Count == 2)
+                    { return ret; }
+                }
+            }
+            return ret;
+        }
+
+        public static List<SpecBinPassFail> GetSpecByPNDCDName(string evalpn, string dcdname, List<SpecBinPassFail> alldata)
+        {
+            var ret = new List<SpecBinPassFail>();
+            foreach (var item in alldata)
+            {
+                if (string.Compare(item.Eval_PN, evalpn, true) == 0
+                    && string.Compare(item.DCDName, dcdname, true) == 0
+                    && !string.IsNullOrEmpty(item.Bin_PN))
+                {
+                    ret.Add(item);
+                }
+            }
+            return ret;
+        }
+
         public string Eval_PN { set; get; }
         public string PN7 { get {
                 if (Eval_PN.Length > 7)

@@ -213,10 +213,12 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\Logic\WATFailureMode.cs" />
     <Compile Include="Models\Logic\ProbeDataQty.cs" />
     <Compile Include="Models\Logic\SpecBinPassFail.cs" />
     <Compile Include="Models\Logic\UT.cs" />
     <Compile Include="Models\Logic\WATCouponStats.cs" />
+    <Compile Include="Models\Logic\WATPassFailUnit.cs" />
     <Compile Include="Models\Logic\WATProbeTestData.cs" />
     <Compile Include="Models\Logic\WATProbeTestDataFiltered.cs" />
     <Compile Include="Models\WaferPN.cs" />

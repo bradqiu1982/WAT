@@ -166,6 +166,167 @@ namespace WAT.Models
             return filtereddata;
         }
 
+        public static List<WATFailureMode> GetWATFailureModes(List<WATProbeTestDataFiltered> srcdata,List<SpecBinPassFail> spec)
+        {
+            var DPOLL = "";
+            var DVFUL = "";
+            foreach (var item in spec)
+            {
+                if (item.ParamName.ToUpper().Contains("PO_LD_W_RD_REF"))
+                { DPOLL = item.WLL; }
+                if (item.ParamName.ToUpper().Contains("VF_LD_V_AD_REF"))
+                { DVFUL = item.WUL;}
+            }
+
+            var ret = new List<WATFailureMode>();
+            ret.AddRange(getfmode(srcdata, DPOLL, DVFUL));
+            ret.AddRange(getfmode(srcdata, DPOLL, DVFUL, false));
+            return ret;
+        }
+
+        private static List<WATFailureMode> getfmode(List<WATProbeTestDataFiltered> srcdata,string DPOLL, string DVFUL, bool hightemp = true)
+        {
+            var ret = new List<WATFailureMode>();
+
+            var DPODict = new Dictionary<string, double>();
+            var DPOrdDict = new Dictionary<string, double>();
+            var DIthDict = new Dictionary<string, double>();
+            var BVRDict = new Dictionary<string, double>();
+            var DVFDict = new Dictionary<string, double>();
+            var PWRDict = new Dictionary<string, double>();
+
+            foreach (var fitem in srcdata)
+            {
+                if (string.Compare(fitem.CommonTestName, "PO_LD_W", true) == 0)
+                {
+                    if (hightemp)
+                    {
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[1].dBdeltaref))
+                        {
+                            if (!DPODict.ContainsKey(fitem.UnitNum))
+                            { DPODict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[1].dBdeltaref)); }
+                        }
+
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[1].ratiodeltaref))
+                        {
+                            if (!DPOrdDict.ContainsKey(fitem.UnitNum))
+                            { DPOrdDict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[1].ratiodeltaref)); }
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[0].dBdeltaref))
+                        {
+                            if (!DPODict.ContainsKey(fitem.UnitNum))
+                            { DPODict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[0].dBdeltaref)); }
+                        }
+
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[0].ratiodeltaref))
+                        {
+                            if (!DPOrdDict.ContainsKey(fitem.UnitNum))
+                            { DPOrdDict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[0].ratiodeltaref)); }
+                        }
+                    }
+
+                    if (!PWRDict.ContainsKey(fitem.UnitNum))
+                    { PWRDict.Add(fitem.UnitNum, fitem.TestValue); }
+
+                }//end if
+
+                if (string.Compare(fitem.CommonTestName, "THOLD_A", true) == 0)
+                {
+                    if (hightemp)
+                    {
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[1].ratiodeltaref))
+                        {
+                            if (!DIthDict.ContainsKey(fitem.UnitNum))
+                            { DIthDict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[1].ratiodeltaref)); }
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[0].ratiodeltaref))
+                        {
+                            if (!DIthDict.ContainsKey(fitem.UnitNum))
+                            { DIthDict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[0].ratiodeltaref)); }
+                        }
+                    }
+                }
+
+                if (string.Compare(fitem.CommonTestName, "BVR_LD_A", true) == 0)
+                {
+                    if (!BVRDict.ContainsKey(fitem.UnitNum))
+                    { BVRDict.Add(fitem.UnitNum,fitem.TestValue); }
+                }
+
+
+                if (string.Compare(fitem.CommonTestName, "VF_LD_V", true) == 0)
+                {
+                    if (hightemp)
+                    {
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[1].absolutedeltaref))
+                        {
+                            if (!DVFDict.ContainsKey(fitem.UnitNum))
+                            { DVFDict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[1].absolutedeltaref)); }
+                        }
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrEmpty(fitem.DeltaList[0].absolutedeltaref))
+                        {
+                            if (!DVFDict.ContainsKey(fitem.UnitNum))
+                            { DVFDict.Add(fitem.UnitNum, UT.O2D(fitem.DeltaList[0].absolutedeltaref)); }
+                        }
+                    }
+                }
+
+
+
+            }//end foreach
+
+            var udict = new Dictionary<string, bool>();
+            foreach (var fitem in srcdata)
+            {
+                if (string.Compare(fitem.CommonTestName, "PO_LD_W", true) == 0 && !udict.ContainsKey(fitem.UnitNum))
+                {
+                    udict.Add(fitem.UnitNum, true);
+
+                    if (DPOrdDict.ContainsKey(fitem.UnitNum) && DIthDict.ContainsKey(fitem.UnitNum) 
+                        && BVRDict.ContainsKey(fitem.UnitNum) && DVFDict.ContainsKey(fitem.UnitNum))
+                    {
+                        var tempvm = new WATFailureMode();
+                        tempvm.ContainerName = fitem.ContainerNum;
+                        tempvm.UnitNum = fitem.UnitNum;
+                        tempvm.RP = fitem.RP;
+                        tempvm.DPO_LL = DPOLL;
+                        tempvm.DVF_UL = DVFUL;
+                        tempvm.Temp = "HIGH";
+                        if (!hightemp)
+                        { tempvm.Temp = "LOW"; }
+
+                        tempvm.DPO_rd = DPOrdDict[fitem.UnitNum];
+                        tempvm.DIth = DIthDict[fitem.UnitNum];
+                        tempvm.BVR = BVRDict[fitem.UnitNum];
+                        tempvm.DVF = DVFDict[fitem.UnitNum];
+
+                        if (DPODict.ContainsKey(fitem.UnitNum))
+                        { tempvm.DPO = DPODict[fitem.UnitNum].ToString(); }
+                        else
+                        { tempvm.DPO = ""; }
+
+                        if (PWRDict.ContainsKey(fitem.UnitNum))
+                        { tempvm.PWR = PWRDict[fitem.UnitNum].ToString(); }
+                        else
+                        { tempvm.PWR = ""; }
+
+                        ret.Add(tempvm);
+                    }//end it
+                }//end if
+            }//end foreach
+
+            return ret;
+        }
+
         private WATProbeTestDataFiltered(WATProbeTestData data)
         {
             TimeStamp = data.TimeStamp;
