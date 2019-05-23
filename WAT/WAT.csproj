@@ -218,6 +218,7 @@
     <Compile Include="Models\Logic\SpecBinPassFail.cs" />
     <Compile Include="Models\Logic\UT.cs" />
     <Compile Include="Models\Logic\WATCouponStats.cs" />
+    <Compile Include="Models\Logic\WATPassFailCoupon.cs" />
     <Compile Include="Models\Logic\WATPassFailUnit.cs" />
     <Compile Include="Models\Logic\WATProbeTestData.cs" />
     <Compile Include="Models\Logic\WATProbeTestDataFiltered.cs" />

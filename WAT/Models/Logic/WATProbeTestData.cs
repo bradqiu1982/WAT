@@ -45,6 +45,40 @@ namespace WAT.Models
             return ret;
         }
 
+        public static int GetReadCount(List<WATProbeTestData> srcdata,string rp)
+        {
+            var dict1 = new Dictionary<string, WATProbeTestData>();
+            foreach (var item in srcdata) {
+                if (string.Compare(item.RP, rp, true) == 0)
+                {
+                    var key = item.RP + ":" + item.TimeStamp.ToString() + ":" + item.UnitNum + ":" + item.CommonTestName;
+                    if (!dict1.ContainsKey(key))
+                    {
+                        var tempvm = new WATProbeTestData();
+                        tempvm.RP = item.RP;
+                        tempvm.TimeStamp = item.TimeStamp;
+                        tempvm.UnitNum = item.UnitNum;
+                        tempvm.CommonTestName = item.CommonTestName;
+                        dict1.Add(key, tempvm);
+                    }//end if
+                }//end if
+            }//end foreach
+
+            var vallist = dict1.Values.ToList();
+            var dict2 = new Dictionary<string, int>();
+            foreach (var item in vallist)
+            {
+                var key = item.UnitNum + ":" + item.CommonTestName;
+                if (dict2.ContainsKey(key))
+                { dict2[key] += 1; }
+                else
+                { dict2.Add(key, 1); }
+            }//end foreach
+
+            var clist = dict2.Values.ToList();
+            return clist.Max();
+        }
+
         public WATProbeTestData()
         {
             TimeStamp = DateTime.Parse("1982-05-06 10:00:00");

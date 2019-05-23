@@ -10,15 +10,240 @@ namespace WAT.Models
         public static List<WATPassFailUnit> GetPFUnitData(string RP, string DCDName,List<SpecBinPassFail> speclist,List<WATProbeTestDataFiltered> filterdata,List<WATCouponStats> coupondata)
         {
             var ret = new List<WATPassFailUnit>();
+
+            var RPStr = "_rp"+(100 + Convert.ToInt32(RP)).ToString().Substring(1);
+
+            var specparamdict = new Dictionary<string, List<SpecBinPassFail>>();
+            foreach (var spec in speclist)
+            {
+                if (specparamdict.ContainsKey(spec.ParamName))
+                {
+                    specparamdict[spec.ParamName].Add(spec);
+                }
+                else
+                {
+                    var templist = new List<SpecBinPassFail>();
+                    templist.Add(spec);
+                    specparamdict.Add(spec.ParamName, templist);
+                }
+            }
+
+            foreach (var fitem in filterdata)
+            {
+                var paramname = fitem.CommonTestName + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.TestValue.ToString()));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_rd_ref0" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[0].ratiodeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_rd_ref1" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[1].ratiodeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_ad_ref0" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[0].absolutedeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_ad_ref1" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[1].absolutedeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_ad_ref2" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[2].absolutedeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_ad_ref3" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[3].absolutedeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_dB_ref0" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[0].dBdeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_dB_ref1" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.DeltaList[1].dBdeltaref));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_c-p" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.couponminusprobe));
+                    }
+                }
+
+                paramname = fitem.CommonTestName + "_c-pPCT" + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        ret.Add(new WATPassFailUnit(fitem, spec, paramname, fitem.couponminusprobePCT));
+                    }
+                }
+            }//end foreach
+
+            foreach (var citem in coupondata)
+            {
+                foreach (var ckv in citem.CPValDict)
+                {
+                    var paramname = ckv.Key + RPStr;
+                    if (specparamdict.ContainsKey(paramname))
+                    {
+                        foreach (var spec in specparamdict[paramname])
+                        {
+                            ret.Add(new WATPassFailUnit(citem, spec, paramname, ckv.Value));
+                        }
+                    }
+                }//end foreach
+            }
+
             return ret;
         }
-        
+
+        public static int GetFailCount(List<WATPassFailUnit> srcdata)
+        {
+            var unitdict = new Dictionary<string, bool>();
+            foreach (var item in srcdata)
+            {
+                if (!string.IsNullOrEmpty(item.FailType))
+                {
+                    if (!unitdict.ContainsKey(item.UnitNum))
+                    { unitdict.Add(item.UnitNum,true); }
+                }//end if
+            }//end foreach
+            return unitdict.Count;
+        }
+
+        private WATPassFailUnit(WATProbeTestDataFiltered data, SpecBinPassFail spec,string testname,string val)
+        {
+            ParamName = spec.ParamName;
+            Eval_PN = spec.Eval_PN;
+            Bin_PN = spec.Bin_PN;
+            DCDName = spec.DCDName;
+            UpperLimit = spec.WUL;
+            LowLimit = spec.WLL;
+
+            TimeStamp = data.TimeStamp;
+            ContainerNum = data.ContainerNum;
+            ToolName = data.ToolName;
+            RP = data.RP;
+            UnitNum = data.UnitNum;
+            X = data.X;
+            Y = data.Y;
+
+            CommonTestName = testname;
+            TVAL = val;
+        }
+
+        private WATPassFailUnit(WATCouponStats data, SpecBinPassFail spec, string testname, string val)
+        {
+            ParamName = spec.ParamName;
+            Eval_PN = spec.Eval_PN;
+            Bin_PN = spec.Bin_PN;
+            DCDName = spec.DCDName;
+            UpperLimit = spec.WUL;
+            LowLimit = spec.WLL;
+
+            TimeStamp = data.TimeStamp;
+            ContainerNum = data.ContainerNum;
+            ToolName = data.ToolName;
+            RP = data.RP;
+            UnitNum = data.UnitNum;
+            X = data.X;
+            Y = data.Y;
+
+            CommonTestName = testname;
+            TVAL = val;
+        }
+
+
         public string ParamName { set; get; }
         public string Eval_PN { set; get; }
         public string Bin_PN { set; get; }
         public string DCDName { set; get; }
         public string UpperLimit { set; get; }
         public string LowLimit { set; get; }
-        public string FailType { set; get; }
+        public string FailType { get {
+                if (string.IsNullOrEmpty(TVAL))
+                {
+                    return ParamName + "(No Meas)";
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(UpperLimit) || !string.IsNullOrEmpty(LowLimit))
+                    {
+                        if (!string.IsNullOrEmpty(UpperLimit))
+                        {
+                            var v = UT.O2D(TVAL);
+                            var u = UT.O2D(UpperLimit);
+                            if (v > u)
+                            { return ParamName; }
+                        }
+
+                        if (!string.IsNullOrEmpty(LowLimit))
+                        {
+                            var v = UT.O2D(TVAL);
+                            var l = UT.O2D(LowLimit);
+                            if (v < l)
+                            { return ParamName; }
+                        }
+
+                        return string.Empty;
+                    }
+                    else
+                    { return string.Empty; }
+                }
+            } }
+        public string TVAL { set; get; }
+
+        public List<double> ValList { set; get; }
     }
 }
