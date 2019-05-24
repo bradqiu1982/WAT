@@ -82,6 +82,33 @@ namespace WAT.Models
             }
         }
 
+        public static int GetDutCount(List<WATPassFailCoupon> srcdata)
+        {
+            if (srcdata.Count == 0)
+            { return 0; }
+
+            var dutlist = new List<int>();
+            foreach (var item in srcdata)
+            {
+                dutlist.Add(item.DUTCount);
+            }
+            return dutlist.Min();
+        }
+
+        public static int GetSumFails(List<WATPassFailCoupon> srcdata)
+        {
+            if (srcdata.Count == 0)
+            { return 0; }
+
+            var ret = 0;
+            var dutlist = new List<int>();
+            foreach (var item in srcdata)
+            {
+                ret += item.fails;
+            }
+            return ret;
+        }
+
         public string Bin_PN { set; get; }
         public string ParamName { set; get; }
         public string Eval_PN { set; get; }

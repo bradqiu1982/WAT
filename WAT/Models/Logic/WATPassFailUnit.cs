@@ -7,7 +7,8 @@ namespace WAT.Models
 {
     public class WATPassFailUnit : WATProbeTestData
     {
-        public static List<WATPassFailUnit> GetPFUnitData(string RP, string DCDName,List<SpecBinPassFail> speclist,List<WATProbeTestDataFiltered> filterdata,List<WATCouponStats> coupondata)
+        public static List<WATPassFailUnit> GetPFUnitData(string RP, string DCDName,List<SpecBinPassFail> speclist
+            ,List<WATProbeTestDataFiltered> filterdata,List<WATCouponStats> coupondata, List<WATCPK> cpktab)
         {
             var ret = new List<WATPassFailUnit>();
 
@@ -145,6 +146,11 @@ namespace WAT.Models
                 }//end foreach
             }
 
+            foreach (var ck in cpktab)
+            {
+                ret.Add(new WATPassFailUnit(ck, ck.CommonTestName+RPStr, ck.TestValue));
+            }
+
             return ret;
         }
 
@@ -204,6 +210,26 @@ namespace WAT.Models
             TVAL = val;
         }
 
+        private WATPassFailUnit(WATCPK data, string testname, string val)
+        {
+            ParamName = data.ParamName;
+            Eval_PN = data.Eval_PN;
+            Bin_PN = data.Bin_PN;
+            DCDName = data.DCDName;
+            UpperLimit = data.WUL;
+            LowLimit = data.WLL;
+
+            TimeStamp = data.TimeStamp;
+            ContainerNum = data.ContainerNum;
+            ToolName = data.ToolName;
+            RP = data.RP;
+            UnitNum = data.UnitNum;
+            X = data.X;
+            Y = data.Y;
+
+            CommonTestName = testname;
+            TVAL = val;
+        }
 
         public string ParamName { set; get; }
         public string Eval_PN { set; get; }

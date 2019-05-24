@@ -213,6 +213,10 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\Logic\SampleCoordinate.cs" />
+    <Compile Include="Models\Logic\WaferShippable.cs" />
+    <Compile Include="Models\Logic\WATACFilterBin.cs" />
+    <Compile Include="Models\Logic\WATCPK.cs" />
     <Compile Include="Models\Logic\WATFailureMode.cs" />
     <Compile Include="Models\Logic\ProbeDataQty.cs" />
     <Compile Include="Models\Logic\SpecBinPassFail.cs" />

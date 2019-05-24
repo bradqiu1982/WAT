@@ -7,11 +7,17 @@ namespace WAT.Models
 {
     public class WATProbeTestDataFiltered : WATProbeTestData
     {
-        public static List<WATProbeTestDataFiltered> GetFilteredData(List<WATProbeTestData> srcdatalist,string rp)
+        public static List<WATProbeTestDataFiltered> GetFilteredData(List<WATProbeTestData> srcdatalist,string rp
+            ,Dictionary<string,bool> unitdict,Dictionary<string, bool> filterbindict)
         {
             var rptimedict = new Dictionary<string, DateTime>();
             foreach (var item in srcdatalist)
             {
+                if (!unitdict.ContainsKey(item.UnitNum))
+                { continue; }
+                if (filterbindict.ContainsKey(item.BinNum))
+                { continue; }
+
                 var key =  item.UnitNum + "::" + item.CommonTestName+ "::" +item.RP ;
                 if (!rptimedict.ContainsKey(key))
                 {
@@ -32,6 +38,11 @@ namespace WAT.Models
 
             foreach (var item in srcdatalist)
             {
+                if (!unitdict.ContainsKey(item.UnitNum))
+                { continue; }
+                if (filterbindict.ContainsKey(item.BinNum))
+                { continue; }
+
                 var key =  item.UnitNum + "::" + item.CommonTestName+ "::"+item.RP;
                 if (item.TimeStamp == rptimedict[key])
                 {
