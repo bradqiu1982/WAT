@@ -72,9 +72,15 @@ namespace WAT.Models
 
             var sql = "select Name,MSG,UpdateTime from WebLog where MSGType='DIESORT' and Name not in (select distinct Name from WebLog where MSGType='IGNDIESORT') order by Name,UpdateTime desc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
+            var msgdict = new Dictionary<string, bool>();
             foreach (var line in dbret)
             {
-                ret.Add(new WebLog(Convert.ToString(line[0]), Convert.ToString(line[1]), Convert.ToDateTime(line[2]).ToString()));
+                var msg = Convert.ToString(line[1]);
+                if (msgdict.ContainsKey(msg))
+                { continue; }
+
+                msgdict.Add(msg, true);
+                ret.Add(new WebLog(Convert.ToString(line[0]),msg, Convert.ToDateTime(line[2]).ToString()));
             }
 
             return ret;

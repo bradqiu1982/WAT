@@ -123,6 +123,22 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<SpecBinPassFail> GetFitSpec(string evalpn, string dcdname, List<SpecBinPassFail> alldata)
+        {
+            var ret = new List<SpecBinPassFail>();
+            foreach (var item in alldata)
+            {
+                if (string.Compare(item.Eval_PN, evalpn, true) == 0
+                    && string.Compare(item.DCDName, dcdname, true) == 0
+                    && !string.IsNullOrEmpty(item.Bin_PN)
+                    && item.ParamName.ToUpper().Contains("FIT"))
+                {
+                    ret.Add(item);
+                }
+            }
+            return ret;
+        }
+
         public string Eval_PN { set; get; }
         public string PN7 { get {
                 if (Eval_PN.Length > 7)

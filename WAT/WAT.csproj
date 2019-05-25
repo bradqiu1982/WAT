@@ -214,6 +214,7 @@
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
     <Compile Include="Models\Logic\SampleCoordinate.cs" />
+    <Compile Include="Models\Logic\WATTTF.cs" />
     <Compile Include="Models\Logic\WaferShippable.cs" />
     <Compile Include="Models\Logic\WATACFilterBin.cs" />
     <Compile Include="Models\Logic\WATCPK.cs" />

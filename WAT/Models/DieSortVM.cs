@@ -681,6 +681,20 @@ namespace WAT.Models
 
                 if (pnlist.Count == 0)
                 {
+                    sql = @"SELECT distinct bp.BinJobPartNumber FROM [Insite].[insite].[Rpt_ReleasedJob] rj
+                        left join [Insite].[insite].[BinJobPartnumbers] bp on bp.ChipPartNumber = rj.product
+                        where Factory = 'CHIP' and left(ContainerName,9) = '<wafer>' and bp.BinJobPartNumber is not null";
+
+                    sql = sql.Replace("<wafer>", wafer);
+                    dbret = DBUtility.ExeAllenSqlWithRes(sql);
+                    foreach (var line in dbret)
+                    {
+                        pnlist.Add(Convert.ToString(line[0]));
+                    }
+                }
+
+                if (pnlist.Count == 0)
+                {
                     sql = @"select distinct ProductName from [InsiteDB].[insite].ProductBase where ProductBaseId in (
                                 select ProductBaseId from  [InsiteDB].[insite].Product
                                 where ProductId  in (

@@ -8,9 +8,12 @@ namespace WAT.Models
 {
     public class AllenWATLogic
     {
-        //return value PASS;RETEST,REASON;SCRAP,REASON;EXCEPTION,REASON
-        public static void PassFaile(string containername,string dcdname_)
+
+        public static AllenWATLogic PassFaile(string containername,string dcdname_)
         {
+
+            var ret = new AllenWATLogic();
+
             var dcdname = dcdname_.Replace("_dp", "_rp").Replace("_BurnInTest","");
             var rp = Convert.ToInt32(dcdname.Split(new string[] { "_rp" }, StringSplitOptions.RemoveEmptyEntries)[1]);
 
@@ -19,7 +22,8 @@ namespace WAT.Models
             if (string.IsNullOrEmpty(containerinfo.containername))
             {
                 System.Windows.MessageBox.Show("Fail to get container info.....");
-                return;
+                ret.ProgramMsg = "Fail to get container info.....";
+                return ret;
             }
 
             //SPEC
@@ -28,7 +32,8 @@ namespace WAT.Models
             if (dutminitem.Count == 0)
             {
                 System.Windows.MessageBox.Show("Fail to get min DUT count.....");
-                return;
+                ret.ProgramMsg = "Fail to get min DUT count.....";
+                return ret;
             }
 
             var shippable = WaferShippable.WFShippable(containerinfo.wafer);
@@ -41,7 +46,8 @@ namespace WAT.Models
             if (watprobeval.Count == 0)
             {
                 System.Windows.MessageBox.Show("Fail to get wat prob data.....");
-                return;
+                ret.ProgramMsg = "Fail to get wat prob data.....";
+                return ret;
             }
             var readcount = WATProbeTestData.GetReadCount(watprobeval, rp.ToString());
 
@@ -57,7 +63,8 @@ namespace WAT.Models
             if (watprobevalfiltered.Count == 0)
             {
                 System.Windows.MessageBox.Show("Fail to get wat prob filtered data.....");
-                return;
+                ret.ProgramMsg = "Fail to get wat prob filtered data.....";
+                return ret;
             }
 
             //FAIL MODE
@@ -70,12 +77,18 @@ namespace WAT.Models
             if (couponstatdata.Count == 0)
             {
                 System.Windows.MessageBox.Show("Fail to get wat coupon data.....");
-                return;
+                ret.ProgramMsg = "FFail to get wat coupon data.....";
+                return ret;
             }
 
             //CPK
             var cpkspec = SpecBinPassFail.GetCPKSpec(containerinfo.ProductName, dcdname, allspec);
             var cpktab = WATCPK.GetCPK(rp.ToString(), couponstatdata, watprobevalfiltered, cpkspec);
+
+            //TTF
+            var fitspec = SpecBinPassFail.GetFitSpec(containerinfo.ProductName, dcdname, allspec);
+            var ttfdata = WATTTF.GetTTFData(containerinfo.ProductName, rp, fitspec, watprobevalfiltered);
+
 
             //Pass Fail Unit
             var passfailunitspec = SpecBinPassFail.GetSpecByPNDCDName(containerinfo.ProductName, dcdname, allspec);
@@ -83,18 +96,26 @@ namespace WAT.Models
             if (passfailunitdata.Count == 0)
             {
                 System.Windows.MessageBox.Show("Fail to get wat passfailunit data .....");
-                return;
+                ret.ProgramMsg = "Fail to get wat passfailunit data .....";
+                return ret;
             }
             var failcount = WATPassFailUnit.GetFailCount(passfailunitdata);
 
-
+           
             //Pass Fail Coupon
             var watpassfailcoupondata = WATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
+            if (watpassfailcoupondata.Count == 0)
+            {
+                System.Windows.MessageBox.Show("Fail to get wat passfailcoupon data .....");
+                ret.ProgramMsg = "Fail to get wat passfailcoupon data .....";
+                return ret;
+            }
 
             var failstring = WATPassFailCoupon.GetFailString(watpassfailcoupondata);
             var couponDutCount = WATPassFailCoupon.GetDutCount(watpassfailcoupondata);
             var couponSumFails = WATPassFailCoupon.GetSumFails(watpassfailcoupondata);
 
+            //all unit exclusion
             var allunitexclusion = false;
             if (samplexy.Count > 0 && unitdict.Count == 0)
             { allunitexclusion = true; }
@@ -103,7 +124,7 @@ namespace WAT.Models
             var retestlogic = RetestLogic(containerinfo, dcdname, rp, shippable, probecount.ProbeCount, readcount
                 , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,allunitexclusion);
 
-            return;
+            return retestlogic;
         }
 
         private static AllenWATLogic RetestLogic(ContainerInfo container,string DCDName,int rp,int shippable,int probeCount
