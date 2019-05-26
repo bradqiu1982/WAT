@@ -38,7 +38,90 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<WATTTF> GetTTFData(string evalpn,int rp
+        public static List<WATTTF> GetTTFData(string evalpn, int rp
+           , List<SpecBinPassFail> fitspec, List<WATProbeTestDataFiltered> filterdata, List<WATFailureMode> FMode)
+        {
+            var ret = GetTTFDataWithoutCensor(evalpn,rp,fitspec,filterdata);
+
+            var fdict = new Dictionary<string, WATFailureMode>();
+            foreach (var item in FMode)
+            {
+                if (!fdict.ContainsKey(item.UnitNum))
+                {
+                    fdict.Add(item.UnitNum, item);
+                }
+            }
+
+            foreach (var item in ret)
+            {
+                if (!string.IsNullOrEmpty(item.dBdelta_ref1_prev) && UT.O2D(item.dBdelta_ref1_prev) > 1)
+                {
+                    item.CensorType = "DataIssue_prev";
+                }
+                else if (!string.IsNullOrEmpty(item.dBdelta_ref1_prev) && UT.O2D(item.dBdelta_ref1_prev) < -1
+                    && !string.IsNullOrEmpty(item.TTF_dB_ref1) && UT.O2D(item.TTF_dB_ref1) > item.cumulativeBItime_prev
+                    && UT.O2D(item.TTF_dB_ref1) < item.cumulativeBItime)
+                {
+                    item.CensorType = "DataIssue_prev";
+                }
+                else if (!string.IsNullOrEmpty(item.TTF_dB_ref1) && UT.O2D(item.TTF_dB_ref1) < item.cumulativeBItime_prev
+                    && !string.IsNullOrEmpty(item.dBdelta_ref1) && !string.IsNullOrEmpty(item.dBdelta_ref1_prev) 
+                    && UT.O2D(item.dBdelta_ref1) > UT.O2D(item.dBdelta_ref1_prev))
+                {
+                    item.CensorType = "NotDegrading";
+                }
+                else if (!string.IsNullOrEmpty(item.TTF_dB_ref1) && UT.O2D(item.TTF_dB_ref1) > 10.0 * item.cumulativeBItime)
+                {
+                    item.CensorType = "10xBIduration";
+                }
+                else if (string.IsNullOrEmpty(item.dBdelta_ref1_prev))
+                {
+                    item.CensorType = "MissingPrevRP";
+                }
+                else if(fdict.ContainsKey(item.UnitNum) && !fdict[item.UnitNum].Failure.ToUpper().Contains("PASS") 
+                    &&!fdict[item.UnitNum].Failure.ToUpper().Contains("WEAROUT"))
+                {
+                    item.CensorType = "OtherFM_" + fdict[item.UnitNum].Failure;
+                }
+                else
+                { item.CensorType = "None"; }
+            }
+
+            var filter1list = new List<WATTTF>();
+            foreach (var item in ret)
+            {
+                if (string.Compare(item.CensorType, "None", true) == 0
+                    || string.Compare(item.CensorType, "10xBIduration", true) == 0
+                    || string.Compare(item.CensorType, "NotDegrading", true) == 0)
+                {
+                    filter1list.Add(item);
+                }
+            }
+
+            var unitdict = new Dictionary<string, bool>();
+            foreach (var item in filter1list)
+            {
+                if (!unitdict.ContainsKey(item.UnitNum))
+                {
+                    unitdict.Add(item.UnitNum, true);
+                }
+            }
+
+
+            var filter2list = new List<WATTTF>();
+            foreach (var item in filter1list)
+            {
+                if (string.Compare(item.CensorType, "None", true) == 0)
+                {
+                    item.DUT_COUNT = unitdict.Count;
+                    filter2list.Add(item);
+                }
+            }
+
+            return filter2list;
+        }
+
+        private static List<WATTTF> GetTTFDataWithoutCensor(string evalpn,int rp
             ,List<SpecBinPassFail> fitspec,List<WATProbeTestDataFiltered> filterdata)
         {
             var RPStr = "_rp" + (100 +rp).ToString().Substring(1);
@@ -213,6 +296,8 @@ namespace WAT.Models
             dBdelta_ref0_prev = "";
             dBdelta_ref1 = "";
             dBdelta_ref1_prev = "";
+            CensorType = "";
+            DUT_COUNT = 0;
         }
 
         public string  ParamName {set;get;}
@@ -228,6 +313,7 @@ namespace WAT.Models
         public string dBdelta_ref0_prev { set; get; }
         public string dBdelta_ref1 { set; get; }
         public string dBdelta_ref1_prev { set; get; }
-
+        public string CensorType { set; get; }
+        public int DUT_COUNT { set; get; }
     }
 }

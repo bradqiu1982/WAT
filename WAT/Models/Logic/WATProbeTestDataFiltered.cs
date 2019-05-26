@@ -177,7 +177,7 @@ namespace WAT.Models
             return filtereddata;
         }
 
-        public static List<WATFailureMode> GetWATFailureModes(List<WATProbeTestDataFiltered> srcdata,List<SpecBinPassFail> spec)
+        public static List<WATFailureMode> GetWATFailureModes(List<WATProbeTestDataFiltered> srcdata,List<SpecBinPassFail> spec,int bitemp)
         {
             var DPOLL = "";
             var DVFUL = "";
@@ -190,8 +190,14 @@ namespace WAT.Models
             }
 
             var ret = new List<WATFailureMode>();
-            ret.AddRange(getfmode(srcdata, DPOLL, DVFUL));
-            ret.AddRange(getfmode(srcdata, DPOLL, DVFUL, false));
+            if (bitemp == 150 || bitemp == 100)
+            {
+                ret.AddRange(getfmode(srcdata, DPOLL, DVFUL));
+            }
+            else
+            {
+                ret.AddRange(getfmode(srcdata, DPOLL, DVFUL, false));
+            }
             return ret;
         }
 

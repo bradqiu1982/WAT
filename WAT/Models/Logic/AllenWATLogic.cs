@@ -26,6 +26,9 @@ namespace WAT.Models
                 return ret;
             }
 
+            //BITemp
+            var bitemp = WATBITemp.GetBITemp(containerinfo.ProductName, rp.ToString());
+
             //SPEC
             var allspec = SpecBinPassFail.GetAllSpec();
             var dutminitem = SpecBinPassFail.GetMinDUT(containerinfo.ProductName, dcdname, allspec);
@@ -69,7 +72,7 @@ namespace WAT.Models
 
             //FAIL MODE
             var spec4fmode = SpecBinPassFail.GetParam4FailMode(containerinfo.ProductName, rp.ToString(), allspec);
-            var failmodes = WATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode);
+            var failmodes = WATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode, bitemp);
 
             //Coupon Stat Data
             var binpndict = SpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
@@ -87,8 +90,11 @@ namespace WAT.Models
 
             //TTF
             var fitspec = SpecBinPassFail.GetFitSpec(containerinfo.ProductName, dcdname, allspec);
-            var ttfdata = WATTTF.GetTTFData(containerinfo.ProductName, rp, fitspec, watprobevalfiltered);
+            var ttfdata = WATTTF.GetTTFData(containerinfo.ProductName, rp, fitspec, watprobevalfiltered,failmodes);
 
+            //TTFSorted
+
+            var ttfdatasorted = WATTTFSorted.GetSortedTTFData(ttfdata);
 
             //Pass Fail Unit
             var passfailunitspec = SpecBinPassFail.GetSpecByPNDCDName(containerinfo.ProductName, dcdname, allspec);
