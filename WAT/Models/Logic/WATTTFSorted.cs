@@ -64,7 +64,7 @@ namespace WAT.Models
             return ret;
         }
 
-        private static double GetNormalSinV(double p)
+        public static double GetNormalSinV(double p)
         {
             var a1 = -39.6968302866538;
             var a2 = 220.946098424521;

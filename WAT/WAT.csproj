@@ -228,7 +228,11 @@
     <Compile Include="Models\Logic\WATPassFailUnit.cs" />
     <Compile Include="Models\Logic\WATProbeTestData.cs" />
     <Compile Include="Models\Logic\WATProbeTestDataFiltered.cs" />
+    <Compile Include="Models\Logic\WATTTFfit.cs" />
     <Compile Include="Models\Logic\WATTTFSorted.cs" />
+    <Compile Include="Models\Logic\WATTTFTerms.cs" />
+    <Compile Include="Models\Logic\WATTTFUnit.cs" />
+    <Compile Include="Models\Logic\WATTTFuse.cs" />
     <Compile Include="Models\WaferPN.cs" />
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />

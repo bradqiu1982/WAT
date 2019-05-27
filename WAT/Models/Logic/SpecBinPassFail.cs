@@ -12,7 +12,7 @@ namespace WAT.Models
             var ret = new List<SpecBinPassFail>();
 
             var sql = @"select [Eval_ProductName],[Bin_Product],[DCDefName],[ParameterName],[Wafer_LL],[Wafer_UL]
-                        ,[DUT_LL],[DUT_UL],[min_DUT_Count] from [EngrData].[insite].[Eval_Specs_Bin_PassFail]";
+                        ,[DUT_LL],[DUT_UL],[min_DUT_Count],[Reference_value],[Reference_value_2],[Reference_value_3],[Reference_value_4] from [EngrData].[insite].[Eval_Specs_Bin_PassFail]";
             var dbret = DataBaseUT.ExeAllenSqlWithRes(sql);
 
             foreach (var line in dbret)
@@ -27,6 +27,12 @@ namespace WAT.Models
                 tempvm.DTLL = UT.O2S(line[6]);
                 tempvm.DTUL = UT.O2S(line[7]);
                 tempvm.minDUT = UT.O2I(line[8]);
+
+                tempvm.Ref1 = UT.O2S(line[9]);
+                tempvm.Ref2 = UT.O2S(line[10]);
+                tempvm.Ref3 = UT.O2S(line[11]);
+                tempvm.Ref4 = UT.O2S(line[12]);
+
                 ret.Add(tempvm);
             }
             return ret;
@@ -139,6 +145,36 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<SpecBinPassFail> GetFitTTPSpec(string evalpn, List<SpecBinPassFail> alldata)
+        {
+            var ret = new List<SpecBinPassFail>();
+            foreach (var item in alldata)
+            {
+                if (string.Compare(item.Eval_PN, evalpn, true) == 0
+                    && !string.IsNullOrEmpty(item.Bin_PN)
+                    && item.ParamName.ToUpper().Contains("FIT_TTP"))
+                {
+                    ret.Add(item);
+                }
+            }
+            return ret;
+        }
+
+        public static List<SpecBinPassFail> GetTTFUnitSpec(string evalpn, List<SpecBinPassFail> alldata)
+        {
+            var ret = new List<SpecBinPassFail>();
+            foreach (var item in alldata)
+            {
+                if (string.Compare(item.Eval_PN, evalpn, true) == 0
+                    && !string.IsNullOrEmpty(item.Bin_PN)
+                    && item.ParamName.ToUpper().Contains("UNIT_TTF"))
+                {
+                    ret.Add(item);
+                }
+            }
+            return ret;
+        }
+
         public string Eval_PN { set; get; }
         public string PN7 { get {
                 if (Eval_PN.Length > 7)
@@ -172,5 +208,9 @@ namespace WAT.Models
 
         public int minDUT { set; get; }
 
+        public string Ref1 { set; get; }
+        public string Ref2 { set; get; }
+        public string Ref3 { set; get; }
+        public string Ref4 { set; get; }
     }
 }

@@ -45,7 +45,7 @@ namespace WAT.Models
             var probecount = ProbeDataQty.GetCount(containerinfo.containername);
 
             //WAT PROB
-            var watprobeval = WATProbeTestData.GetData(containerinfo.containername);
+            var watprobeval = WATProbeTestData.GetData(containerinfo.containername,rp);
             if (watprobeval.Count == 0)
             {
                 System.Windows.MessageBox.Show("Fail to get wat prob data.....");
@@ -93,29 +93,44 @@ namespace WAT.Models
             var ttfdata = WATTTF.GetTTFData(containerinfo.ProductName, rp, fitspec, watprobevalfiltered,failmodes);
 
             //TTFSorted
-
             var ttfdatasorted = WATTTFSorted.GetSortedTTFData(ttfdata);
+
+            //TTFTerms
+            var ttftermdata = WATTTFTerms.GetTTRTermsData(ttfdatasorted);
+
+            //TTFfit
+            var ttffit = WATTTFfit.GetFitData(ttftermdata);
+
+            //TTFuse
+            var ttpspec = SpecBinPassFail.GetFitTTPSpec(containerinfo.ProductName, allspec);
+            var ttfuse = WATTTFuse.GetTTFuseData(ttpspec, ttffit);
+
+            //TTFUnit
+            var ttfunitspec = SpecBinPassFail.GetTTFUnitSpec(containerinfo.ProductName, allspec);
+            var ttfunitdata = WATTTFUnit.GetUnitData(watprobevalfiltered, rp.ToString(), ttfuse, ttfdatasorted,ttfunitspec);
 
             //Pass Fail Unit
             var passfailunitspec = SpecBinPassFail.GetSpecByPNDCDName(containerinfo.ProductName, dcdname, allspec);
             var passfailunitdata = WATPassFailUnit.GetPFUnitData(rp.ToString(), dcdname, passfailunitspec, watprobevalfiltered, couponstatdata,cpktab);
-            if (passfailunitdata.Count == 0)
-            {
-                System.Windows.MessageBox.Show("Fail to get wat passfailunit data .....");
-                ret.ProgramMsg = "Fail to get wat passfailunit data .....";
-                return ret;
-            }
+
+            //if (passfailunitdata.Count == 0)
+            //{
+            //    System.Windows.MessageBox.Show("Fail to get wat passfailunit data .....");
+            //    ret.ProgramMsg = "Fail to get wat passfailunit data .....";
+            //    return ret;
+            //}
+
             var failcount = WATPassFailUnit.GetFailCount(passfailunitdata);
 
            
             //Pass Fail Coupon
             var watpassfailcoupondata = WATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
-            if (watpassfailcoupondata.Count == 0)
-            {
-                System.Windows.MessageBox.Show("Fail to get wat passfailcoupon data .....");
-                ret.ProgramMsg = "Fail to get wat passfailcoupon data .....";
-                return ret;
-            }
+            //if (watpassfailcoupondata.Count == 0)
+            //{
+            //    System.Windows.MessageBox.Show("Fail to get wat passfailcoupon data .....");
+            //    ret.ProgramMsg = "Fail to get wat passfailcoupon data .....";
+            //    return ret;
+            //}
 
             var failstring = WATPassFailCoupon.GetFailString(watpassfailcoupondata);
             var couponDutCount = WATPassFailCoupon.GetDutCount(watpassfailcoupondata);

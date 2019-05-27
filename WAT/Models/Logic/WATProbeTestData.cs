@@ -7,7 +7,7 @@ namespace WAT.Models
 {
     public class WATProbeTestData
     {
-        public static List<WATProbeTestData> GetData(string containername)
+        public static List<WATProbeTestData> GetData(string containername,int rp)
         {
             var ret = new List<WATProbeTestData>();
             var sql = @" SELECT  TIME_STAMP ,CONTAINER_NUMBER ,TOOL_NAME
@@ -15,7 +15,9 @@ namespace WAT.Models
                           ,COMMON_TEST_NAME ,TEST_VALUE
                           ,PROBE_VALUE ,BIN_NUMBER ,BIN_NAME
                           FROM [EngrData].[insite].[Get_EVAL_Data_By_CONTAINER_NUMBER_Link_PROBE_DATA] with(nolock) 
-                           where  [CONTAINER_NUMBER] = @containername and READ_POINT  IN ('0','1','2','3')";
+                           where  [CONTAINER_NUMBER] = @containername and READ_POINT  IN ('0','1','2','3','"
+                            +(rp-1).ToString()+"','"+rp.ToString()+"')";
+
             var dict = new Dictionary<string, string>();
             dict.Add("@containername", containername);
 
