@@ -98,14 +98,13 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<SpecBinPassFail> GetSpecByPNDCDName(string evalpn, string dcdname, List<SpecBinPassFail> alldata)
+        public static List<SpecBinPassFail> GetPassFailUnitSpec(string evalpn, string dcdname, List<SpecBinPassFail> alldata)
         {
             var ret = new List<SpecBinPassFail>();
             foreach (var item in alldata)
             {
                 if (string.Compare(item.Eval_PN, evalpn, true) == 0
-                    && string.Compare(item.DCDName, dcdname, true) == 0
-                    && !string.IsNullOrEmpty(item.Bin_PN))
+                    && string.Compare(item.DCDName, dcdname, true) == 0)
                 {
                     ret.Add(item);
                 }

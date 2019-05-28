@@ -109,9 +109,11 @@ namespace WAT.Models
             var ttfunitspec = SpecBinPassFail.GetTTFUnitSpec(containerinfo.ProductName, allspec);
             var ttfunitdata = WATTTFUnit.GetUnitData(watprobevalfiltered, rp.ToString(), ttfuse, ttfdatasorted,ttfunitspec);
 
+            var ttfmu = WATTTFmu.GetmuData(fitspec, rp.ToString(), watprobevalfiltered, ttfuse, ttffit);
             //Pass Fail Unit
-            var passfailunitspec = SpecBinPassFail.GetSpecByPNDCDName(containerinfo.ProductName, dcdname, allspec);
-            var passfailunitdata = WATPassFailUnit.GetPFUnitData(rp.ToString(), dcdname, passfailunitspec, watprobevalfiltered, couponstatdata,cpktab);
+            var passfailunitspec = SpecBinPassFail.GetPassFailUnitSpec(containerinfo.ProductName, dcdname, allspec);
+            var passfailunitdata = WATPassFailUnit.GetPFUnitData(rp.ToString(), dcdname, passfailunitspec
+                , watprobevalfiltered, couponstatdata,cpktab,ttfmu,ttfunitdata);
 
             //if (passfailunitdata.Count == 0)
             //{

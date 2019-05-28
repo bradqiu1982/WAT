@@ -8,7 +8,8 @@ namespace WAT.Models
     public class WATPassFailUnit : WATProbeTestData
     {
         public static List<WATPassFailUnit> GetPFUnitData(string RP, string DCDName,List<SpecBinPassFail> speclist
-            ,List<WATProbeTestDataFiltered> filterdata,List<WATCouponStats> coupondata, List<WATCPK> cpktab)
+            ,List<WATProbeTestDataFiltered> filterdata,List<WATCouponStats> coupondata, List<WATCPK> cpktab
+            ,List<WATTTFmu> ttfmu,List<WATTTFUnit> ttfunit)
         {
             var ret = new List<WATPassFailUnit>();
 
@@ -148,8 +149,49 @@ namespace WAT.Models
 
             foreach (var ck in cpktab)
             {
-                ret.Add(new WATPassFailUnit(ck, ck.CommonTestName+RPStr, ck.TestValue));
-            }
+                var paramname = ck.CommonTestName + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        if (string.Compare(spec.Bin_PN, ck.Bin_PN, true) == 0)
+                        {
+                            ret.Add(new WATPassFailUnit(ck, paramname, ck.TestValue));
+                        }//end if
+                    }//end foreach
+                }//end if
+            }//end foreach
+
+            foreach (var mu in ttfmu)
+            {
+                var paramname = mu.CommonTestName + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        if (string.Compare(spec.Bin_PN, mu.Bin_PN, true) == 0)
+                        {
+                            ret.Add(new WATPassFailUnit(mu,spec,paramname,mu.TestValue.ToString()));
+                        }//end if
+                    }//end foreach
+                }//end if
+            }//end foreach
+
+
+            foreach (var ut in ttfunit)
+            {
+                var paramname = ut.CommonTestName + RPStr;
+                if (specparamdict.ContainsKey(paramname))
+                {
+                    foreach (var spec in specparamdict[paramname])
+                    {
+                        if (string.Compare(spec.Bin_PN, ut.Bin_PN, true) == 0)
+                        {
+                            ret.Add(new WATPassFailUnit(ut, spec, paramname, ut.TestValue.ToString()));
+                        }//end if
+                    }//end foreach
+                }//end if
+            }//end foreach
 
             return ret;
         }
@@ -218,6 +260,48 @@ namespace WAT.Models
             DCDName = data.DCDName;
             UpperLimit = data.WUL;
             LowLimit = data.WLL;
+
+            TimeStamp = data.TimeStamp;
+            ContainerNum = data.ContainerNum;
+            ToolName = data.ToolName;
+            RP = data.RP;
+            UnitNum = data.UnitNum;
+            X = data.X;
+            Y = data.Y;
+
+            CommonTestName = testname;
+            TVAL = val;
+        }
+
+        private WATPassFailUnit(WATTTFmu data, SpecBinPassFail spec, string testname, string val)
+        {
+            ParamName = spec.ParamName;
+            Eval_PN = spec.Eval_PN;
+            Bin_PN = spec.Bin_PN;
+            DCDName = spec.DCDName;
+            UpperLimit = spec.WUL;
+            LowLimit = spec.WLL;
+
+            TimeStamp = data.TimeStamp;
+            ContainerNum = data.ContainerNum;
+            ToolName = data.ToolName;
+            RP = data.RP;
+            UnitNum = data.UnitNum;
+            X = data.X;
+            Y = data.Y;
+
+            CommonTestName = testname;
+            TVAL = val;
+        }
+
+        private WATPassFailUnit(WATTTFUnit data, SpecBinPassFail spec, string testname, string val)
+        {
+            ParamName = spec.ParamName;
+            Eval_PN = spec.Eval_PN;
+            Bin_PN = spec.Bin_PN;
+            DCDName = spec.DCDName;
+            UpperLimit = spec.WUL;
+            LowLimit = spec.WLL;
 
             TimeStamp = data.TimeStamp;
             ContainerNum = data.ContainerNum;

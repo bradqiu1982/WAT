@@ -151,3 +151,32 @@ CREATE TABLE [dbo].[AllenEVALData] (
     [Appv_7]   DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL
 );
 
+CREATE TABLE  [ProductionResult] (
+	[TestId]      UNIQUEIDENTIFIER NOT NULL,
+	[ChannelInfo]      VARCHAR (120)     NOT NULL,
+	[Containername]    VARCHAR (120)     NOT NULL,
+	[TestTimeStamp]    DATETIME         NOT NULL,
+	[TestDuration_s]   VARCHAR (64)     NOT NULL,
+	[TestStation]      VARCHAR (64)     NOT NULL,
+	[BVR_LD_A]         VARCHAR (64)     NOT NULL,
+	[PO_LD_W]          VARCHAR (64)     NOT NULL,
+	[VF_LD_V]          VARCHAR (64)     NOT NULL,
+	[SLOPE_WperA]      VARCHAR (64)     NOT NULL,
+	[THOLD_A]          VARCHAR (64)     NOT NULL,
+	[R_LD_ohm]         VARCHAR (64)     NOT NULL,
+	[IMAX_A]           VARCHAR (64)     NOT NULL,
+	[KINK2BETTER]      VARCHAR (64)     NOT NULL,
+	[VI_MASK]          VARCHAR (64)     NOT NULL,
+	[VI_KINK]          VARCHAR (64)     NOT NULL,
+	[Notes]            VARCHAR (256)     NOT NULL,
+	[TestStep]         VARCHAR (256)     NOT NULL,
+
+	[UpdateCode]  VARCHAR (8)      DEFAULT ('0'),
+	[UploadCode]  VARCHAR (8)      DEFAULT ('0'),
+
+	[SN]          VARCHAR (120)     NOT NULL,
+	[Product]     VARCHAR (120)     NOT NULL,
+	[SoftVer]     VARCHAR (120)     NOT NULL,
+	[SpecVer]     VARCHAR (120)     NOT NULL
+);
+
