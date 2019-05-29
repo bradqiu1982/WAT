@@ -78,7 +78,11 @@ namespace WAT.Models
             }//end foreach
 
             var clist = dict2.Values.ToList();
-            return clist.Max();
+            if (clist.Count > 0)
+            { return clist.Max(); }
+            else
+            { return 0; }
+            
         }
 
         public WATProbeTestData()

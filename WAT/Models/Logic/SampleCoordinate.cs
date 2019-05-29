@@ -64,18 +64,60 @@ namespace WAT.Models
             return ret;
         }
 
-        public static Dictionary<string, bool> GetNonExclusionUnitDict(List<SampleCoordinate> srcdata)
+        public static Dictionary<string, bool> GetNonExclusionUnitDict(List<SampleCoordinate> srcdata,bool noexclusion)
         {
             var dict = new Dictionary<string, bool>();
-            foreach (var item in srcdata)
+            if (noexclusion)
             {
-                if (string.Compare(item.exclusion, "true",true) != 0 && string.Compare(item.exclusion, "1",true) != 0)
+                foreach (var item in srcdata)
                 {
                     if (!dict.ContainsKey(item.DeviceNumber))
                     { dict.Add(item.DeviceNumber, true); }
                 }
             }
+            else
+            {
+                foreach (var item in srcdata)
+                {
+                    if (string.Compare(item.exclusion, "true",true) != 0 && string.Compare(item.exclusion, "1",true) != 0)
+                    {
+                        if (!dict.ContainsKey(item.DeviceNumber))
+                        { dict.Add(item.DeviceNumber, true); }
+                    }
+                }
+            }
+
             return dict;
+        }
+
+        public static List<SampleCoordinate> GetExclusionComment(List<SampleCoordinate> srcdata)
+        {
+            var ret = new List<SampleCoordinate>();
+            foreach (var item in srcdata)
+            {
+                if (string.Compare(item.exclusion, "true", true) == 0 || string.Compare(item.exclusion, "1", true) == 0)
+                {
+                    if (!string.IsNullOrEmpty(item.HISTORYMAINLINEID))
+                    {
+                        var sql = @"select ParamValueString from [Insite].[insite].[dc_Eval_50up_Exclusion] where HISTORYMAINLINEID = @HISTORYMAINLINEID and ParameterName = 'Comments'";
+                        var dict = new Dictionary<string, string>();
+                        dict.Add("@HISTORYMAINLINEID", item.HISTORYMAINLINEID);
+                        var dbret = DataBaseUT.ExeAllenSqlWithRes(sql, dict);
+                        foreach (var line in dbret)
+                        {
+                            var tempvm = new SampleCoordinate();
+                            tempvm.Container = item.Container;
+                            tempvm.DeviceNumber = item.DeviceNumber;
+                            tempvm.X = item.X;
+                            tempvm.Y = item.Y;
+                            tempvm.Notes = UT.O2S(line[0]);
+                            ret.Add(tempvm);
+                            break;
+                        }
+                    }
+                }
+            }
+            return ret;
         }
 
         public string Container { set; get; }

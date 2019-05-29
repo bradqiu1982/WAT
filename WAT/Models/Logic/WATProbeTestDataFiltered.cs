@@ -177,7 +177,7 @@ namespace WAT.Models
             return filtereddata;
         }
 
-        public static List<WATFailureMode> GetWATFailureModes(List<WATProbeTestDataFiltered> srcdata,List<SpecBinPassFail> spec,int bitemp)
+        public static List<WATFailureMode> GetWATFailureModes(List<WATProbeTestDataFiltered> srcdata,List<SpecBinPassFail> spec,Double bitemp)
         {
             var DPOLL = "";
             var DVFUL = "";

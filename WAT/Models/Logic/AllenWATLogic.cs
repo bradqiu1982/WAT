@@ -9,9 +9,8 @@ namespace WAT.Models
     public class AllenWATLogic
     {
 
-        public static AllenWATLogic PassFaile(string containername,string dcdname_)
+        public static AllenWATLogic PassFail(string containername,string dcdname_,bool noexclusion=false)
         {
-
             var ret = new AllenWATLogic();
 
             var dcdname = dcdname_.Replace("_dp", "_rp").Replace("_BurnInTest","");
@@ -21,8 +20,8 @@ namespace WAT.Models
             var containerinfo = ContainerInfo.GetInfo(containername);
             if (string.IsNullOrEmpty(containerinfo.containername))
             {
-                System.Windows.MessageBox.Show("Fail to get container info.....");
-                ret.ProgramMsg = "Fail to get container info.....";
+                //System.Windows.MessageBox.Show("Fail to get container info.....");
+                ret.AppErrorMsg = "Fail to get container info.....";
                 return ret;
             }
 
@@ -34,8 +33,8 @@ namespace WAT.Models
             var dutminitem = SpecBinPassFail.GetMinDUT(containerinfo.ProductName, dcdname, allspec);
             if (dutminitem.Count == 0)
             {
-                System.Windows.MessageBox.Show("Fail to get min DUT count.....");
-                ret.ProgramMsg = "Fail to get min DUT count.....";
+                //System.Windows.MessageBox.Show("Fail to get min DUT count.....");
+                ret.AppErrorMsg = "Fail to get min DUT count.....";
                 return ret;
             }
 
@@ -48,15 +47,17 @@ namespace WAT.Models
             var watprobeval = WATProbeTestData.GetData(containerinfo.containername,rp);
             if (watprobeval.Count == 0)
             {
-                System.Windows.MessageBox.Show("Fail to get wat prob data.....");
-                ret.ProgramMsg = "Fail to get wat prob data.....";
+                //System.Windows.MessageBox.Show("Fail to get wat prob data.....");
+                ret.AppErrorMsg = "Fail to get wat prob data.....";
                 return ret;
             }
             var readcount = WATProbeTestData.GetReadCount(watprobeval, rp.ToString());
 
             //sample XY
             var samplexy = SampleCoordinate.GetCoordinate(containerinfo.containername, watprobeval);
-            var unitdict = SampleCoordinate.GetNonExclusionUnitDict(samplexy);
+            var unitdict = SampleCoordinate.GetNonExclusionUnitDict(samplexy, noexclusion);
+            ret.ExclusionInfo = SampleCoordinate.GetExclusionComment(samplexy);
+
 
             //filter bin
             var filterbindict = WATACFilterBin.GetFilterBin(containerinfo.ProductName);
@@ -65,8 +66,8 @@ namespace WAT.Models
             var watprobevalfiltered = WATProbeTestDataFiltered.GetFilteredData(watprobeval, rp.ToString(), unitdict, filterbindict);
             if (watprobevalfiltered.Count == 0)
             {
-                System.Windows.MessageBox.Show("Fail to get wat prob filtered data.....");
-                ret.ProgramMsg = "Fail to get wat prob filtered data.....";
+                //System.Windows.MessageBox.Show("Fail to get wat prob filtered data.....");
+                ret.AppErrorMsg = "Fail to get wat prob filtered data.....";
                 return ret;
             }
 
@@ -77,12 +78,12 @@ namespace WAT.Models
             //Coupon Stat Data
             var binpndict = SpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
             var couponstatdata = WATCouponStats.GetCouponData(watprobevalfiltered, binpndict);
-            if (couponstatdata.Count == 0)
-            {
-                System.Windows.MessageBox.Show("Fail to get wat coupon data.....");
-                ret.ProgramMsg = "FFail to get wat coupon data.....";
-                return ret;
-            }
+            //if (couponstatdata.Count == 0)
+            //{
+            //    //System.Windows.MessageBox.Show("Fail to get wat coupon data.....");
+            //    ret.AppErrorMsg = "FFail to get wat coupon stat data.....";
+            //    return ret;
+            //}
 
             //CPK
             var cpkspec = SpecBinPassFail.GetCPKSpec(containerinfo.ProductName, dcdname, allspec);
@@ -123,8 +124,13 @@ namespace WAT.Models
             //}
 
             var failcount = WATPassFailUnit.GetFailCount(passfailunitdata);
+            var failunit = WATPassFailUnit.GetFailUnit(passfailunitdata);
 
-           
+            ret.DataCollect.Add("failunit",failunit);
+            ret.DataCollect.Add("failcount", failcount.ToString());
+
+
+
             //Pass Fail Coupon
             var watpassfailcoupondata = WATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
             //if (watpassfailcoupondata.Count == 0)
@@ -135,6 +141,8 @@ namespace WAT.Models
             //}
 
             var failstring = WATPassFailCoupon.GetFailString(watpassfailcoupondata);
+            ret.DataCollect.Add("failstring", failstring);
+
             var couponDutCount = WATPassFailCoupon.GetDutCount(watpassfailcoupondata);
             var couponSumFails = WATPassFailCoupon.GetSumFails(watpassfailcoupondata);
 
@@ -143,11 +151,19 @@ namespace WAT.Models
             if (samplexy.Count > 0 && unitdict.Count == 0)
             { allunitexclusion = true; }
 
+            ret.DataCollect.Add("ProbeCount", probecount.ProbeCount.ToString());
+            ret.DataCollect.Add("readcount", readcount.ToString());
+            ret.DataCollect.Add("failstring", failstring);
+
+
             //retest logic
-            var retestlogic = RetestLogic(containerinfo, dcdname, rp, shippable, probecount.ProbeCount, readcount
+            var logicresult = RetestLogic(containerinfo, dcdname, rp, shippable, probecount.ProbeCount, readcount
                 , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,allunitexclusion);
 
-            return retestlogic;
+            var scrapspec = SpecBinPassFail.GetScrapSpec(containerinfo.ProductName, dcdname,allspec);
+            logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, rp, readcount, failcount, bitemp, failmodes);
+            
+            return logicresult;
         }
 
         private static AllenWATLogic RetestLogic(ContainerInfo container,string DCDName,int rp,int shippable,int probeCount
@@ -322,17 +338,71 @@ namespace WAT.Models
             return ret;
         }
 
+
+        private static bool ScrapLogic(ContainerInfo containerinfo, List<SpecBinPassFail> scrapspec
+            ,int rp,int readcount,int failcount,Double bitemp,List<WATFailureMode> failmodes)
+        {
+            var requiredvehicle = RequiredVehicles.GetData(containerinfo.ProductName);
+            var samplevehicle = SampleVehicles.GetData(requiredvehicle, containerinfo.containername);
+            var requiredcontainer = RequiredContainers.GetContainers(requiredvehicle, containerinfo.containername, samplevehicle);
+
+            var bfailmode = false;
+            foreach (var fm in failmodes)
+            {
+                if (string.Compare(fm.Failure, "WEAROUT", true) == 0
+                || string.Compare(fm.Failure, "DELAM", true) == 0
+                || string.Compare(fm.Failure, "DVF", true) == 0
+                || string.Compare(fm.Failure, "LOWPOWERLOWLEAKAGE", true) == 0)
+                {
+                    bfailmode = true;
+                    break;
+                }
+            }
+
+            var brequiredcontainer = false;
+            foreach (var item in requiredcontainer)
+            {
+                if (string.Compare(containerinfo.containername, item.ContainerName, true) == 0)
+                {
+                    brequiredcontainer = true;
+                    break;
+                }
+            }
+
+            if (rp > 0 && readcount > 1 && failcount > 0 && bitemp >= 0
+                && (string.Compare(containerinfo.lottype, "n", true) == 0
+                || string.Compare(containerinfo.lottype, "q", true) == 0
+                || string.Compare(containerinfo.lottype, "w", true) == 0
+                || string.Compare(containerinfo.lottype, "r", true) == 0)
+                && bfailmode && brequiredcontainer && scrapspec.Count > 0
+                && (containerinfo.containername.ToUpper().Contains("E01")
+                || containerinfo.containername.ToUpper().Contains("E06"))
+                    )
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public AllenWATLogic()
         {
             NeedRetest = false;
             TestPass = false;
+            ScrapIt = false;
             ResultMsg = "";
-            ProgramMsg = "";
+            AppErrorMsg = "";
+
+            DataCollect = new Dictionary<string, string>();
         }
 
         public bool TestPass { set; get; }
         public bool NeedRetest { set; get; }
+        public bool ScrapIt { set; get; }
         public string ResultMsg { set; get; }
-        public string ProgramMsg { set; get; }
+        public string AppErrorMsg { set; get; }
+
+        public List<SampleCoordinate> ExclusionInfo { set; get; }
+        public Dictionary<string, string> DataCollect { set; get; }
     }
 }

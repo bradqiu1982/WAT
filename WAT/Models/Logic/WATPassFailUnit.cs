@@ -210,6 +210,25 @@ namespace WAT.Models
             return unitdict.Count;
         }
 
+        public static string GetFailUnit(List<WATPassFailUnit> srcdata)
+        {
+            var unitdict = new Dictionary<string, bool>();
+            foreach (var item in srcdata)
+            {
+                if (!string.IsNullOrEmpty(item.FailType))
+                {
+                    if (!unitdict.ContainsKey(item.UnitNum))
+                    { unitdict.Add(item.UnitNum, true); }
+                }//end if
+            }//end foreach
+            if (unitdict.Count > 0)
+            {
+                return string.Join(",", unitdict.Keys.ToList());
+            }
+            else
+            { return ""; }
+        }
+
         private WATPassFailUnit(WATProbeTestDataFiltered data, SpecBinPassFail spec,string testname,string val)
         {
             ParamName = spec.ParamName;

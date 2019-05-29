@@ -7,7 +7,7 @@ namespace WAT.Models
 {
     public class WATBITemp
     {
-        public static int GetBITemp(string pn,string rp)
+        public static Double GetBITemp(string pn,string rp)
         {
             var sql = @"SELECT condition_value FROM [EngrData].[dbo].[Eval_Conditions_New] where evalpartnumber = @productname AND cast(right(spec,2) as int) = @rp AND condition = 'Temperature'";
             var dict = new Dictionary<string, string>();
@@ -17,9 +17,9 @@ namespace WAT.Models
             var dbret = DataBaseUT.ExeAllenSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
-                return UT.O2I(line[0]);
+                return UT.O2D(line[0]);
             }
-            return -1;
+            return -1.0;
         }
     }
 }

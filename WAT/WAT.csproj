@@ -198,6 +198,7 @@
     <Compile Include="Controllers\DieSortController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\WaferController.cs" />
+    <Compile Include="Controllers\WATLogicController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -213,7 +214,10 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\Logic\RequiredContainers.cs" />
+    <Compile Include="Models\Logic\RequiredVehicles.cs" />
     <Compile Include="Models\Logic\SampleCoordinate.cs" />
+    <Compile Include="Models\Logic\SampleVehicles.cs" />
     <Compile Include="Models\Logic\WATBITemp.cs" />
     <Compile Include="Models\Logic\WATTTF.cs" />
     <Compile Include="Models\Logic\WaferShippable.cs" />
@@ -239,6 +243,7 @@
     <Compile Include="Models\WaferReport.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
+    <Compile Include="Models\WuxiLogic\WXWATLogic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -901,6 +906,7 @@
     <Folder Include="ckeditor\skins\kama\images\" />
     <Folder Include="ckeditor\skins\moono-lisa\dev\" />
     <Folder Include="ckeditor\skins\moono\images\hidpi\" />
+    <Folder Include="Views\WATLogic\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
