@@ -347,6 +347,30 @@ namespace WAT.Models
             }
         }
 
+        public static List<string> GetAllenContainerList()
+        {
+            var sql = "select distinct ContainerNum from  AllenEVALData";
+            var ret = new List<string>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                ret.Add(Convert.ToString(line[0]));
+            }
+            return ret;
+        }
+
+        public static List<string> GetAllenDCDName()
+        {
+            var sql = "select distinct DCDName from AllenEVALData";
+            var ret = new List<string>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                ret.Add(Convert.ToString(line[0]));
+            }
+            return ret;
+        }
+
         public AllenEVALData(string waf,string cn,string tm,string cs,string ct,string pd,string pdt,string fab,string rnum,string rseq,
                                 string react,string bat,string bou,string ship,string tool,string tn,string param,string dcd,string wf,string wft,string val,
                                 string low,string high,string pn,string spcpn,string rp,string rpn,string un,string die,string x,string y,string wfv,string cu) {

@@ -126,11 +126,6 @@ namespace WAT.Models
             var failcount = WATPassFailUnit.GetFailCount(passfailunitdata);
             var failunit = WATPassFailUnit.GetFailUnit(passfailunitdata);
 
-            ret.DataCollect.Add("failunit",failunit);
-            ret.DataCollect.Add("failcount", failcount.ToString());
-
-
-
             //Pass Fail Coupon
             var watpassfailcoupondata = WATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
             //if (watpassfailcoupondata.Count == 0)
@@ -141,7 +136,6 @@ namespace WAT.Models
             //}
 
             var failstring = WATPassFailCoupon.GetFailString(watpassfailcoupondata);
-            ret.DataCollect.Add("failstring", failstring);
 
             var couponDutCount = WATPassFailCoupon.GetDutCount(watpassfailcoupondata);
             var couponSumFails = WATPassFailCoupon.GetSumFails(watpassfailcoupondata);
@@ -151,9 +145,12 @@ namespace WAT.Models
             if (samplexy.Count > 0 && unitdict.Count == 0)
             { allunitexclusion = true; }
 
-            ret.DataCollect.Add("ProbeCount", probecount.ProbeCount.ToString());
-            ret.DataCollect.Add("readcount", readcount.ToString());
-            ret.DataCollect.Add("failstring", failstring);
+
+            ret.ValueCollect.Add("failunit",failunit);
+            ret.ValueCollect.Add("failcount", failcount.ToString());
+            ret.ValueCollect.Add("failstring", failstring);
+            ret.ValueCollect.Add("ProbeCount", probecount.ProbeCount.ToString());
+            ret.ValueCollect.Add("readcount", readcount.ToString());
 
 
             //retest logic
@@ -161,8 +158,13 @@ namespace WAT.Models
                 , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,allunitexclusion);
 
             var scrapspec = SpecBinPassFail.GetScrapSpec(containerinfo.ProductName, dcdname,allspec);
+
             logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, rp, readcount, failcount, bitemp, failmodes);
-            
+            logicresult.ValueCollect = ret.ValueCollect;
+            logicresult.ExclusionInfo = ret.ExclusionInfo;
+            logicresult.DataTables.Add(watpassfailcoupondata);
+            logicresult.DataTables.Add(failmodes);
+
             return logicresult;
         }
 
@@ -257,6 +259,108 @@ namespace WAT.Models
                                     ret.TestPass = false;
                                     ret.NeedRetest = true;
                                     ret.ResultMsg = "Inspect, ReInsert board and retest";
+                                }
+                                else
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultMsg = "Fails. Submit and check that the container goes on hold";
+                                }
+                            }
+                            else if (DCDName.ToUpper().Contains("TO_RP"))
+                            {
+                                if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("C-P"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Inspect and retest";
+                                }
+                                else if (readCount < 2 && failstring.ToUpper().Contains("C-P") && (couponDutCount-failcount) >= dutMinQty)
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultMsg = "Exclude failing parts and redo data collection";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("YIELD"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Inspect, retest";
+                                }
+                                else
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultMsg = "Fails. Submit and check that the container goes on hold";
+                                }
+                            }
+                            else if (DCDName.ToUpper().Contains("OSA_RP"))
+                            {
+                                if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("C-P"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Inspect, Check orientation and Reseat failing units and retest";
+                                }
+                                else if (readCount == 1 && failstring.ToUpper().Contains("PO_PCT_YIELD"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Clean fiber, Blow out parts, Retest entire job";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("YIELD"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Reseat failing units and retest";
+                                }
+                                else
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultMsg = "Fails. Submit and check that the container goes on hold";
+                                }
+                            }
+                            else if (DCDName.ToUpper().Contains("SBW_RP"))
+                            {
+                                if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("C-P"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Inspect, Check orientation and Reseat failing units and retest";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("YIELD"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Reseat failing units and retest";
+                                }
+                                else
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultMsg = "Fails. Submit and check that the container goes on hold";
+                                }
+                            }
+                            else if (DCDName.ToUpper().Contains("LARGE_SIGNAL_RP"))
+                            {
+                                if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("C-P"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Inspect, Check orientation and Reseat failing units and retest";
+                                }
+                                else if (readCount < 2 && failstring.ToUpper().Contains("CPK"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultMsg = "Clean fiber, Blow out parts, Retest entire job";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("YIELD"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultMsg = "Reseat failing units and retest";
                                 }
                                 else
                                 {
@@ -393,7 +497,8 @@ namespace WAT.Models
             ResultMsg = "";
             AppErrorMsg = "";
 
-            DataCollect = new Dictionary<string, string>();
+            ValueCollect = new Dictionary<string, string>();
+            DataTables = new List<object>();
         }
 
         public bool TestPass { set; get; }
@@ -403,6 +508,7 @@ namespace WAT.Models
         public string AppErrorMsg { set; get; }
 
         public List<SampleCoordinate> ExclusionInfo { set; get; }
-        public Dictionary<string, string> DataCollect { set; get; }
+        public Dictionary<string, string> ValueCollect { set; get; }
+        public List<object> DataTables { set; get; }
     }
 }

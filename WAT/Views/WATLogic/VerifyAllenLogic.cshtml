@@ -1,0 +1,71 @@
+﻿
+@{
+    ViewBag.Title = "VerifyAllenLogic";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.ALLENLOGICINIT();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="form-control">Container</label>
+                    </div>
+                    <div class="col-xs-2">
+                        <input class="form-control" type="text" id="container" name="container" placeholder="Container Number" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2">
+                        <label class="form-control">DCDName</label>
+                    </div>
+                    <div class="col-xs-2">
+                        <input class="form-control" type="text" id="dcdname" name="dcdname" placeholder="DCD Name" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-withoutex" id="btn-withoutex" value="WithOut-Exclusion">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-withex" id="btn-withex" value="With-Exclusion">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="logictable" style="margin-top:1%">
+                        <caption class="tb-caption">Allen Logic Result</caption>
+                        <thead id="logichead"></thead>
+                        <tbody id="logiccontent"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="extable" style="margin-top:1%">
+                        <caption class="tb-caption">Allen Exclusion Action</caption>
+                        <thead id="exhead"></thead>
+                        <tbody id="excontent"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="coupontable" style="margin-top:1%">
+                        <caption class="tb-caption">Fass Fail Coupon Data</caption>
+                        <thead id="couponhead"></thead>
+                        <tbody id="couponcontent"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="fmodetable" style="margin-top:1%">
+                        <caption class="tb-caption">Fail Mode Data</caption>
+                        <thead id="fmodehead"></thead>
+                        <tbody id="fmodecontent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
