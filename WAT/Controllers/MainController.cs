@@ -96,6 +96,27 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult MoveDB()
+        {
+            var cfg = CfgUtility.GetSysConfig(this);
+            var FromConnect = cfg["FromConnect"];
+            var ToConnect = cfg["ToConnect"];
+            var MOVETABLELIST = cfg["MOVETABLELIST"].Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            foreach (var tab in MOVETABLELIST)
+            {
+                var ret = MoveDataBase.MoveDB(tab,FromConnect,ToConnect);
+                if (ret)
+                {
+                    System.Windows.MessageBox.Show("Sucess to moved table: " + tab);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Fail to moved table: " + tab);
+                }
+            }
+
+            return View("HeartBeat");
+        }
 
 
     }

@@ -238,11 +238,14 @@
     <Compile Include="Models\Logic\WATTTFTerms.cs" />
     <Compile Include="Models\Logic\WATTTFUnit.cs" />
     <Compile Include="Models\Logic\WATTTFuse.cs" />
+    <Compile Include="Models\MoveDataBase.cs" />
     <Compile Include="Models\WaferPN.cs" />
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
+    <Compile Include="Models\WuxiLogic\WXOriginalWATData.cs" />
+    <Compile Include="Models\WuxiLogic\WXProbeData.cs" />
     <Compile Include="Models\WuxiLogic\WXWATLogic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
