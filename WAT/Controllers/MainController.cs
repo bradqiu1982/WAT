@@ -118,6 +118,24 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult PrepareFakeData()
+        {
+            WXProbeData.PrepareProbeData("184637-30");
+            WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
+
+            return View("HeartBeat");
+        }
+
+        public ActionResult WXLogic()
+        {
+            WXProbeData.PrepareProbeData("184637-30");
+            WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
+
+            WXWATLogic.WATPassFail("184637-30E01", "POSTHTOL2JUDGEMENT");
+
+            return View("HeartBeat");
+        }
+
 
     }
 }

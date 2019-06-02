@@ -244,9 +244,11 @@
     <Compile Include="Models\WaferReport.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
+    <Compile Include="Models\WuxiLogic\WXCfg.cs" />
     <Compile Include="Models\WuxiLogic\WXOriginalWATData.cs" />
     <Compile Include="Models\WuxiLogic\WXProbeData.cs" />
     <Compile Include="Models\WuxiLogic\WXWATLogic.cs" />
+    <Compile Include="Models\WuxiLogic\WXWATProbeTestData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -716,6 +718,7 @@
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.standalone.css" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.standalone.min.css" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.min.js.map" />
+    <Content Include="WXCfg.txt" />
     <None Include="Properties\PublishProfiles\watpublish.pubxml" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker.css.map" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker.min.css.map" />

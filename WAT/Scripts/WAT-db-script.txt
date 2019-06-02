@@ -152,7 +152,7 @@ CREATE TABLE [dbo].[AllenEVALData] (
 );
 
 CREATE TABLE  [ProductionResult] (
-	[TestId]      UNIQUEIDENTIFIER NOT NULL,
+	[TestId]      VARCHAR (120)     NOT NULL,
 	[ChannelInfo]      VARCHAR (120)     NOT NULL,
 	[Containername]    VARCHAR (120)     NOT NULL,
 	[TestTimeStamp]    DATETIME         NOT NULL,

@@ -24,9 +24,9 @@ namespace WAT.Models
                 var tempvm = new WXProbeData();
                 tempvm.X = UT.O2S(line[0]);
                 tempvm.Y = UT.O2S(line[1]);
-                tempvm.Ith = UT.O2D(line[2]).ToString();
-                tempvm.SeriesR = UT.O2D(line[3]).ToString();
-                tempvm.SlopEff = UT.O2D(line[4]).ToString();
+                tempvm.Ith = UT.O2S(line[2]);
+                tempvm.SeriesR = UT.O2S(line[3]);
+                tempvm.SlopEff = UT.O2S(line[4]);
                 ret.Add(tempvm);
             }
             return ret;
@@ -37,7 +37,7 @@ namespace WAT.Models
             var srclist = GetOriginalData(WaferNum);
             if (srclist.Count > 0)
             {
-                var sql = "delete from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] where  where [WaferID] = @WaferID";
+                var sql = "delete from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] where [WaferID] = @WaferID";
                 var dict = new Dictionary<string, string>();
                 dict.Add("@WaferID", WaferNum);
                 DBUtility.ExeLocalSqlNoRes(sql, dict);
@@ -98,10 +98,10 @@ namespace WAT.Models
                 tempvm.WaferID = UT.O2S(line[0]);
                 tempvm.X = UT.O2S(line[1]);
                 tempvm.Y = UT.O2S(line[2]);
-                tempvm.Ith = UT.O2D(line[3]).ToString();
+                tempvm.Ith = UT.O2S(line[3]);
                 tempvm.WaferNum = UT.O2S(line[4]);
-                tempvm.SeriesR = UT.O2D(line[5]).ToString();
-                tempvm.SlopEff = UT.O2D(line[6]).ToString();
+                tempvm.SeriesR = UT.O2S(line[5]);
+                tempvm.SlopEff = UT.O2S(line[6]);
 
                 ret.Add(tempvm);
             }

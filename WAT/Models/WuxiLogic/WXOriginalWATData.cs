@@ -46,16 +46,8 @@ namespace WAT.Models
                 tempvm.TestDuration_s = "18";
                 tempvm.TestStation = UT.O2S(line[3]);
                 tempvm.ReadPoint = UT.O2I(line[4]);
-                if (tempvm.ReadPoint == 0)
-                { tempvm.TestStep = "PRLL_VCSEL_Pre_Burn_in_Test"; }
-                else if (tempvm.ReadPoint == 1)
-                { tempvm.TestStep = "PRLL_VCSEL_Post_Burn_in_Test"; }
-                else if (tempvm.ReadPoint == 2)
-                { tempvm.TestStep = "PRLL_Post_HTOL1_Test"; }
-                else if (tempvm.ReadPoint == 3)
-                { tempvm.TestStep = "PRLL_Post_HTOL2_Test"; }
-                else
-                { tempvm.TestStep = ""; }
+
+                tempvm.TestStep = RP2TestName(tempvm.ReadPoint);
 
                 tempvm.BVR_LD_A = UT.O2D(line[8]).ToString();
                 tempvm.PO_LD_W = UT.O2D(line[9]).ToString();
@@ -80,9 +72,9 @@ namespace WAT.Models
                 DBUtility.ExeLocalSqlNoRes(sql, dict);
             }
 
-            sql = @"insert into EngrData.dbo.ProductionResult(ChannelInfo,Containername,TestTimeStamp,TestDuration_s,TestStation,
+            sql = @"insert into EngrData.dbo.ProductionResult(TestId,ChannelInfo,Containername,TestTimeStamp,TestDuration_s,TestStation,
                     BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,KINK2BETTER,VI_MASK,VI_KINK,Notes,TestStep,UpdateCode,
-                    SN,Product,SoftVer,SpecVer) values(@ChannelInfo,@Containername,@TestTimeStamp,@TestDuration_s,@TestStation,
+                    SN,Product,SoftVer,SpecVer) values(@TestId,@ChannelInfo,@Containername,@TestTimeStamp,@TestDuration_s,@TestStation,
                     @BVR_LD_A,@PO_LD_W,@VF_LD_V,@SLOPE_WperA,@THOLD_A,@R_LD_ohm,@IMAX_A,@KINK2BETTER,@VI_MASK,@VI_KINK,@Notes,@TestStep,@UpdateCode,
                     @SN,@Product,@SoftVer,@SpecVer)";
 
@@ -90,6 +82,7 @@ namespace WAT.Models
             foreach (var item in ret)
             {
                 dict = new Dictionary<string, string>();
+                dict.Add("@TestId", GetUniqKey());
                 dict.Add("@ChannelInfo", item.ChannelInfo);
                 dict.Add("@Containername", item.Containername);
                 dict.Add("@TestTimeStamp", item.TestTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -128,11 +121,11 @@ namespace WAT.Models
             return Guid.NewGuid().ToString("N");
         }
 
-        public static List<WXOriginalWATData> GetData(string containername, string stepname)
+        public static List<WXOriginalWATData> GetFakeData(string containername, string stepname)
         {
             var ret = new List<WXOriginalWATData>();
 
-            var sql = "select TestTimeStamp,Containername,Product,TestStation,TestStep,BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,Notes,ChannelInfo where Containername = @Containername and TestStep = @TestStep";
+            var sql = "select TestTimeStamp,Containername,Product,TestStation,TestStep,BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,Notes,ChannelInfo from EngrData.dbo.ProductionResult where Containername = @Containername and TestStep = @TestStep";
             var dict = new Dictionary<string, string>();
             dict.Add("@Containername", containername);
             dict.Add("@TestStep", stepname);
@@ -156,6 +149,8 @@ namespace WAT.Models
                 tempvm.Notes = UT.O2S(line[12]);
                 tempvm.ChannelInfo = UT.O2S(line[13]);
 
+
+                tempvm.RP = TestName2RP(tempvm.TestStep);
 
                 tempvm.Product = GetPN(tempvm.Containername, tempvm.Product);
                 var xy = GetXY(tempvm.Containername, tempvm.ChannelInfo);
@@ -183,6 +178,53 @@ namespace WAT.Models
         //THIS FUNCTION NEED TO BE UPDATE
         public static string GetPN(string containername, string pn)
         { return pn; }
+
+
+        public static string RP2TestName(int rp)
+        {
+            if (rp == 0)
+            { return "PRLL_VCSEL_Pre_Burn_in_Test"; }
+            else if (rp == 1)
+            { return "PRLL_VCSEL_Post_Burn_in_Test"; }
+            else if (rp == 2)
+            { return "PRLL_Post_HTOL1_Test"; }
+            else if (rp == 3)
+            { return "PRLL_Post_HTOL2_Test"; }
+            else
+            { return ""; }
+
+        }
+
+        public static string TestName2RP(string testname)
+        {
+            var stepnametrim = testname.Replace(" ", "").ToUpper();
+
+            var cfg = WXCfg.GetSysCfg();
+            if (cfg.Count > 0)
+            {
+                if (cfg.ContainsKey(stepnametrim))
+                {
+                    return cfg[stepnametrim];
+                }
+                else
+                {
+                    return "4";
+                }
+            }
+            else
+            {
+                if (string.Compare(stepnametrim, "PRLL_VCSEL_Pre_Burn_in_Test", true) == 0)
+                { return "0"; }
+                else if (string.Compare(stepnametrim, "PRLL_VCSEL_Post_Burn_in_Test", true) == 0)
+                { return "1"; }
+                else if (string.Compare(stepnametrim, "PRLL_Post_HTOL1_Test", true) == 0)
+                { return "2"; }
+                else if (string.Compare(stepnametrim, "PRLL_Post_HTOL2_Test", true) == 0)
+                { return "3"; }
+                else
+                { return "4"; }
+            }
+        }
 
 
         public WXOriginalWATData()
@@ -246,8 +288,11 @@ namespace WAT.Models
         public string SoftVer { set; get; }
         public string SpecVer { set; get; }
 
+
+
         public string X { set; get; }
         public string Y { set; get; }
+        public string RP { set; get; }
 
         public int ReadPoint { set; get; }
         public string UnitNum { set; get; }
