@@ -18,7 +18,7 @@ namespace WAT.Models
             var CouponID = "";
             if (CouponID_.Length < 12)
             {
-                ret.AppErrorMsg = "Get an illige couponid: " + CouponID_;
+                ret.AppErrorMsg = "Get an illege couponid: " + CouponID_;
                 return ret;
             }
             else
@@ -40,8 +40,15 @@ namespace WAT.Models
                 ret.AppErrorMsg = "Fail to get dcdname from coupon: " + CouponID;
                 return ret;
             }
-            var wafernum = CouponID.ToUpper().Split(new string[] { "E" }, StringSplitOptions.RemoveEmptyEntries)[0];
-            var watprobeval = WXWATProbeTestData.GetData(CouponID, wafernum, testname);
+
+            var containerinfo = WXContainerInfo.GetInfo(CouponID);
+            if (string.IsNullOrEmpty(containerinfo.ProductName))
+            {
+                ret.AppErrorMsg = "Fail to get eval productname from : " + CouponID;
+                return ret;
+            }
+
+            var watprobeval = WXWATProbeTestData.GetData(CouponID, containerinfo.wafer, testname);
             if (watprobeval.Count == 0)
             {
                 ret.AppErrorMsg = "Fail to get WAT test data by : " + CouponID;

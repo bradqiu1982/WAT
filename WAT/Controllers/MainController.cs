@@ -128,8 +128,8 @@ namespace WAT.Controllers
 
         public ActionResult WXLogic()
         {
-            WXProbeData.PrepareProbeData("184637-30");
-            WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
+            //WXProbeData.PrepareProbeData("184637-30");
+            //WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
 
             WXWATLogic.WATPassFail("184637-30E01", "POSTHTOL2JUDGEMENT");
 

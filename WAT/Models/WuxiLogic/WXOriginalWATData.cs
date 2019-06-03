@@ -125,13 +125,18 @@ namespace WAT.Models
         {
             var ret = new List<WXOriginalWATData>();
 
-            var sql = "select TestTimeStamp,Containername,Product,TestStation,TestStep,BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,Notes,ChannelInfo from EngrData.dbo.ProductionResult where Containername = @Containername and TestStep = @TestStep";
+            var sql = "select TestTimeStamp,Containername,Product,TestStation,TestStep,BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,Notes,ChannelInfo from EngrData.dbo.ProductionResult where Containername = @Containername and TestStep = @TestStep order by TestTimeStamp desc";
             var dict = new Dictionary<string, string>();
             dict.Add("@Containername", containername);
             dict.Add("@TestStep", stepname);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach(var line in dbret)
+            var channeldict = new Dictionary<string, bool>();
+
+            foreach (var line in dbret)
             {
+                if (channeldict.ContainsKey(UT.O2S(line[13])+"-"+ UT.O2T(line[0]).ToString("yyyy-MM-dd HH:mm:ss")))
+                { continue; }
+
                 var tempvm = new WXOriginalWATData();
                 tempvm.TestTimeStamp = UT.O2T(line[0]);
                 tempvm.Containername = UT.O2S(line[1]);
@@ -148,6 +153,8 @@ namespace WAT.Models
 
                 tempvm.Notes = UT.O2S(line[12]);
                 tempvm.ChannelInfo = UT.O2S(line[13]);
+
+                channeldict.Add(tempvm.ChannelInfo+"-"+tempvm.TestTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"), true);
 
 
                 tempvm.RP = TestName2RP(tempvm.TestStep);

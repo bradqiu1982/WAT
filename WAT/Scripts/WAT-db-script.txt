@@ -152,7 +152,7 @@ CREATE TABLE [dbo].[AllenEVALData] (
 );
 
 CREATE TABLE  [ProductionResult] (
-	[TestId]      VARCHAR (120)     NOT NULL,
+	[TestId]      UNIQUEIDENTIFIER NOT NULL,
 	[ChannelInfo]      VARCHAR (120)     NOT NULL,
 	[Containername]    VARCHAR (120)     NOT NULL,
 	[TestTimeStamp]    DATETIME         NOT NULL,
@@ -179,4 +179,25 @@ CREATE TABLE  [ProductionResult] (
 	[SoftVer]     VARCHAR (120)     NOT NULL,
 	[SpecVer]     VARCHAR (120)     NOT NULL
 );
+
+CREATE TABLE  [BI_Specification](
+             [ID]            INT            IDENTITY (1,1) NOT NULL,
+             [Plan]            VARCHAR(250)        NOT NULL,
+             [Version]        VARCHAR(250)        NOT NULL,
+             [Content]        VARCHAR(MAX)    NOT NULL,
+             [Load_Time]        DATETIME        NOT NULL,
+             [Validation]    BIT                NOT NULL,
+             PRIMARY KEY ([Plan],[Version]),
+       );
+
+CREATE USER WATTester FOR LOGIN WATTester
+GRANT INSERT, SELECT ON Insite.dbo.BI_Specification TO WATTester
+
+
+CREATE TABLE [dbo].[WATSampleXY] (
+	[CouponID]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[ChannelInfo]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[X]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Y]   NVARCHAR (200) DEFAULT ('') NOT NULL
+}
 
