@@ -9,12 +9,11 @@ namespace WAT.Models
     {
 
         //NEED TO BE UPDATE
-        private static List<WXProbeData> GetOriginalData(string WaferNum)
+        private static List<WXProbeData> GetAllenData(string WaferNum)
         {
             var ret = new List<WXProbeData>();
-
-            //get data from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] templly
-            var sql = @"select [Xcoord],[Ycoord],[Ith],[SeriesR],[SlopEff] from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] 
+            
+            var sql = @"select [Xcoord],[Ycoord],[Ith],[SeriesR],[SlopEff] from [EngrData].[dbo].[Wuxi_WAT_VR_Report] 
                         where [WaferID] = @WaferID and [Ith] is not null and [SeriesR] is not null and [SlopEff] is not null";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferID", WaferNum);
@@ -32,9 +31,35 @@ namespace WAT.Models
             return ret;
         }
 
+        private static List<WXProbeData> GetShermanData(string WaferNum)
+        {
+            var ret = new List<WXProbeData>();
+            //var sql = @"select [Xcoord],[Ycoord],[Ith],[SeriesR],[SlopEff] from [EngrData].[dbo].[Wuxi_WAT_VR_Report] 
+            //            where [WaferID] = @WaferID and [Ith] is not null and [SeriesR] is not null and [SlopEff] is not null";
+            //var dict = new Dictionary<string, string>();
+            //dict.Add("@WaferID", WaferNum);
+            //var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+            //foreach (var line in dbret)
+            //{
+            //    var tempvm = new WXProbeData();
+            //    tempvm.X = UT.O2S(line[0]);
+            //    tempvm.Y = UT.O2S(line[1]);
+            //    tempvm.Ith = UT.O2S(line[2]);
+            //    tempvm.SeriesR = UT.O2S(line[3]);
+            //    tempvm.SlopEff = UT.O2S(line[4]);
+            //    ret.Add(tempvm);
+            //}
+            return ret;
+        }
+
         public static bool PrepareProbeData(string WaferNum)
         {
-            var srclist = GetOriginalData(WaferNum);
+            var srclist = GetAllenData(WaferNum);
+            if (srclist.Count == 0)
+            {
+                srclist = GetShermanData(WaferNum);
+            }
+
             if (srclist.Count > 0)
             {
                 var sql = "delete from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] where [WaferID] = @WaferID";

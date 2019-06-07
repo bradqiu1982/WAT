@@ -15,14 +15,16 @@ DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
 DIESORTSHARE:::\\wux-engsys01.china.ads.finisar.com\DieSortingNew
 
 DIESORTSAMPLE1X1:::250
+DIESORTSAMPLE1X2:::230
 DIESORTSAMPLE1X4:::170
+DIESORTSAMPLE1X8:::150
 DIESORTSAMPLE1X12:::120
 
 WAFERQUALREPORT:::\\wux-engsys01.china.ads.finisar.com
 
 FromConnect:::Server=TEX-CSSQL.texas.ads.finisar.com;User ID=jmpuser;Password=UhnWNcgHo;Database=EngrData;Connection Timeout=120;
 ToConnect:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@123;Database=EngrData;Connection Timeout=120;
-MOVETABLELIST:::insite.insite.product:insite.insite.productbase
+MOVETABLELIST:::[EngrData].[insite].[FinEvalJobStartInfo]
 
 
 

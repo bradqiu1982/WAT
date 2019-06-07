@@ -190,6 +190,27 @@ namespace WAT.Models
         }
 
 
+        private static bool PrepareProbeData(string wafernum)
+        {
+            return WXProbeData.PrepareProbeData(wafernum);
+        }
+
+        private static bool PrepareEvalPN(string wafernum)
+        {
+            return WXEvalPN.PrepareEvalPN(wafernum);
+        }
+
+        private static bool PrepareData4WAT(string wafernum)
+        {
+            if (!PrepareProbeData(wafernum))
+            { return false; }
+
+            if (!PrepareEvalPN(wafernum))
+            { return false; }
+
+            return true;
+        }
+
         private static bool SolveDieSortFile(string diefile, Controller ctrl,string offeredpn=null)
         {
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
@@ -224,16 +245,27 @@ namespace WAT.Models
                     return false;
                 }
 
-                var pnlist = GetPnFromWafer(fs, wafer, offeredpn);
-                if (pnlist.Count == 0)
+
+                if (!PrepareData4WAT(wafer))
                 {
-                    WebLog.Log(fs, "DIESORT", "fail to convert file:" + diefile + ", fail to get pn by wafer " + wafer);
+                    if (!WebLog.CheckEmailRecord(fs, "EM-WAT"))
+                    {
+                        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + fs + " FATAL ERROR", towho, "Detail: Fail to prepare Probe Data/Eval_PN by wafer " + wafer);
+                        new System.Threading.ManualResetEvent(false).WaitOne(300);
+                    }
+
+                    WebLog.Log(fs, "DIESORT", "fail to convert file:" + diefile + ", fail to  prepare Probe Data/Eval_PN by wafer " + wafer);
                     return false;
                 }
 
 
-                var arrayinfo = GetArrayFromPNList(fs,wafer,pnlist);
-                if (arrayinfo.Count == 0)
+                var array = GetArrayInfoFromAllen(wafer);
+                if (string.IsNullOrEmpty(array))
+                {
+                    array = GetArrayInfoFromSherman(wafer);
+                }
+
+                if (string.IsNullOrEmpty(array))
                 {
                     if (!WebLog.CheckEmailRecord(fs, "EM-ARRAY"))
                     {
@@ -241,18 +273,12 @@ namespace WAT.Models
                         new System.Threading.ManualResetEvent(false).WaitOne(300);
                     }
 
-                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get array info by wafer " + wafer);
+                    WebLog.Log(fs, "DIESORT", "fail to convert file:" + diefile + ", fail to get array info by wafer " + wafer);
                     return false;
                 }
 
-                var array = arrayinfo[0];
-                var bomdesc = System.Security.SecurityElement.Escape(arrayinfo[1]);
-                var bompn = arrayinfo[2];
-                var fpn = arrayinfo[3];
-                var product = System.Security.SecurityElement.Escape(arrayinfo[4]);
-
                 var selectcount = 0;
-                if (syscfgdict.ContainsKey("DIESORTSAMPLE"+array))
+                if (syscfgdict.ContainsKey("DIESORTSAMPLE" + array))
                 {
                     selectcount = Convert.ToInt32(syscfgdict["DIESORTSAMPLE" + array]);
                 }
@@ -264,8 +290,27 @@ namespace WAT.Models
                         new System.Threading.ManualResetEvent(false).WaitOne(300);
                     }
 
-                    WebLog.Log(fs,"DIESORT", "fail to convert file:" + diefile + ", fail to get configured select count by array info DIESORTSAMPLE" + array);
+                    WebLog.Log(fs, "DIESORT", "fail to convert file:" + diefile + ", fail to get configured select count by array info DIESORTSAMPLE" + array);
                     return false;
+                }
+
+
+                var bomdesc = "";
+                var bompn = "";
+                var fpn = "";
+                var product = ""; 
+
+                var pnlist = GetPnFromWafer(fs, wafer, offeredpn);
+                if (pnlist.Count > 0)
+                {
+                    var vcselinfo = GetVCSELInfoFromPNList(fs,wafer,pnlist);
+                    if (vcselinfo.Count > 0)
+                    {
+                        bomdesc = System.Security.SecurityElement.Escape(vcselinfo[0]);
+                        bompn = vcselinfo[1];
+                        fpn = vcselinfo[2];
+                        product = System.Security.SecurityElement.Escape(vcselinfo[3]);
+                    }
                 }
 
                 var passedbinxydict = GetPassedBinXYDict(root);
@@ -747,12 +792,12 @@ namespace WAT.Models
         }
 
 
-        public static List<string> GetArrayFromPNList(string fs, string wafer, List<string> pnlist)
+        public static List<string> GetVCSELInfoFromPNList(string fs, string wafer, List<string> pnlist)
         {
             if (pnlist.Count > 0)
             {
                 var pncond = "('" + string.Join("','", pnlist) + "')";
-                var sql = "Select distinct PArray,[Desc],MPN,FPN,Product from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
+                var sql = "Select distinct [Desc],MPN,FPN,Product from WaferArray where (MPN in <pncond> or FPN in <pncond>)";
                 sql = sql.Replace("<pncond>", pncond);
                 var dbret = DBUtility.ExeLocalSqlWithRes(sql, null);
                 foreach (var line in dbret)
@@ -762,7 +807,6 @@ namespace WAT.Models
                     tempvm.Add(Convert.ToString(line[1]).Trim().ToUpper());
                     tempvm.Add(Convert.ToString(line[2]).Trim().ToUpper());
                     tempvm.Add(Convert.ToString(line[3]).Trim().ToUpper());
-                    tempvm.Add(Convert.ToString(line[4]).Trim().ToUpper());
                     return tempvm;
                 }
 
@@ -772,6 +816,29 @@ namespace WAT.Models
             return new List<string>();
         }
 
+        public static string GetArrayInfoFromAllen(string wafer)
+        {
+            var sql = @"select  na.Array_Length from insite.insite.container c with (nolock) 
+                        inner join insite.insite.Product p with (nolock) on p.ProductID = c.ProductID
+                        inner join insite.insite.ProductFamily pf with (nolock) on p.ProductFamilyID = pf.ProductFamilyID
+                        inner join [EngrData].[dbo].[NeoMAP_MWR_Arrays] na with (nolock) on left(pf.productfamilyname,4) = na.product_out
+                        where containername = @wafer";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+            var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+
+            foreach (var line in dbret)
+            {
+                return "1X" + O2I(line).ToString();
+            }
+
+            return string.Empty;
+        }
+
+        public static string GetArrayInfoFromSherman(string wafer)
+        {
+            return string.Empty;
+        }
 
         public static List<DieSortVM> RetrieveReviewData(string diefile)
         {
@@ -916,8 +983,8 @@ namespace WAT.Models
             var ret = new List<DieSortVM>();
             var sql = @"select distinct ws.WAFER,ws.X,ws.Y,ws.BIN,wc.LayoutId,ws.MPN,ws.FPN,ws.PArray,wa.[Desc],wa.Tech,ws.MAPFILE
                           ,ws.UpdateTime from [WAT].[dbo].[WaferSampleData] (nolock) ws
-                          inner join  [WAT].[dbo].WaferArray (nolock) wa on wa.MPN = ws.MPN
                           inner join  [WAT].[dbo].[WaferSrcData] (nolock) wc on wc.MAPFILE = ws.MAPFILE
+                          left join  [WAT].[dbo].WaferArray (nolock) wa on wa.MPN = ws.MPN
                           where ws.MAPFILE = @MAPFILE";
 
             var dict = new Dictionary<string, string>();
@@ -942,6 +1009,34 @@ namespace WAT.Models
                 return Convert.ToString(obj);
             }
             catch (Exception ex) { return string.Empty; }
+        }
+
+        private static int O2I(object obj)
+        {
+            if (obj == null)
+            { return 0; }
+
+            try
+            {
+                return Convert.ToInt32(obj);
+            }
+            catch (Exception ex) { return 0; }
+        }
+
+        public static Coord<short, short> Get_Array_Coord_From_Singlet_Coord(short DIE_ONE_X, short DIE_ONE_FIELD_MIN_X, Coord<short, short> singlet_coord, int Array_Count)
+        {
+            var new_x = DIE_ONE_X +
+                Math.Floor((double)(singlet_coord.X - DIE_ONE_FIELD_MIN_X) / Array_Count) -
+                Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count);
+            return new Coord<short, short>((short)Math.Round(new_x, 0), singlet_coord.Y);
+        }
+
+        public static Coord<short, short> Get_First_Singlet_From_Array_Coord(short DIE_ONE_X, short DIE_ONE_FIELD_MIN_X, Coord<short, short> array_coord, int Array_Count)
+        {
+            var new_x = ((array_coord.X - DIE_ONE_X
+                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
+                + DIE_ONE_FIELD_MIN_X;
+            return new Coord<short, short>((short)Math.Round(new_x, 0), array_coord.Y);
         }
 
         public DieSortVM()
@@ -1001,7 +1096,6 @@ namespace WAT.Models
             UpdateTime = ut;
         }
 
-
         public int X { set; get; }
         public int Y { set; get; }
         public double DieValue {set;get;}
@@ -1019,5 +1113,43 @@ namespace WAT.Models
         public string Tech { set; get; }
         public string MapFile { set; get; }
         public string UpdateTime { set; get; }
+    }
+
+    public sealed class Coord<XCoord, YCoord>
+: IEquatable<Coord<XCoord, YCoord>>
+    {
+        private readonly XCoord x;
+        private readonly YCoord y;
+        public Coord(XCoord x, YCoord y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+        public XCoord X
+        {
+            get { return x; }
+        }
+        public YCoord Y
+        {
+            get { return y; }
+        }
+        public bool Equals(Coord<XCoord, YCoord> other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            return EqualityComparer<XCoord>.Default.Equals(this.X, other.X) &&
+            EqualityComparer<YCoord>.Default.Equals(this.Y, other.Y);
+        }
+        public override bool Equals(object o)
+        {
+            return Equals(o as Coord<XCoord, YCoord>);
+        }
+        public override int GetHashCode()
+        {
+            return EqualityComparer<XCoord>.Default.GetHashCode(x) * 37 +
+                   EqualityComparer<YCoord>.Default.GetHashCode(y);
+        }
     }
 }
