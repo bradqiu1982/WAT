@@ -11,7 +11,7 @@ namespace WAT.Models
         {
             var ret = new List<WXWATProbeTestData>();
 
-            var oringaldata = WXOriginalWATData.GetFakeData(containername, testname);
+            var oringaldata = WXOriginalWATData.GetFakeData(containername);
             var probedata = WXProbeData.GetData(wafernum);
 
             var probedict = new Dictionary<string, WXProbeData>();

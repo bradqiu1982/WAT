@@ -121,14 +121,14 @@ namespace WAT.Models
             return Guid.NewGuid().ToString("N");
         }
 
-        public static List<WXOriginalWATData> GetFakeData(string containername, string stepname)
+        public static List<WXOriginalWATData> GetFakeData(string containername)
         {
             var ret = new List<WXOriginalWATData>();
 
-            var sql = "select TestTimeStamp,Containername,Product,TestStation,TestStep,BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,Notes,ChannelInfo from EngrData.dbo.ProductionResult where Containername = @Containername and TestStep = @TestStep order by TestTimeStamp desc";
+            var sql = "select TestTimeStamp,Containername,Product,TestStation,TestStep,BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,Notes,ChannelInfo from EngrData.dbo.ProductionResult where Containername = @Containername order by TestTimeStamp desc";
             var dict = new Dictionary<string, string>();
             dict.Add("@Containername", containername);
-            dict.Add("@TestStep", stepname);
+
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             var channeldict = new Dictionary<string, bool>();
 

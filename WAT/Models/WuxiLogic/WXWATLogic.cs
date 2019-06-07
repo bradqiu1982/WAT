@@ -26,6 +26,7 @@ namespace WAT.Models
                 CouponID = CouponID_.Substring(0, 12);
             }
 
+            
             var testname = GetTestNameFromCurrentStep(CurrentStepName);
             if (string.IsNullOrEmpty(testname))
             {
@@ -40,7 +41,8 @@ namespace WAT.Models
                 ret.AppErrorMsg = "Fail to get dcdname from coupon: " + CouponID;
                 return ret;
             }
-
+            
+            //Container Info
             var containerinfo = WXContainerInfo.GetInfo(CouponID);
             if (string.IsNullOrEmpty(containerinfo.ProductName))
             {
@@ -48,6 +50,17 @@ namespace WAT.Models
                 return ret;
             }
 
+            //SPEC
+            var allspec = WXSpecBinPassFail.GetAllSpec();
+            var dutminitem = WXSpecBinPassFail.GetMinDUT(containerinfo.ProductName, DCDName, allspec);
+            if (dutminitem.Count == 0)
+            {
+                //System.Windows.MessageBox.Show("Fail to get min DUT count.....");
+                ret.AppErrorMsg = "Fail to get min DUT count.....";
+                return ret;
+            }
+
+            //WAT PROB
             var watprobeval = WXWATProbeTestData.GetData(CouponID, containerinfo.wafer, testname);
             if (watprobeval.Count == 0)
             {
@@ -57,8 +70,282 @@ namespace WAT.Models
             var probecount = watprobeval[0].ProbeCount;
             var readcount = WXWATProbeTestData.GetReadCount(watprobeval, RP);
 
+            //WAT PROB FILTER
+            var watprobevalfiltered = WXWATProbeTestDataFiltered.GetFilteredData(watprobeval, RP);
+            if (watprobevalfiltered.Count == 0)
+            {
+                //System.Windows.MessageBox.Show("Fail to get wat prob filtered data.....");
+                ret.AppErrorMsg = "Fail to get wat prob filtered data.....";
+                return ret;
+            }
 
-            return new WXWATLogic();
+            //FAIL MODE
+            var spec4fmode = WXSpecBinPassFail.GetParam4FailMode(containerinfo.ProductName, RP, allspec);
+            var failmodes = WXWATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode, bitemp);
+
+
+            //Coupon Stat Data
+            var binpndict = WXSpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
+            var couponstatdata = WXWATCouponStats.GetCouponData(watprobevalfiltered, binpndict);
+
+            //CPK
+            var cpkspec = WXSpecBinPassFail.GetCPKSpec(containerinfo.ProductName, DCDName, allspec);
+            var cpktab = WXWATCPK.GetCPK(RP, couponstatdata, watprobevalfiltered, cpkspec);
+
+            //TTF
+            var fitspec = WXSpecBinPassFail.GetFitSpec(containerinfo.ProductName, DCDName, allspec);
+            var ttfdata = WXWATTTF.GetTTFData(containerinfo.ProductName,UT.O2I(RP), fitspec, watprobevalfiltered, failmodes);
+
+            //TTFSorted
+            var ttfdatasorted = WXWATTTFSorted.GetSortedTTFData(ttfdata);
+
+            //TTFTerms
+            var ttftermdata = WXWATTTFTerms.GetTTRTermsData(ttfdatasorted);
+
+            //TTFfit
+            var ttffit = WXWATTTFfit.GetFitData(ttftermdata);
+
+            //TTFuse
+            var ttpspec = WXSpecBinPassFail.GetFitTTPSpec(containerinfo.ProductName, allspec);
+            var ttfuse = WXWATTTFuse.GetTTFuseData(ttpspec, ttffit);
+
+            //TTFUnit
+            var ttfunitspec = WXSpecBinPassFail.GetTTFUnitSpec(containerinfo.ProductName, allspec);
+            var ttfunitdata = WXWATTTFUnit.GetUnitData(watprobevalfiltered,RP, ttfuse, ttfdatasorted, ttfunitspec);
+
+            var ttfmu = WXWATTTFmu.GetmuData(fitspec, RP, watprobevalfiltered, ttfuse, ttffit);
+
+
+            //Pass Fail Unit
+            var passfailunitspec = WXSpecBinPassFail.GetPassFailUnitSpec(containerinfo.ProductName, DCDName, allspec);
+            var passfailunitdata = WXWATPassFailUnit.GetPFUnitData(RP, DCDName, passfailunitspec
+                , watprobevalfiltered, couponstatdata, cpktab, ttfmu, ttfunitdata);
+
+
+            var failcount = WXWATPassFailUnit.GetFailCount(passfailunitdata);
+            var failunit = WXWATPassFailUnit.GetFailUnit(passfailunitdata);
+
+            //Pass Fail Coupon
+            var watpassfailcoupondata = WXWATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
+
+            var failstring = WXWATPassFailCoupon.GetFailString(watpassfailcoupondata);
+
+            var couponDutCount = WXWATPassFailCoupon.GetDutCount(watpassfailcoupondata);
+            var couponSumFails = WXWATPassFailCoupon.GetSumFails(watpassfailcoupondata);
+
+            var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
+               , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails);
+
+            var scrapspec = WXSpecBinPassFail.GetScrapSpec(containerinfo.ProductName, DCDName, allspec);
+            logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, UT.O2I(RP), readcount, failcount, bitemp, failmodes);
+
+            return logicresult;
+        }
+
+        private static WXWATLogic RetestLogic(WXContainerInfo container, string DCDName, int rp, int shippable, int probeCount
+    , int readCount, int dutMinQty, int failcount, string failstring, int couponCount, int couponDutCount, int couponSumFails)
+        {
+            var ret = new WXWATLogic();
+            if (couponCount > 0)
+            {
+                if (((string.Compare(container.containertype, "T", true) != 0
+                    && string.Compare(container.containertype, "E", true) != 0
+                    && string.Compare(container.containertype, "D", true) != 0) && shippable == 1)
+                    || rp == 0)
+                {
+                    if (couponDutCount >= dutMinQty)
+                    {
+                        if (couponSumFails == 0)
+                        {
+                            ret.TestPass = true;
+                            ret.NeedRetest = false;
+                            ret.ResultReason = "Proceed";
+                        }
+                        else
+                        {
+                            if (DCDName.ToUpper().Contains("50UP"))
+                            {
+                                if (readCount < 4 && failcount <= 10 && failstring.ToUpper().Contains("C-P"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, Check XY coord and fix if necessary, Check orientation and Reseat failing units and retest.";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("VF_LD_V_AD_REF"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Reseat failing units and retest";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("RD_REF"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, ReInsert board and retest";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("AD_REF"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, ReInsert board and retest";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("DB_REF"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, ReInsert board and retest";
+                                }
+                                else
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultReason = "Fails. Submit and check that the container goes on hold";
+                                }
+                            }
+                            else if (DCDName.ToUpper().Contains("COB"))
+                            {
+                                if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("C-P"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect and retest";
+                                }
+                                else if (readCount == 1 && failstring.ToUpper().Contains("VF_RP"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, ReInsert board and retest";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("RD_REF"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, ReInsert board and retest";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("AD_REF"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, ReInsert board and retest";
+                                }
+                                else if (readCount == 1 && failcount <= 10 && failstring.ToUpper().Contains("DB_REF"))
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = true;
+                                    ret.ResultReason = "Inspect, ReInsert board and retest";
+                                }
+                                else
+                                {
+                                    ret.TestPass = false;
+                                    ret.NeedRetest = false;
+                                    ret.ResultReason = "Fails. Submit and check that the container goes on hold";
+                                }
+                            }
+                            else
+                            {
+                                ret.TestPass = false;
+                                ret.NeedRetest = false;
+                                ret.ResultReason = "Fails. Submit and check that the container goes on hold";
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (readCount == 1 && probeCount < dutMinQty)
+                        {
+                            ret.TestPass = false;
+                            ret.NeedRetest = true;
+                            ret.ResultReason = "Not enough DUTs have xy coordinates recorded or not enough DUTs have probe data recorded.  Make sure container goes on hold and contact engineering.";
+                        }
+                        else if (readCount == 1)
+                        {
+                            ret.TestPass = false;
+                            ret.NeedRetest = true;
+                            ret.ResultReason = "Not enough DUTs measured. Retest container ensuring container is fully inserted into connector. Redo Check Test Data.";
+                        }
+                        else if (readCount > 1
+                            && string.Compare(DCDName, "Eval_50up_rp00", true) == 0
+                            && container.containername.ToUpper().Contains("R"))
+                        {
+                            ret.TestPass = false;
+                            ret.NeedRetest = true;
+                            ret.ResultReason = "Scrap and repick container. Notify Test Engineering that container had too many missing DUTs.";
+                        }
+                        else
+                        {
+                            ret.TestPass = false;
+                            ret.NeedRetest = false;
+                            ret.ResultReason = "Fails. Submit and check that the container goes on hold 88.";
+                        }
+                    }
+                }
+                else
+                {
+                    ret.TestPass = false;
+                    ret.NeedRetest = false;
+                    ret.ResultReason = "Not Production WAT.  Proceed to next step (note that in some cases the next step may be an ENG HOLD step)";
+                }
+            }
+            //else if (allunitexclusion)
+            //{
+            //    ret.TestPass = false;
+            //    ret.NeedRetest = false;
+            //    ret.ResultReason = "All units now excluded. Hold for engineering.";
+            //}
+            else
+            {
+                if (string.Compare(container.containertype, "T", true) == 0
+                    || string.Compare(container.containertype, "E", true) == 0
+                    || string.Compare(container.containertype, "D", true) == 0)
+                {
+                    ret.TestPass = false;
+                    ret.NeedRetest = true;
+                    ret.ResultReason = "Data missing or product or specs not set up or WAT Engineering mode used.  Proceed per Engineering instruction.";
+                }
+                else
+                {
+                    ret.TestPass = false;
+                    ret.NeedRetest = true;
+                    ret.ResultReason = "Retest Required! There is no data associated with this read point. Check that the correct containername, test program and read point were used.";
+                }
+            }
+
+            return ret;
+        }
+
+        private static bool ScrapLogic(WXContainerInfo containerinfo, List<WXSpecBinPassFail> scrapspec
+    , int rp, int readcount, int failcount, Double bitemp, List<WXWATFailureMode> failmodes)
+        {
+
+            var bfailmode = false;
+            foreach (var fm in failmodes)
+            {
+                if (string.Compare(fm.Failure, "WEAROUT", true) == 0
+                || string.Compare(fm.Failure, "DELAM", true) == 0
+                || string.Compare(fm.Failure, "DVF", true) == 0
+                || string.Compare(fm.Failure, "LOWPOWERLOWLEAKAGE", true) == 0)
+                {
+                    bfailmode = true;
+                    break;
+                }
+            }
+
+
+            if (rp > 0 && readcount > 1 && failcount > 0 && bitemp >= 0
+                && (string.Compare(containerinfo.lottype, "n", true) == 0
+                || string.Compare(containerinfo.lottype, "q", true) == 0
+                || string.Compare(containerinfo.lottype, "w", true) == 0
+                || string.Compare(containerinfo.lottype, "r", true) == 0)
+                && bfailmode  && scrapspec.Count > 0
+                && (containerinfo.containername.ToUpper().Contains("E01")
+                || containerinfo.containername.ToUpper().Contains("E06"))
+                    )
+            {
+                return true;
+            }
+
+            return false;
         }
 
 

@@ -29,10 +29,10 @@ namespace WAT.Controllers
             }
             else
             {
-                ret = AllenWATLogic.PassFail(container, dcdname,true);
+                ret = AllenWATLogic.PassFail(container, dcdname, true);
                 resname = "Logic Result Without Exclusion";
             }
-             
+
 
             var msglist = new List<object>();
             if (!string.IsNullOrEmpty(ret.AppErrorMsg))

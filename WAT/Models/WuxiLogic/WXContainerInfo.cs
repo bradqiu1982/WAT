@@ -13,10 +13,24 @@ namespace WAT.Models
             var ret = new WXContainerInfo();
             ret.containername = containername.ToUpper().Trim();
             ret.wafer = ret.containername.Split(new string[] { "E", "e" }, StringSplitOptions.RemoveEmptyEntries)[0].Trim();
-            ret.containertype = "W";
-            ret.lottype = "W";
+            ret.containertype = GetContainerType(ret.wafer);
+            ret.lottype = ret.containertype;
             ret.ProductName = GetEvalPNFromWafer(ret.containername, ret.wafer);
             return ret;
+        }
+
+        private static string GetContainerType(string wafer)
+        {
+            var sql = @"select ContainerType from insite.insite.container where containername = @wafernum";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafernum", wafer);
+            var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                return UT.O2S(line[0]);
+            }
+
+            return "W";
         }
 
         private static string GetEvalPNFromWafer(string containername, string wafer)
@@ -34,46 +48,25 @@ namespace WAT.Models
             { FilterStr = "COB"; }
 
             var productfamilylist = new List<string>();
-            var sql = @"select distinct Left(pf.ProductFamilyName,4) from  insite.insite.ProductBase pb  (nolock) 
-                          inner join insite.insite.Product p with (nolock) on p.ProductID = pb.RevOfRcdID
-                          inner join insite.insite.ProductFamily pf with (nolock) on p.ProductFamilyID = pf.ProductFamilyID
-                          inner join insite.insite.ProductType pt with (nolock) on p.ProductTypeID = pt.ProductTypeID where pb.productname in(
-                            SELECT distinct bp.BinJobPartNumber FROM [Insite].[insite].[Rpt_ReleasedJob] rj
-                        left join [Insite].[insite].[BinJobPartnumbers] bp on bp.ChipPartNumber = rj.product
-                        where Factory = 'CHIP' and left(ContainerName,9) = @wafernum and bp.BinJobPartNumber is not null)";
+            var sql = @"select distinct Left(fj.EvalPartNumber,7),left(spec.DCDefName,len(spec.DCDefName)-5) from insite.insite.container c with (nolock) 
+                        inner join insite.insite.Product p with (nolock) on p.ProductID = c.ProductID
+                        inner join insite.insite.ProductFamily pf with (nolock) on p.ProductFamilyID = pf.ProductFamilyID
+                        left join [EngrData].[insite].[FinEvalJobStartInfo] fj with (nolock) on left(pf.productfamilyname,4) = fj.Device
+                        left join [EngrData].[insite].[Eval_Specs_Bin_PassFail] spec with (nolock) on spec.Eval_ProductName = fj.EvalPartNumber
+                        where containername = @wafernum and Len(fj.EvalPartNumber) > 6 and fj.EvalPartNumber is not null and spec.DCDefName is not null";
             var dict = new Dictionary<string, string>();
             dict.Add("@wafernum", wafer);
             var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
             foreach (var line in dbret)
-            { productfamilylist.Add(UT.O2S(line[0])); }
-
-            if (productfamilylist.Count == 0)
-            { return string.Empty; }
-
-            var specdict = new Dictionary<string, string>();
-
-            var familycond = "('" + string.Join("','", productfamilylist) + "')";
-            sql = @"select distinct EvalPartNumber,spec from  [EngrData].[dbo].[Eval_Conditions_New] where LEFT(Product,4) in <familycond> and LEN(EvalPartNumber) = 7 and Spec is not null and spec <> 'NULL'";
-            sql = sql.Replace("<familycond>", familycond);
-            dbret = DBUtility.ExeAllenSqlWithRes(sql);
-            foreach (var line in dbret)
             {
-                var spec = "1";
-                var spname = UT.O2S(line[1]).ToUpper();
-                if (spname.Contains("50UP"))
-                { spec = "50UP"; }
-                else if (spname.Contains("COB") || spname.Contains("BDH") || spname.Contains("HAST"))
-                { spec = "COB"; }
-
-                if (!specdict.ContainsKey(spec))
-                { specdict.Add(spec, UT.O2S(line[0])); }
+                var evalpn = UT.O2S(line[0]);
+                var dcd = UT.O2S(line[1]).ToUpper();
+                if (dcd.Contains(FilterStr))
+                {
+                    return evalpn;
+                }
             }
-
-            if (specdict.ContainsKey(FilterStr))
-            { return specdict[FilterStr]; }
-            else
-            { return string.Empty; }
-
+            return string.Empty;
         }
 
         public WXContainerInfo()

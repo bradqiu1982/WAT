@@ -90,7 +90,7 @@ namespace WAT.Controllers
             //var logicres1 = AllenWATLogic.PassFail("184051-80E01", "Eval_50up_rp03", true);
             //var logicres2 = AllenWATLogic.PassFail("184051-80E01", "Eval_50up_rp03");
 
-            var logicres1 = AllenWATLogic.PassFail("184637-30E01", "Eval_50up_rp04",true);
+            var logicres1 = AllenWATLogic.PassFail("184637-30E01", "Eval_50up_rp04", true);
             var logicres2 = AllenWATLogic.PassFail("184637-30E01", "Eval_50up_rp04");
 
             return View("HeartBeat");
