@@ -814,7 +814,6 @@
     <Content Include="Views\Main\HeartBeat.cshtml" />
     <Content Include="Views\Main\Index.cshtml" />
     <Content Include="Views\DieSort\ReviewDieSortedMapFile.cshtml" />
-    <Content Include="Views\DieSort\CompareDieSortedMapFile.cshtml" />
     <Content Include="Views\DieSort\DieSortFiailedConvertFiles.cshtml" />
     <Content Include="Views\Wafer\WaferQUAL.cshtml" />
     <Content Include="Views\WATLogic\VerifyAllenLogic.cshtml" />

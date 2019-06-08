@@ -229,6 +229,46 @@ namespace WAT.Models
 
         }
 
+        public static List<string> DirectoryEnumerateAllFiles(Controller ctrl, string dirname)
+        {
+            try
+            {
+                var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+                var folderuser = syscfgdict["SHAREFOLDERUSER"];
+                var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
+                var folderpwd = syscfgdict["SHAREFOLDERPWD"];
+
+                using (NativeMethods cv = new NativeMethods(folderuser, folderdomin, folderpwd))
+                {
+                    var ret = new Dictionary<string,string>();
+                    var nofolderfiles = Directory.GetFiles(dirname);
+                    foreach (var f in nofolderfiles)
+                    {
+                        var uf = f.ToUpper();
+                        if (!ret.ContainsKey(uf))
+                        { ret.Add(uf, f); }
+                    }
+
+                    var folders = Directory.GetDirectories(dirname);
+                    foreach (var fd in folders)
+                    {
+                        var fs = Directory.GetFiles(fd);
+                        foreach (var f in fs)
+                        {
+                            var uf = f.ToUpper();
+                            if (!ret.ContainsKey(uf))
+                            { ret.Add(uf, f); }
+                        }
+                    }
+                    return ret.Values.ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<string>();
+            }
+        }
+
         public static List<string> DirectoryEnumerateFiles(Controller ctrl, string dirname)
         {
             try

@@ -41,28 +41,28 @@ namespace WAT.Controllers
             {
                 heartbeatlog("start heartbeat");
 
-                heartbeatlog("DieSortVM.LoadAllDieSortFile");
+                heartbeatlog("DieSortVM.ScanNewWafer");
                 try
                 {
-                    DieSortVM.LoadAllDieSortFile(this);
+                    DieSortVM.ScanNewWafer(this);
                 }
                 catch (Exception ex) { }
 
-                heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
-                try
-                {
-                    WaferQUALVM.LoadNewWaferFromMES();
-                    WaferQUALVM.LoadWUXIWaferQUAL();
-                }
-                catch (Exception ex) { }
+                //heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
+                //try
+                //{
+                //    WaferQUALVM.LoadNewWaferFromMES();
+                //    WaferQUALVM.LoadWUXIWaferQUAL();
+                //}
+                //catch (Exception ex) { }
 
 
-                heartbeatlog("AllenEVALData.LoadAllenData");
-                try
-                {
-                    AllenEVALData.LoadAllenData();
-                }
-                catch (Exception ex) { }
+                //heartbeatlog("AllenEVALData.LoadAllenData");
+                //try
+                //{
+                //    AllenEVALData.LoadAllenData();
+                //}
+                //catch (Exception ex) { }
 
                 heartbeatlog("end heartbeat");
             }
@@ -133,6 +133,12 @@ namespace WAT.Controllers
 
             WXWATLogic.WATPassFail("184637-30E01", "POSTHTOL2JUDGEMENT");
 
+            return View("HeartBeat");
+        }
+
+
+        public ActionResult ScanNewWafer() {
+            DieSortVM.ScanNewWafer(this);
             return View("HeartBeat");
         }
 

@@ -11,7 +11,7 @@ namespace WAT.Controllers
     {
         public JsonResult LoadSortedFiles()
         {
-            var filetype = "DIESORT";
+            var filetype = "WAFER";
             var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
             var fs = loadedfiledict.Keys.ToList();
             var ret = new JsonResult();
@@ -31,16 +31,16 @@ namespace WAT.Controllers
 
         public JsonResult ReviewDieData()
         {
-            var fs = Request.Form["fs"].ToUpper();
+            var wafer = Request.Form["fs"].ToUpper();
 
-            WebLog.LogVisitor(Request.UserHostName, "try to review file:" + fs);
+            WebLog.LogVisitor(Request.UserHostName, "try to review file:" + wafer);
 
-            var filetype = "DIESORT";
+            var filetype = "WAFER";
             var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
 
-            if (!loadedfiledict.ContainsKey(fs))
+            if (!loadedfiledict.ContainsKey(wafer))
             {
-                WebLog.Log(fs,"DIESORT", "try to review file:" + fs + ", has not been converted");
+                WebLog.Log(wafer,"DIESORT", "try to review file:" + wafer + ", has not been converted");
 
                 var ret = new JsonResult();
                 ret.Data = new
@@ -53,13 +53,23 @@ namespace WAT.Controllers
             {
                 var syscfgdict = CfgUtility.GetSysConfig(this);
                 var reviewfolder = syscfgdict["DIESORTREVIEW"];
-                var filepath = System.IO.Path.Combine(reviewfolder, fs);
-                if (ExternalDataCollector.FileExist(this, filepath))
+                var allreviewfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(this, reviewfolder);
+                var fs = "";
+                foreach (var f in allreviewfiles)
                 {
-                    var datalist = DieSortVM.RetrieveReviewData(filepath);
+                    if (f.Contains(wafer))
+                    {
+                        fs = f;
+                        break;
+                    }
+                }
+               
+                if (ExternalDataCollector.FileExist(this, fs))
+                {
+                    var datalist = DieSortVM.RetrieveReviewData(fs);
                     var chartdata = DieSortVM.RetrieveDieChartData(datalist);
-                    var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(filepath);
-                    var sampledata = DieSortVM.RetrieveSampleData(fs);
+                    var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(fs);
+                    var sampledata = DieSortVM.RetrieveSampleData(wafer);
 
                     var ret = new JsonResult();
                     ret.MaxJsonLength = Int32.MaxValue;
@@ -76,7 +86,7 @@ namespace WAT.Controllers
                 }
                 else
                 {
-                    WebLog.Log(fs,"DIESORT", "try to review file:" + fs + ", not exist in review folder");
+                    WebLog.Log(wafer,"DIESORT", "try to review file:" + wafer + ", not exist in review folder");
 
                     var ret = new JsonResult();
                     ret.Data = new
@@ -90,20 +100,31 @@ namespace WAT.Controllers
 
         public JsonResult ReConstructDieSort()
         {
-            var fs = Request.Form["fs"].ToUpper();
+            var wafer = Request.Form["fs"].ToUpper();
             var offeredpn = Request.Form["pn"];
 
-            WebLog.LogVisitor(Request.UserHostName, "try to re-construct file:" + fs);
+            WebLog.LogVisitor(Request.UserHostName, "try to re-construct file:" + wafer);
 
-            if (DieSortVM.LoadDieSortFile(this, fs, offeredpn))
+            var allfiles = DieSortVM.GetAllWaferFile(this);
+            if (DieSortVM.SolveANewWafer(wafer,allfiles,this,offeredpn))
             {
                 var syscfgdict = CfgUtility.GetSysConfig(this);
                 var reviewfolder = syscfgdict["DIESORTREVIEW"];
-                var filepath = System.IO.Path.Combine(reviewfolder, fs);
-                var datalist = DieSortVM.RetrieveReviewData(filepath);
+                var allreviewfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(this, reviewfolder);
+                var fs = "";
+                foreach (var f in allreviewfiles)
+                {
+                    if (f.Contains(wafer))
+                    {
+                        fs = f;
+                        break;
+                    }
+                }
+
+                var datalist = DieSortVM.RetrieveReviewData(fs);
                 var chartdata = DieSortVM.RetrieveDieChartData(datalist);
-                var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(filepath);
-                var sampledata = DieSortVM.RetrieveSampleData(fs);
+                var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(fs);
+                var sampledata = DieSortVM.RetrieveSampleData(wafer);
 
                 var ret = new JsonResult();
                 ret.MaxJsonLength = Int32.MaxValue;
@@ -120,7 +141,7 @@ namespace WAT.Controllers
             }
             else
             {
-                WebLog.Log(fs,"DIESORT", "fail to re-construct file:" + fs );
+                WebLog.Log(wafer,"DIESORT", "fail to re-construct file:" + wafer );
 
                 var ret = new JsonResult();
                 ret.Data = new
@@ -131,72 +152,6 @@ namespace WAT.Controllers
             }
         }
 
-        public ActionResult CompareDieSortedMapFile()
-        {
-            return View();
-        }
-
-        public JsonResult CompareDieSortData()
-        {
-            var fs = Request.Form["fs"].ToUpper();
-
-            WebLog.LogVisitor(Request.UserHostName, "try to compare file:" + fs);
-
-            var filetype = "DIESORT";
-            var loadedfiledict = FileLoadedData.LoadedFiles(filetype);
-
-            if (!loadedfiledict.ContainsKey(fs))
-            {
-                WebLog.Log(fs,"DIESORT", "try to compare file:" + fs+", has not been converted");
-
-                var ret = new JsonResult();
-                ret.Data = new
-                {
-                    sucess = false
-                };
-                return ret;
-            }
-            else
-            {
-                var syscfgdict = CfgUtility.GetSysConfig(this);
-                var originalfilefolder = syscfgdict["DIESORTFOLDER"];
-                var newfilefolder = syscfgdict["DIESORTSHARE"];
-
-                var orgfile = System.IO.Path.Combine(originalfilefolder, fs);
-                var newfile = System.IO.Path.Combine(newfilefolder, fs);
-                if (ExternalDataCollector.FileExist(this, orgfile) && ExternalDataCollector.FileExist(this, newfile))
-                {
-                    var orgdatalist = DieSortVM.RetrieveCMPData(orgfile);
-                    var newdatalist = DieSortVM.RetrieveCMPData(newfile);
-
-                    var ochartdata = DieSortVM.RetrieveDieChartData(orgdatalist,"die_sort_org_id","Orignal Die Data");
-                    var nchartdata = DieSortVM.RetrieveDieChartData(newdatalist, "die_sort_new_id", "New Die Data");
-                    var pnarrayinfo = DieSortVM.GetBomPNArrayInfo(newfile);
-
-                    var ret = new JsonResult();
-                    ret.MaxJsonLength = Int32.MaxValue;
-                    ret.Data = new
-                    {
-                        sucess = true,
-                        ochartdata = ochartdata,
-                        nchartdata = nchartdata,
-                        pn = pnarrayinfo[0],
-                        warray = pnarrayinfo[1],
-                        desc = pnarrayinfo[2]
-                    };
-                    return ret;
-                }
-                else
-                {
-                    var ret = new JsonResult();
-                    ret.Data = new
-                    {
-                        sucess = false
-                    };
-                    return ret;
-                }
-            }//end else
-        }
 
         public JsonResult UpdateIgnoreDieSort()
         {
