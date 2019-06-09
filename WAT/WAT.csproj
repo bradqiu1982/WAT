@@ -246,6 +246,7 @@
     <Compile Include="Models\WebsiteToImage.cs" />
     <Compile Include="Models\WuxiLogic\WXCfg.cs" />
     <Compile Include="Models\WuxiLogic\WXContainerInfo.cs" />
+    <Compile Include="Models\WuxiLogic\WATSampleXY.cs" />
     <Compile Include="Models\WuxiLogic\WXEvalPN.cs" />
     <Compile Include="Models\WuxiLogic\WXOriginalWATData.cs" />
     <Compile Include="Models\WuxiLogic\WXProbeData.cs" />

@@ -7,11 +7,11 @@ namespace WAT.Models
 {
     public class WXWATProbeTestData
     {
-        public static List<WXWATProbeTestData> GetData(string containername,string wafernum, string testname)
+        public static List<WXWATProbeTestData> GetData(string coupongroup,string wafernum,bool sharedatatoallen)
         {
             var ret = new List<WXWATProbeTestData>();
 
-            var oringaldata = WXOriginalWATData.GetFakeData(containername);
+            var oringaldata = WXOriginalWATData.GetData(coupongroup);
             var probedata = WXProbeData.GetData(wafernum);
 
             var probedict = new Dictionary<string, WXProbeData>();
@@ -32,25 +32,25 @@ namespace WAT.Models
             {
                 var key = item.X + ":" + item.Y;
 
-                var tempvm = new WXWATProbeTestData(item.TestTimeStamp,item.Containername,item.TestStation
+                var tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                     ,item.RP,item.UnitNum,item.X,item.Y,item.BINNum,item.BINName);
                 tempvm.CommonTestName = "BVR_LD_A";
                 tempvm.TestValue = UT.O2D(item.BVR_LD_A);
                 ret.Add(tempvm);
 
-                tempvm = new WXWATProbeTestData(item.TestTimeStamp, item.Containername, item.TestStation
+                tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                     , item.RP, item.UnitNum, item.X, item.Y, item.BINNum, item.BINName);
                 tempvm.CommonTestName = "PO_LD_W";
                 tempvm.TestValue = UT.O2D(item.PO_LD_W);
                 ret.Add(tempvm);
 
-                tempvm = new WXWATProbeTestData(item.TestTimeStamp, item.Containername, item.TestStation
+                tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                     , item.RP, item.UnitNum, item.X, item.Y, item.BINNum, item.BINName);
                 tempvm.CommonTestName = "VF_LD_V";
                 tempvm.TestValue = UT.O2D(item.VF_LD_V);
                 ret.Add(tempvm);
 
-                tempvm = new WXWATProbeTestData(item.TestTimeStamp, item.Containername, item.TestStation
+                tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                    , item.RP, item.UnitNum, item.X, item.Y, item.BINNum, item.BINName);
                 tempvm.CommonTestName = "SLOPE_WperA";
                 tempvm.TestValue = UT.O2D(item.SLOPE_WperA);
@@ -58,7 +58,7 @@ namespace WAT.Models
                 { tempvm.ProbeValue = probedict[key].SlopEff; pbcnt0++;}
                 ret.Add(tempvm);
 
-                tempvm = new WXWATProbeTestData(item.TestTimeStamp, item.Containername, item.TestStation
+                tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                    , item.RP, item.UnitNum, item.X, item.Y, item.BINNum, item.BINName);
                 tempvm.CommonTestName = "THOLD_A";
                 tempvm.TestValue = UT.O2D(item.THOLD_A);
@@ -66,7 +66,7 @@ namespace WAT.Models
                 { tempvm.ProbeValue = probedict[key].Ith; pbcnt1++; }
                 ret.Add(tempvm);
 
-                tempvm = new WXWATProbeTestData(item.TestTimeStamp, item.Containername, item.TestStation
+                tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                    , item.RP, item.UnitNum, item.X, item.Y, item.BINNum, item.BINName);
                 tempvm.CommonTestName = "R_LD_ohm";
                 tempvm.TestValue = UT.O2D(item.R_LD_ohm);
@@ -74,7 +74,7 @@ namespace WAT.Models
                 { tempvm.ProbeValue = probedict[key].SeriesR; pbcnt2++; }
                 ret.Add(tempvm);
 
-                tempvm = new WXWATProbeTestData(item.TestTimeStamp, item.Containername, item.TestStation
+                tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                    , item.RP, item.UnitNum, item.X, item.Y, item.BINNum, item.BINName);
                 tempvm.CommonTestName = "IMAX_A";
                 tempvm.TestValue = UT.O2D(item.IMAX_A);

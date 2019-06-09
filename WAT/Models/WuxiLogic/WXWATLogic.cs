@@ -8,22 +8,27 @@ namespace WAT.Models
 {
     public class WXWATLogic
     {
-        public static WXWATLogic WATPassFail(string CouponID_,string CurrentStepName)
+        public static WXWATLogic WATPassFail(string coupongroup1,string CurrentStepName)
         {
             var ret = new WXWATLogic();
+
+            var cfg = WXCfg.GetSysCfg();
+            var sharedatatoallen = true;
+            if (cfg.ContainsKey("SHARETOALLEN") && cfg["SHARETOALLEN"].Contains("FALSE"))
+            { sharedatatoallen = false; }
 
             var bitemp = 100;
             var shippable = 1;
 
-            var CouponID = "";
-            if (CouponID_.Length < 12)
+            var CouponGroup = "";
+            if (coupongroup1.Length < 12)
             {
-                ret.AppErrorMsg = "Get an illege couponid: " + CouponID_;
+                ret.AppErrorMsg = "Get an illege couponid: " + coupongroup1;
                 return ret;
             }
             else
             {
-                CouponID = CouponID_.Substring(0, 12);
+                CouponGroup = coupongroup1.Substring(0, 12);
             }
 
             
@@ -35,18 +40,25 @@ namespace WAT.Models
             }
 
             var RP = WXOriginalWATData.TestName2RP(testname);
-            var DCDName = GetDCDName(CouponID, RP);
+            if (string.IsNullOrEmpty(RP))
+            {
+                ret.AppErrorMsg = "Fail to get read point for test: " + testname;
+                return ret;
+            }
+
+
+            var DCDName = GetDCDName(CouponGroup, RP);
             if (string.IsNullOrEmpty(DCDName))
             {
-                ret.AppErrorMsg = "Fail to get dcdname from coupon: " + CouponID;
+                ret.AppErrorMsg = "Fail to get dcdname from coupon group: " + CouponGroup;
                 return ret;
             }
             
             //Container Info
-            var containerinfo = WXContainerInfo.GetInfo(CouponID);
+            var containerinfo = WXContainerInfo.GetInfo(CouponGroup);
             if (string.IsNullOrEmpty(containerinfo.ProductName))
             {
-                ret.AppErrorMsg = "Fail to get eval productname from : " + CouponID;
+                ret.AppErrorMsg = "Fail to get eval productname from : " + CouponGroup;
                 return ret;
             }
 
@@ -61,10 +73,10 @@ namespace WAT.Models
             }
 
             //WAT PROB
-            var watprobeval = WXWATProbeTestData.GetData(CouponID, containerinfo.wafer, testname);
+            var watprobeval = WXWATProbeTestData.GetData(CouponGroup, containerinfo.wafer, sharedatatoallen);
             if (watprobeval.Count == 0)
             {
-                ret.AppErrorMsg = "Fail to get WAT test data by : " + CouponID;
+                ret.AppErrorMsg = "Fail to get WAT test data by : " + CouponGroup;
                 return ret;
             }
             var probecount = watprobeval[0].ProbeCount;

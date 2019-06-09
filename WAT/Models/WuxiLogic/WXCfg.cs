@@ -11,27 +11,32 @@ namespace WAT.Models
         public static Dictionary<string, string> GetSysCfg()
         {
             var ret = new Dictionary<string, string>();
-            var fs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WXCfg.txt");
-            if (File.Exists(fs))
+            try
             {
-                var lines = System.IO.File.ReadAllLines(fs);
-                foreach (var line in lines)
+                var fs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WXCfg.txt");
+                if (File.Exists(fs))
                 {
-                    if (line.Contains("##"))
+                    var lines = System.IO.File.ReadAllLines(fs);
+                    foreach (var line in lines)
                     {
-                        continue;
-                    }
-
-                    if (line.Contains(":::"))
-                    {
-                        var kvpair = line.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
-                        if (!ret.ContainsKey(kvpair[0].Trim()) && kvpair.Length > 1)
+                        if (line.Contains("##"))
                         {
-                            ret.Add(kvpair[0].Trim(), kvpair[1].Trim());
+                            continue;
                         }
-                    }//end if
-                }//end foreach
+
+                        if (line.Contains(":::"))
+                        {
+                            var kvpair = line.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                            if (!ret.ContainsKey(kvpair[0].Trim()) && kvpair.Length > 1)
+                            {
+                                ret.Add(kvpair[0].Trim(), kvpair[1].Trim());
+                            }
+                        }//end if
+                    }//end foreach
+                }
             }
+            catch (Exception ex) { }
+
             return ret;
         }
 

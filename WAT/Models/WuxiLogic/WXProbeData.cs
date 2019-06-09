@@ -48,29 +48,29 @@ namespace WAT.Models
 
             if (srclist.Count > 0)
             {
-                //var sql = "delete from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] where [WaferID] = @WaferID";
-                //var dict = new Dictionary<string, string>();
-                //dict.Add("@WaferID", WaferNum);
-                //DBUtility.ExeLocalSqlNoRes(sql, dict);
+                var sql = "delete from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] where [WaferID] = @WaferID";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@WaferID", WaferNum);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
 
-                //sql = @"insert into [EngrData].[dbo].[VR_Eval_Pts_Data_Basic](EntryTime,WaferID,Xcoord,Ycoord,Ith,Wafer,SeriesR,SlopEff) 
-                //        values(@EntryTime,@WaferID,@Xcoord,@Ycoord,@Ith,@Wafer,@SeriesR,@SlopEff)";
-                //var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                sql = @"insert into [EngrData].[dbo].[VR_Eval_Pts_Data_Basic](EntryTime,WaferID,Xcoord,Ycoord,Ith,Wafer,SeriesR,SlopEff) 
+                        values(@EntryTime,@WaferID,@Xcoord,@Ycoord,@Ith,@Wafer,@SeriesR,@SlopEff)";
+                var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                //foreach (var item in srclist)
-                //{
-                //    dict = new Dictionary<string, string>();
-                //    dict.Add("@EntryTime", now);
-                //    dict.Add("@WaferID", WaferNum);
-                //    dict.Add("@Xcoord", item.X);
-                //    dict.Add("@Ycoord", item.Y);
-                //    dict.Add("@Ith", item.Ith);
-                //    dict.Add("@Wafer", WaferNum);
-                //    dict.Add("@SeriesR", item.SeriesR);
-                //    dict.Add("@SlopEff", item.SlopEff);
+                foreach (var item in srclist)
+                {
+                    dict = new Dictionary<string, string>();
+                    dict.Add("@EntryTime", now);
+                    dict.Add("@WaferID", WaferNum);
+                    dict.Add("@Xcoord", item.X);
+                    dict.Add("@Ycoord", item.Y);
+                    dict.Add("@Ith", item.Ith);
+                    dict.Add("@Wafer", WaferNum);
+                    dict.Add("@SeriesR", item.SeriesR);
+                    dict.Add("@SlopEff", item.SlopEff);
 
-                //    DBUtility.ExeLocalSqlNoRes(sql, dict);
-                //}
+                    DBUtility.ExeLocalSqlNoRes(sql, dict);
+                }
 
                 return true;
             }

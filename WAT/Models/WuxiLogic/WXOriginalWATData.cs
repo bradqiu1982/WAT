@@ -7,7 +7,7 @@ namespace WAT.Models
 {
     public class WXOriginalWATData
     {
-        public static bool PrepareDataFromAllen(string ContainerName)
+        public static bool PrepareFakeDataFromAllen(string ContainerName)
         {
             var sql = @"SELECT 
 					e.[TestTimeStamp] as TIME_STAMP
@@ -116,7 +116,7 @@ namespace WAT.Models
         }
 
 
-        public static string GetUniqKey()
+        private static string GetUniqKey()
         {
             return Guid.NewGuid().ToString("N");
         }
@@ -159,8 +159,8 @@ namespace WAT.Models
 
                 tempvm.RP = TestName2RP(tempvm.TestStep);
 
-                tempvm.Product = GetPN(tempvm.Containername, tempvm.Product);
-                var xy = GetXY(tempvm.Containername, tempvm.ChannelInfo);
+                //tempvm.Product = GetPN(tempvm.Containername, tempvm.Product);
+                var xy = GetFakeXY(tempvm.Containername, tempvm.ChannelInfo);
                 tempvm.X = xy[0];
                 tempvm.Y = xy[1];
                 tempvm.UnitNum = tempvm.X+"-"+tempvm.Y;
@@ -176,15 +176,79 @@ namespace WAT.Models
 
         }
 
+
+        public static List<WXOriginalWATData> GetData(string coupongroup)
+        {
+            var samplexy = WATSampleXY.GetSampleXYByCouponGroup(coupongroup);
+            var samplexydict = new Dictionary<string, WATSampleXY>();
+            foreach (var sitem in samplexy)
+            {
+                var key = sitem.CouponID + "-" + sitem.ChannelInfo;
+                if (!samplexydict.ContainsKey(key))
+                { samplexydict.Add(key,sitem); }
+            }
+
+
+            var ret = new List<WXOriginalWATData>();
+            var sql = "select TestTimeStamp,Containername,Product,TestStation,TestStep,BVR_LD_A,PO_LD_W,VF_LD_V,SLOPE_WperA,THOLD_A,R_LD_ohm,IMAX_A,Notes,ChannelInfo,KINK2BETTER from Insite.dbo.ProductionResult where Containername like '<coupongroup>%' order by TestTimeStamp desc";
+            sql = sql.Replace("<coupongroup>", coupongroup);
+
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            var uniqdict = new Dictionary<string, bool>();
+
+            foreach (var line in dbret)
+            {
+                if (uniqdict.ContainsKey(UT.O2S(line[1])+"-"+UT.O2S(line[13]) + "-" + UT.O2T(line[0]).ToString("yyyy-MM-dd HH:mm:ss")))
+                { continue; }
+
+                var tempvm = new WXOriginalWATData();
+                tempvm.TestTimeStamp = UT.O2T(line[0]);
+                tempvm.Containername = UT.O2S(line[1]).Substring(0,14);
+                //tempvm.Product = UT.O2S(line[2]);
+                tempvm.TestStation = UT.O2S(line[3]);
+                tempvm.TestStep = UT.O2S(line[4]);
+                tempvm.BVR_LD_A = UT.O2S(line[5]);
+                tempvm.PO_LD_W = UT.O2S(line[6]);
+                tempvm.VF_LD_V = UT.O2S(line[7]);
+                tempvm.SLOPE_WperA = UT.O2S(line[8]);
+                tempvm.THOLD_A = UT.O2S(line[9]);
+                tempvm.R_LD_ohm = UT.O2S(line[10]);
+                tempvm.IMAX_A = UT.O2S(line[11]);
+
+                tempvm.Notes = UT.O2S(line[12]);
+                tempvm.ChannelInfo = UT.O2S(line[13]);
+
+                tempvm.KINK2BETTER = UT.O2S(line[14]);
+ 
+                tempvm.RP = TestName2RP(tempvm.TestStep);
+                
+                
+                //var bin = tempvm.Notes.Split(new string[] { ":" }, StringSplitOptions.None).ToList();
+                //tempvm.BINNum = bin[0];
+                //tempvm.BINName = bin[1];
+
+                var xykey = tempvm.Containername + "-" + tempvm.ChannelInfo;
+                if (samplexydict.ContainsKey(xykey))
+                {
+                    tempvm.X = samplexydict[xykey].X;
+                    tempvm.Y = samplexydict[xykey].Y;
+                    tempvm.UnitNum = tempvm.X + "-" + tempvm.Y;
+                    uniqdict.Add(tempvm.Containername +"-"+tempvm.ChannelInfo + "-" + tempvm.TestTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"), true);
+                    ret.Add(tempvm);
+                }
+            }
+
+            return ret;
+        }
+
+
+
         //THIS FUNCTION NEED TO BE UPDATE
-        private static List<string> GetXY(string containername, string channelinfo)
+        private static List<string> GetFakeXY(string containername, string channelinfo)
         {
             return channelinfo.Split(new string[] { ":" }, StringSplitOptions.None).ToList();
         }
 
-        //THIS FUNCTION NEED TO BE UPDATE
-        public static string GetPN(string containername, string pn)
-        { return pn; }
 
 
         public static string RP2TestName(int rp)
@@ -215,7 +279,7 @@ namespace WAT.Models
                 }
                 else
                 {
-                    return "4";
+                    return "";
                 }
             }
             else
@@ -229,7 +293,7 @@ namespace WAT.Models
                 else if (string.Compare(stepnametrim, "PRLL_Post_HTOL2_Test", true) == 0)
                 { return "3"; }
                 else
-                { return "4"; }
+                { return ""; }
             }
         }
 

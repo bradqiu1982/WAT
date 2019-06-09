@@ -121,7 +121,7 @@ namespace WAT.Controllers
         public ActionResult PrepareFakeData()
         {
             WXProbeData.PrepareProbeData("184637-30");
-            WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
+            WXOriginalWATData.PrepareFakeDataFromAllen("184637-30E01");
 
             return View("HeartBeat");
         }

@@ -26,6 +26,26 @@ namespace WAT.Models
             return string.Empty;
         }
 
+        public static void UpdateLotTypeFromAllen(string wafernum)
+        {
+            var sql = @"select containertype from insite.insite.container  where containername = @wafernum";
+
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafernum", wafernum);
+
+            var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                sql = "update EngrData.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
+                dict = new Dictionary<string, string>();
+                dict.Add("@WaferNum", wafernum);
+                dict.Add("@LotType", UT.O2S(line[0]));
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+                return;
+            }
+
+        }
+
         public static string GetProductFamilyFromSherman(string wafernum)
         {
             var sql = @"SELECT distinct LEFT(pf.[ProductFamilyName],4) AS PRODUCT_FAMILY
@@ -43,6 +63,25 @@ namespace WAT.Models
 
             return string.Empty;
         }
+
+        public static void UpdateLotTypeFromSherman(string wafernum)
+        {
+            var sql = @"SELECT ContainerType FROM [SHM-CSSQL]. [Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
+            sql = sql.Replace("<wafernum>", wafernum);
+
+            var dbret = DBUtility.ExeShermanSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                sql = "update EngrData.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@WaferNum", wafernum);
+                dict.Add("@LotType", UT.O2S(line[0]));
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+                return;
+            }
+
+        }
+
 
         private static bool PrepareAllenEvalPN(string wafernum)
         {
@@ -127,9 +166,11 @@ namespace WAT.Models
         public static bool PrepareEvalPN(string wafernum)
         {
             var allenret = PrepareAllenEvalPN(wafernum);
+            UpdateLotTypeFromAllen(wafernum);
             if (!allenret)
             {
                 var shermanret = PrepareShermanEvalPN(wafernum);
+                UpdateLotTypeFromSherman(wafernum);
                 if (!shermanret)
                 { return false; }
             }
@@ -160,10 +201,21 @@ namespace WAT.Models
             return string.Empty;
         }
 
+        public static string GetLotTypeByWaferNum(string wafernum)
+        {
+            var sql = "select LotType from EngrData.dbo.WXEvalPN where WaferNum = '<WaferNum>'";
+            sql = sql.Replace("<WaferNum>", wafernum);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            { return UT.O2S(line[0]); }
+
+            return "W";
+        }
 
         public string WaferNum { set; get; }
         public string EvalPN { set; get; }
         public string DCDName { set; get; }
+        public string LotType { set; get; }
 
     }
 }
