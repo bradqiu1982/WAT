@@ -9,3 +9,7 @@ PRLL_POST_HTOL1_TEST:::2
 PRLL_POST_HTOL2_TEST:::3
 
 SHARETOALLEN:::FALSE
+
+OGPCONNSTR:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;
+OGPSQLSTR:::select CouponID,ChannelInfo,X,Y from [EngrData].[dbo].[WATSampleXY] where CouponID like '<coupongroup>%'
+
