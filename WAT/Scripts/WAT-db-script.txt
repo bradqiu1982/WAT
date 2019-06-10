@@ -223,17 +223,17 @@ CREATE TABLE VR_Eval_Pts_Data_Basic(
 
 
 CREATE TABLE WUX_WATShareData(
-    TimeStamp DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL,
-    ContainerNum   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    ToolName   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    RP   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    UnitNum   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    X   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    Y   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    CommonTestName   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    TestValue   FLOAT NOT NULL,
-    ProbeValue   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    BinNum   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    BinName   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [TimeStamp] DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+    [ContainerNum]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [ToolName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [RP]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [UnitNum]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [X]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [Y]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [CommonTestName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [TestValue]   FLOAT NOT NULL,
+    [ProbeValue]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [BinNum]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+    [BinName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 );
 

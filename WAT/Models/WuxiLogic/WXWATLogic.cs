@@ -351,7 +351,8 @@ namespace WAT.Models
                 || string.Compare(containerinfo.lottype, "r", true) == 0)
                 && bfailmode  && scrapspec.Count > 0
                 && (containerinfo.containername.ToUpper().Contains("E01")
-                || containerinfo.containername.ToUpper().Contains("E06"))
+                || containerinfo.containername.ToUpper().Contains("E06")
+                || containerinfo.containername.ToUpper().Contains("E08"))
                     )
             {
                 return true;

@@ -204,7 +204,7 @@ namespace WAT.Models
                 var tempvm = new WXOriginalWATData();
                 tempvm.TestTimeStamp = UT.O2T(line[0]);
                 tempvm.Containername = UT.O2S(line[1]).Substring(0,14);
-                //tempvm.Product = UT.O2S(line[2]);
+                tempvm.Product = UT.O2S(line[2]);
                 tempvm.TestStation = UT.O2S(line[3]);
                 tempvm.TestStep = UT.O2S(line[4]);
                 tempvm.BVR_LD_A = UT.O2S(line[5]);
@@ -221,7 +221,6 @@ namespace WAT.Models
                 tempvm.KINK2BETTER = UT.O2S(line[14]);
  
                 tempvm.RP = TestName2RP(tempvm.TestStep);
-                
                 
                 //var bin = tempvm.Notes.Split(new string[] { ":" }, StringSplitOptions.None).ToList();
                 //tempvm.BINNum = bin[0];

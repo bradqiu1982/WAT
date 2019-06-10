@@ -85,7 +85,70 @@ namespace WAT.Models
             foreach (var item in ret)
             { item.ProbeCount = probecount; }
 
+            if (sharedatatoallen)
+            {
+                ShareDataToAllen(coupongroup, ret);
+            }
+
             return ret;
+        }
+
+        private static bool CheckSharedData(string coupongroup, string rp)
+        {
+            var sql = "select top 1 * from [EngrData].[dbo].[WUX_WATShareData] where ContainerNum  = @ContainerNum and RP = @RP";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@ContainerNum", coupongroup);
+            dict.Add("@RP", rp);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            if (dbret.Count > 0)
+            { return true; }
+
+            return false;
+        }
+
+        private static void ShareDataToAllen(string coupongroup,List<WXWATProbeTestData> sharedata)
+        {
+            var rpdict = new Dictionary<string, List<WXWATProbeTestData>>();
+            foreach (var item in sharedata)
+            {
+                if (rpdict.ContainsKey(item.RP))
+                {
+                    rpdict[item.RP].Add(item);
+                }
+                else
+                {
+                    var templist = new List<WXWATProbeTestData>();
+                    templist.Add(item);
+                    rpdict.Add(item.RP, templist);
+                }
+            }
+
+            foreach (var rkv in rpdict)
+            {
+                if (!CheckSharedData(coupongroup,rkv.Key))
+                {
+                    var sharelist = rkv.Value;
+                    foreach (var data in sharelist)
+                    {
+                        var sql = @"insert into [EngrData].[dbo].[WUX_WATShareData](TimeStamp,ContainerNum,ToolName,RP,UnitNum,X,Y,CommonTestName,TestValue,ProbeValue,BinNum,BinName) 
+                                      values(@TimeStamp,@ContainerNum,@ToolName,@RP,@UnitNum,@X,@Y,@CommonTestName,@TestValue,@ProbeValue,@BinNum,@BinName)";
+                        var dict = new Dictionary<string, string>();
+                        dict.Add("@TimeStamp",data.TimeStamp.ToString("yyyy-MM-dd HH:mm:ss"));
+                        dict.Add("@ContainerNum",data.ContainerNum);
+                        dict.Add("@ToolName",data.ToolName);
+                        dict.Add("@RP",data.RP);
+                        dict.Add("@UnitNum",data.UnitNum);
+                        dict.Add("@X",data.X);
+                        dict.Add("@Y",data.Y);
+                        dict.Add("@CommonTestName",data.CommonTestName);
+                        dict.Add("@TestValue",data.TestValue.ToString());
+                        dict.Add("@ProbeValue",data.ProbeValue);
+                        dict.Add("@BinNum",data.BinNum);
+                        dict.Add("@BinName",data.BinName);
+                        DBUtility.ExeLocalSqlNoRes(sql,dict);
+                    }
+                }
+            }//end foreach
         }
 
         public static int GetReadCount(List<WXWATProbeTestData> srcdata, string rp)
@@ -139,6 +202,9 @@ namespace WAT.Models
             Y = y;
             BinNum = binnum;
             BinName = binnm;
+
+            CommonTestName = "";
+            ProbeValue = "";
         }
 
         public WXWATProbeTestData()
