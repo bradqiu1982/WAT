@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using MathNet.Numerics.Statistics;
 
-namespace WAT.Models
+namespace WXLogic
 {
     public class WXWATTTFTerms
     {

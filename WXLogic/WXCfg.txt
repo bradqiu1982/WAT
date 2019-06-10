@@ -1,0 +1,15 @@
+﻿
+POSTBIJUDGEMENT:::PRLL_VCSEL_Post_Burn_in_Test
+POSTHTOL1JUDGEMENT:::PRLL_Post_HTOL1_Test
+POSTHTOL2JUDGEMENT:::PRLL_Post_HTOL2_Test
+
+PRLL_VCSEL_PRE_BURN_IN_TEST:::0
+PRLL_VCSEL_POST_BURN_IN_TEST:::1
+PRLL_POST_HTOL1_TEST:::2
+PRLL_POST_HTOL2_TEST:::3
+
+SHARETOALLEN:::FALSE
+
+OGPCONNSTR:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;
+OGPSQLSTR:::select CouponID,ChannelInfo,X,Y from [EngrData].[dbo].[WATSampleXY] where CouponID like '<coupongroup>%'
+

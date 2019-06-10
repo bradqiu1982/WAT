@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using WAT.Models;
+using WXLogic;
 
 namespace WAT.Controllers
 {
@@ -118,20 +119,20 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
-        public ActionResult PrepareFakeData()
-        {
-            WXProbeData.PrepareProbeData("184637-30");
-            WXOriginalWATData.PrepareFakeDataFromAllen("184637-30E01");
+        //public ActionResult PrepareFakeData()
+        //{
+        //    WXProbeData.PrepareProbeData("184637-30");
+        //    WXOriginalWATData.PrepareFakeDataFromAllen("184637-30E01");
 
-            return View("HeartBeat");
-        }
+        //    return View("HeartBeat");
+        //}
 
         public ActionResult WXLogic()
         {
             //WXProbeData.PrepareProbeData("184637-30");
             //WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
-
-            WXWATLogic.WATPassFail("184637-30E01", "POSTHTOL2JUDGEMENT");
+            var wxlogic = new WXWATLogic();
+            wxlogic.WATPassFail("184637-30E01", "POSTHTOL2JUDGEMENT");
 
             return View("HeartBeat");
         }

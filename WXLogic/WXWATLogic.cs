@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+using System.Runtime.Serialization;
+using System.ServiceModel;
+using System.Text;
 
-namespace WAT.Models
+
+namespace WXLogic
 {
-    public class WXWATLogic
+    // NOTE: You can use the "Rename" command on the "Refactor" menu to change the class name "Service1" in both code and config file together.
+    public class WXWATLogic : IWXWATLogic
     {
-        public static WXWATLogic WATPassFail(string coupongroup1,string CurrentStepName)
+        public  WXWATLogic WATPassFail(string coupongroup1, string CurrentStepName)
         {
             var ret = new WXWATLogic();
 
@@ -31,7 +34,7 @@ namespace WAT.Models
                 CouponGroup = coupongroup1.Substring(0, 12);
             }
 
-            
+
             var testname = GetTestNameFromCurrentStep(CurrentStepName);
             if (string.IsNullOrEmpty(testname))
             {
@@ -53,7 +56,7 @@ namespace WAT.Models
                 ret.AppErrorMsg = "Fail to get dcdname from coupon group: " + CouponGroup;
                 return ret;
             }
-            
+
             //Container Info
             var containerinfo = WXContainerInfo.GetInfo(CouponGroup);
             if (string.IsNullOrEmpty(containerinfo.ProductName))
@@ -106,7 +109,7 @@ namespace WAT.Models
 
             //TTF
             var fitspec = WXSpecBinPassFail.GetFitSpec(containerinfo.ProductName, DCDName, allspec);
-            var ttfdata = WXWATTTF.GetTTFData(containerinfo.ProductName,UT.O2I(RP), fitspec, watprobevalfiltered, failmodes);
+            var ttfdata = WXWATTTF.GetTTFData(containerinfo.ProductName, UT.O2I(RP), fitspec, watprobevalfiltered, failmodes);
 
             //TTFSorted
             var ttfdatasorted = WXWATTTFSorted.GetSortedTTFData(ttfdata);
@@ -123,7 +126,7 @@ namespace WAT.Models
 
             //TTFUnit
             var ttfunitspec = WXSpecBinPassFail.GetTTFUnitSpec(containerinfo.ProductName, allspec);
-            var ttfunitdata = WXWATTTFUnit.GetUnitData(watprobevalfiltered,RP, ttfuse, ttfdatasorted, ttfunitspec);
+            var ttfunitdata = WXWATTTFUnit.GetUnitData(watprobevalfiltered, RP, ttfuse, ttfdatasorted, ttfunitspec);
 
             var ttfmu = WXWATTTFmu.GetmuData(fitspec, RP, watprobevalfiltered, ttfuse, ttffit);
 
@@ -349,7 +352,7 @@ namespace WAT.Models
                 || string.Compare(containerinfo.lottype, "q", true) == 0
                 || string.Compare(containerinfo.lottype, "w", true) == 0
                 || string.Compare(containerinfo.lottype, "r", true) == 0)
-                && bfailmode  && scrapspec.Count > 0
+                && bfailmode && scrapspec.Count > 0
                 && (containerinfo.containername.ToUpper().Contains("E01")
                 || containerinfo.containername.ToUpper().Contains("E06")
                 || containerinfo.containername.ToUpper().Contains("E08"))
@@ -402,7 +405,7 @@ namespace WAT.Models
         private static string GetDCDName(string couponid, string rp)
         {
             var cp = couponid.ToUpper();
-            var rpstr = "rp"+(100 + UT.O2I(rp)).ToString().Substring(1);
+            var rpstr = "rp" + (100 + UT.O2I(rp)).ToString().Substring(1);
 
             if (cp.Contains("E08")
                 || cp.Contains("E01")
@@ -424,7 +427,7 @@ namespace WAT.Models
         }
 
 
-        public static void Usage()
+        public void Usage()
         {
             var wuxlogic = new WXWATLogic();
             if (!string.IsNullOrEmpty(wuxlogic.AppErrorMsg))
@@ -462,6 +465,7 @@ namespace WAT.Models
             }//end else
         }
 
+
         public WXWATLogic()
         {
             TestPass = false;
@@ -476,5 +480,7 @@ namespace WAT.Models
         public bool ScrapIt { set; get; } //whether scrap
         public string ResultReason { set; get; } //retest/scrap reason
         public string AppErrorMsg { set; get; } //for app logic error
+
+
     }
 }
