@@ -93,5 +93,82 @@ namespace WAT.Controllers
             return ret;
         }
 
+
+        public ActionResult WUXIWATLogic()
+        { return View(); }
+
+        public JsonResult WUXIWATLogicData()
+        {
+            var couponid = Request.Form["couponid"];
+            var jstepname = Request.Form["jstepname"];
+
+            var wxlogic = new WXLogic.WXWATLogic();
+            var ret = wxlogic.WATPassFail(couponid, jstepname);
+
+            var msglist = new List<object>();
+            if (!string.IsNullOrEmpty(ret.AppErrorMsg))
+            {
+                msglist.Add(new
+                {
+                    pname = "App Exception",
+                    pval = ret.AppErrorMsg
+                });
+            }
+            else
+            {
+                msglist.Add(new
+                {
+                    pname = "Logic Result",
+                    pval = ret.ResultReason
+                });
+
+                foreach (var kv in ret.ValueCollect)
+                {
+                    msglist.Add(new
+                    {
+                        pname = kv.Key,
+                        pval = kv.Value
+                    });
+                }
+            }
+
+            var jret = new JsonResult();
+            jret.MaxJsonLength = Int32.MaxValue;
+            jret.Data = new
+            {
+                msglist = msglist,
+                datatables = ret.DataTables
+            };
+            return jret;
+
+        }
+
+        public JsonResult GetWXCouponID()
+        {
+            var couponidlist = WXWATTestData.GetAllCouponID();
+            var ret = new JsonResult();
+            ret.Data = new
+            {
+                couponidlist = couponidlist
+            };
+            return ret;
+        }
+
+        public JsonResult GetWXJudgementStep()
+        {
+            var steplist = new List<string>();
+            steplist.Add("POSTBIJUDGEMENT");
+            steplist.Add("POSTHTOL1JUDGEMENT");
+            steplist.Add("POSTHTOL2JUDGEMENT");
+
+            var ret = new JsonResult();
+            ret.Data = new
+            {
+                steplist = steplist
+            };
+            return ret;
+        }
+
+
     }
 }

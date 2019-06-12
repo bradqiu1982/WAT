@@ -43,7 +43,8 @@
             var dcdname = $('#dcdname').val();
             if (container == '' || dcdname == '')
             {
-                alert('Please into correct container number and dcdname!')
+                alert('Please into correct container number and dcdname!');
+                return false;
             }
 
             var options = {
@@ -267,9 +268,235 @@
         });
     }
 
+
+    var wuxilogic = function () {
+
+        var logictable = null;
+        var coupontable = null;
+        var fmodetable = null;
+
+        $.post('/WATLogic/GetWXCouponID', {
+        }, function (output) {
+            $('#couponid').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.couponidlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#couponid').attr('readonly', false);
+        });
+
+        $.post('/WATLogic/GetWXJudgementStep', {
+        }, function (output) {
+            $('#jstepname').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.steplist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#jstepname').attr('readonly', false);
+        });
+
+        var wuxirest = function () {
+            var couponid = $('#couponid').val();
+            var jstepname = $('#jstepname').val();
+            if (couponid == '' || jstepname == '') {
+                alert('Please into correct coupon id and judgement step name!')
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATLogicData',
+                {
+                    couponid: couponid,
+                    jstepname: jstepname
+                },
+                function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (logictable) {
+                        logictable.destroy();
+                        logictable = null;
+                    }
+                    $("#logichead").empty();
+                    $("#logiccontent").empty();
+
+                    $("#logichead").append(
+                            '<tr>' +
+                            '<th>Parameter</th>' +
+                            '<th>Value</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.msglist, function (i, val) {
+                        $("#logiccontent").append(
+                            '<tr>' +
+                            '<td>' + val.pname + '</td>' +
+                            '<td>' + val.pval + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    logictable = $('#logictable').DataTable({
+                        'iDisplayLength': 20,
+                        'aLengthMenu': [[20, 50, 100, -1],
+                        [20, 50, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+
+
+                    if (coupontable) {
+                        coupontable.destroy();
+                        coupontable = null;
+                    }
+                    $("#couponhead").empty();
+                    $("#couponcontent").empty();
+
+                    $("#couponhead").append(
+                            '<tr>' +
+                            '<th>Eval_PN</th>' +
+                            '<th>Bin_Product</th>' +
+                            '<th>ParameterName</th>' +
+                            '<th>UpperSpec</th>' +
+                            '<th>LowerSpec</th>' +
+                            '<th>Min_Value</th>' +
+                            '<th>Max_Value</th>' +
+                            '<th>DUTCount</th>' +
+                            '<th>FailType</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.datatables[0], function (i, val) {
+                        $("#couponcontent").append(
+                            '<tr>' +
+                            '<td>' + val.Eval_PN + '</td>' +
+                            '<td>' + val.Bin_PN + '</td>' +
+                            '<td>' + val.ParamName + '</td>' +
+                            '<td>' + val.UpperLimit + '</td>' +
+                            '<td>' + val.LowLimit + '</td>' +
+                            '<td>' + val.MinVal + '</td>' +
+                            '<td>' + val.MaxVal + '</td>' +
+                            '<td>' + val.DUTCount + '</td>' +
+                            '<td>' + val.failtype + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    coupontable = $('#coupontable').DataTable({
+                        'iDisplayLength': 20,
+                        'aLengthMenu': [[20, 50, 100, -1],
+                        [20, 50, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+
+
+
+
+                    if (fmodetable) {
+                        fmodetable.destroy();
+                        fmodetable = null;
+                    }
+                    $("#fmodehead").empty();
+                    $("#fmodecontent").empty();
+
+                    $("#fmodehead").append(
+                            '<tr>' +
+                            '<th>RP</th>' +
+                            '<th>Unit</th>' +
+                            '<th>DPO</th>' +
+                            '<th>DPO_rd</th>' +
+                            '<th>DIth</th>' +
+                            '<th>BVR</th>' +
+                            '<th>DVF</th>' +
+                            '<th>Pwr</th>' +
+                            '<th>DPOvsDITHcheck</th>' +
+                            '<th>DPO_LL</th>' +
+                            '<th>DVF_UL</th>' +
+                            '<th>FailMode</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.datatables[1], function (i, val) {
+                        $("#fmodecontent").append(
+                            '<tr>' +
+                            '<td>' + val.RP + '</td>' +
+                            '<td>' + val.UnitNum + '</td>' +
+                            '<td>' + val.DPO + '</td>' +
+                            '<td>' + val.DPO_rd + '</td>' +
+                            '<td>' + val.DIth + '</td>' +
+                            '<td>' + val.BVR + '</td>' +
+                            '<td>' + val.DVF + '</td>' +
+                            '<td>' + val.PWR + '</td>' +
+                            '<td>' + val.DPOvsDITHcheck + '</td>' +
+                            '<td>' + val.DPO_LL + '</td>' +
+                            '<td>' + val.DVF_UL + '</td>' +
+                            '<td>' + val.Failure + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    fmodetable = $('#fmodetable').DataTable({
+                        'iDisplayLength': 20,
+                        'aLengthMenu': [[20, 50, 100, -1],
+                        [20, 50, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+
+                });
+        }
+
+        $('body').on('click', '#btn-run', function () {
+            wuxirest();
+        });
+
+
+    }
+
+
+
     return {
         ALLENLOGICINIT: function () {
             allenlogic();
+        },
+        WUXILOGICINIT: function () {
+            wuxilogic();
         }
     }
 }();

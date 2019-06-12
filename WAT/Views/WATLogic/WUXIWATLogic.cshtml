@@ -1,0 +1,61 @@
+﻿
+@{
+    ViewBag.Title = "WUXI WAT Logic";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.WUXILOGICINIT();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="form-control">Coupon ID</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="couponid" name="couponid" placeholder="Coupon ID" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2">
+                        <label class="form-control">Judgement Step</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="jstepname" name="jstepname" placeholder="Judgement Step" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-run" id="btn-run" value="RUN">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="logictable" style="margin-top:1%">
+                        <caption class="tb-caption">Allen Logic Result</caption>
+                        <thead id="logichead"></thead>
+                        <tbody id="logiccontent"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="coupontable" style="margin-top:1%">
+                        <caption class="tb-caption">Fass Fail Coupon Data</caption>
+                        <thead id="couponhead"></thead>
+                        <tbody id="couponcontent"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="fmodetable" style="margin-top:1%">
+                        <caption class="tb-caption">Fail Mode Data</caption>
+                        <thead id="fmodehead"></thead>
+                        <tbody id="fmodecontent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

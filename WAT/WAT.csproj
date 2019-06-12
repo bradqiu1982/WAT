@@ -242,10 +242,13 @@
     <Compile Include="Models\WaferPN.cs" />
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />
+    <Compile Include="Models\WATSampleXY.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
+    <Compile Include="Models\WXCfg.cs" />
     <Compile Include="Models\WXEvalPN.cs" />
     <Compile Include="Models\WXProbeData.cs" />
+    <Compile Include="Models\WXWATTestData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -766,7 +769,6 @@
     <Content Include="Scripts\WAT-db-script.txt" />
     <Content Include="Scripts\WATCfg.txt" />
     <Content Include="Scripts\WATLogic.js" />
-    <Content Include="Scripts\WATsheartbeat.txt" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\moment-with-locales.js" />
     <Content Include="Scripts\moment-with-locales.min.js" />
@@ -798,6 +800,7 @@
     <Content Include="Views\DieSort\DieSortFiailedConvertFiles.cshtml" />
     <Content Include="Views\Wafer\WaferQUAL.cshtml" />
     <Content Include="Views\WATLogic\VerifyAllenLogic.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATLogic.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
