@@ -34,7 +34,22 @@ namespace WAT.Models
         private static List<WXProbeData> GetShermanData(string WaferNum)
         {
             var ret = new List<WXProbeData>();
-            
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WAFER_NUMBER", WaferNum);
+            dict.Add("@DATA_SET_TYPE_NAME", "Final Probe");
+            dict.Add("@Include_Units_IN_Col_Headers", "1");
+            dict.Add("@Passing_Dies_Only", "0");
+            var dbret = DBUtility.ExeShermanStoreProcedureWithRes("Get_Latest_PROBE_DATA_For_Wafer", dict);
+            foreach (var line in dbret)
+            {
+                var tempvm = new WXProbeData();
+                tempvm.X = UT.O2S(line[12]);
+                tempvm.Y = UT.O2S(line[13]);
+                tempvm.Ith = UT.O2S(line[61]);
+                tempvm.SeriesR = UT.O2S(line[122]);
+                tempvm.SlopEff = UT.O2S(line[245]);
+                ret.Add(tempvm);
+            }
             return ret;
         }
 

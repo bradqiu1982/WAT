@@ -143,6 +143,5 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
-
     }
 }
