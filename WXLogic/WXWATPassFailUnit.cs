@@ -210,24 +210,49 @@ namespace WXLogic
             return unitdict.Count;
         }
 
-        public static string GetFailUnit(List<WXWATPassFailUnit> srcdata)
+        public static string GetFailUnitWithInfo(List<WXWATPassFailUnit> srcdata)
         {
+            var failunit = new List<WXWATPassFailUnit>();
             var unitdict = new Dictionary<string, bool>();
             foreach (var item in srcdata)
             {
                 if (!string.IsNullOrEmpty(item.FailType))
                 {
                     if (!unitdict.ContainsKey(item.UnitNum))
-                    { unitdict.Add(item.UnitNum, true); }
+                    { failunit.Add(item); }
                 }//end if
             }//end foreach
-            if (unitdict.Count > 0)
+
+            if (failunit.Count == 0)
+            { return string.Empty; }
+
+            var containername = srcdata[0].ContainerNum;
+            var samplexy = WATSampleXY.GetSampleXYByCouponGroup(containername);
+            var samplexydict = new Dictionary<string, WATSampleXY>();
+            foreach (var sitem in samplexy)
             {
-                return string.Join(",", unitdict.Keys.ToList());
+                var key = sitem.X + "-" + sitem.Y;
+                if (!samplexydict.ContainsKey(key))
+                { samplexydict.Add(key, sitem); }
             }
-            else
-            { return ""; }
+
+            var ret = string.Empty;
+            foreach (var fu in failunit)
+            {
+                if (samplexydict.ContainsKey(fu.UnitNum))
+                {
+                    ret += samplexydict[fu.UnitNum].CouponID + "-" + samplexydict[fu.UnitNum].ChannelInfo + ":" + fu.FailType + ",";
+                }
+                else
+                {
+                    ret += fu.ContainerNum + ":" + fu.UnitNum + ":" + fu.FailType + ",";
+                }
+            }
+
+            return ret;
         }
+
+
 
         private WXWATPassFailUnit(WXWATProbeTestDataFiltered data, WXSpecBinPassFail spec, string testname, string val)
         {

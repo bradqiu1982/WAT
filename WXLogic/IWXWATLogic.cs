@@ -14,6 +14,7 @@ namespace WXLogic
         [OperationContract]
         WXWATLogic WATPassFail(string coupongroup1, string CurrentStepName);
         void Usage();
+        string ForTest();
     }
 
 }

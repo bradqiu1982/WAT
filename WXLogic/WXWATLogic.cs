@@ -97,7 +97,7 @@ namespace WXLogic
             //FAIL MODE
             var spec4fmode = WXSpecBinPassFail.GetParam4FailMode(containerinfo.ProductName, RP, allspec);
             var failmodes = WXWATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode, bitemp);
-
+            var failmodestr = WXWATFailureMode.GetFailModeString(failmodes);
 
             //Coupon Stat Data
             var binpndict = WXSpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
@@ -138,21 +138,48 @@ namespace WXLogic
 
 
             var failcount = WXWATPassFailUnit.GetFailCount(passfailunitdata);
-            var failunit = WXWATPassFailUnit.GetFailUnit(passfailunitdata);
+            var failunitinfo = WXWATPassFailUnit.GetFailUnitWithInfo(passfailunitdata);
 
             //Pass Fail Coupon
             var watpassfailcoupondata = WXWATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
 
             var failstring = WXWATPassFailCoupon.GetFailString(watpassfailcoupondata);
-
             var couponDutCount = WXWATPassFailCoupon.GetDutCount(watpassfailcoupondata);
             var couponSumFails = WXWATPassFailCoupon.GetSumFails(watpassfailcoupondata);
+
 
             var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
                , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails);
 
             var scrapspec = WXSpecBinPassFail.GetScrapSpec(containerinfo.ProductName, DCDName, allspec);
             logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, UT.O2I(RP), readcount, failcount, bitemp, failmodes);
+            if (logicresult.ScrapIt)
+            {
+                logicresult.ResultReason = failmodestr;
+                logicresult.ValueCollect.Add("Scrap ?", "YES");
+            }
+            else
+            {
+                logicresult.ValueCollect.Add("Scrap ?", "NO");
+                if (logicresult.NeedRetest)
+                {
+                    logicresult.ValueCollect.Add("ReTest ?", "YES");
+                }
+                else
+                {
+                    logicresult.ValueCollect.Add("ReTest ?", "NO");
+                }
+            }
+            
+            logicresult.ValueCollect.Add("fail unit info", failunitinfo);
+            logicresult.ValueCollect.Add("failcount", failcount.ToString());
+            logicresult.ValueCollect.Add("fail coupon string", failstring);
+            logicresult.ValueCollect.Add("fail mode", failmodestr);
+            logicresult.ValueCollect.Add("ProbeCount", probecount.ToString());
+            logicresult.ValueCollect.Add("readcount", readcount.ToString());
+
+            logicresult.DataTables.Add(watpassfailcoupondata);
+            logicresult.DataTables.Add(failmodes);
 
             return logicresult;
         }
@@ -465,6 +492,10 @@ namespace WXLogic
             }//end else
         }
 
+        public string ForTest()
+        {
+            return "Congratulate! You have linked to the dll sucessfully!";
+        }
 
         public WXWATLogic()
         {
@@ -473,6 +504,9 @@ namespace WXLogic
             ScrapIt = false;
             ResultReason = "";
             AppErrorMsg = "";
+
+            ValueCollect = new Dictionary<string, string>();
+            DataTables = new List<object>();
         }
 
         public bool TestPass { set; get; } //test pass
@@ -481,6 +515,7 @@ namespace WXLogic
         public string ResultReason { set; get; } //retest/scrap reason
         public string AppErrorMsg { set; get; } //for app logic error
 
-
+        public Dictionary<string, string> ValueCollect { set; get; }
+        public List<object> DataTables { set; get; }
     }
 }

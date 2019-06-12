@@ -7,6 +7,53 @@ namespace WXLogic
 {
     public class WXWATFailureMode
     {
+        public static string GetFailModeString(List<WXWATFailureMode> modes)
+        {
+            if (modes.Count == 0)
+            { return string.Empty; }
+
+            var failunit = new List<WXWATFailureMode>();
+            foreach (var fm in modes)
+            {
+                if (string.Compare(fm.Failure, "WEAROUT", true) == 0
+                || string.Compare(fm.Failure, "DELAM", true) == 0
+                || string.Compare(fm.Failure, "DVF", true) == 0
+                || string.Compare(fm.Failure, "LOWPOWERLOWLEAKAGE", true) == 0)
+                {
+                    failunit.Add(fm);
+                }
+            }
+
+            if (failunit.Count == 0)
+            { return string.Empty; }
+
+            var containername = modes[0].ContainerName;
+            var samplexy = WATSampleXY.GetSampleXYByCouponGroup(containername);
+            var samplexydict = new Dictionary<string, WATSampleXY>();
+            foreach (var sitem in samplexy)
+            {
+                var key = sitem.X + "-" + sitem.Y;
+                if (!samplexydict.ContainsKey(key))
+                { samplexydict.Add(key, sitem); }
+            }
+
+            var ret = string.Empty;
+            foreach (var fu in failunit)
+            {
+                if (samplexydict.ContainsKey(fu.UnitNum))
+                {
+                    ret += samplexydict[fu.UnitNum].CouponID + "-" + samplexydict[fu.UnitNum].ChannelInfo + ":" + fu.Failure + ",";
+                }
+                else
+                {
+                    ret += fu.ContainerName+":"+fu.UnitNum + ":" + fu.Failure + ",";
+                }
+            }
+
+            return ret;
+        }
+
+
         public string ContainerName { set; get; }
         public string UnitNum { set; get; }
         public string RP { set; get; }

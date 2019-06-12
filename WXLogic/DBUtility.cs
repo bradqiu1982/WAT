@@ -750,6 +750,8 @@ namespace WXLogic
         }
 
 
+
+
         private static SqlConnection GetNPITraceConnector()
         {
             var conn = new SqlConnection();
