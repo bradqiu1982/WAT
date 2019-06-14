@@ -24,12 +24,17 @@ namespace WXLogic
                 }
             }
 
+            var coupondict = new Dictionary<string, bool>();
             var pbcnt0 = 0;
             var pbcnt1 = 0;
             var pbcnt2 = 0;
+            
 
             foreach (var item in oringaldata)
             {
+                if (!coupondict.ContainsKey(item.Containername))
+                { coupondict.Add(item.Containername, true); }
+
                 var key = item.X + ":" + item.Y;
 
                 var tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
@@ -81,9 +86,13 @@ namespace WXLogic
                 ret.Add(tempvm);
             }
 
+            var couponcount = coupondict.Count();
             var probecount = Math.Max(pbcnt0, Math.Max(pbcnt1, pbcnt2));
             foreach (var item in ret)
-            { item.ProbeCount = probecount; }
+            {
+                item.ProbeCount = probecount;
+                item.CouponCount = couponcount;
+            }
 
             if (sharedatatoallen)
             {
@@ -205,6 +214,9 @@ namespace WXLogic
 
             CommonTestName = "";
             ProbeValue = "";
+
+            ProbeCount = 0;
+            CouponCount = 0;
         }
 
         public WXWATProbeTestData()
@@ -222,6 +234,7 @@ namespace WXLogic
             BinNum = "";
             BinName = "";
             ProbeCount = 0;
+            CouponCount = 0;
         }
 
         public DateTime TimeStamp { set; get; }
@@ -238,5 +251,6 @@ namespace WXLogic
         public string BinName { set; get; }
 
         public int ProbeCount { set; get; }
+        public int CouponCount { set; get; }
     }
 }

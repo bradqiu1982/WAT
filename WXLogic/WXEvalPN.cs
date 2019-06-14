@@ -212,6 +212,44 @@ namespace WXLogic
             return "W";
         }
 
+
+        public static string GetWaferArrayInfo(string wafer)
+        {
+            var productfm = GetProductFamilyFromAllen(wafer);
+            var sixinch = false;
+            if (string.IsNullOrEmpty(productfm))
+            {
+                productfm = GetProductFamilyFromSherman(wafer);
+                if (!string.IsNullOrEmpty(productfm))
+                {
+                    sixinch = true;
+                }
+            }
+
+            if (string.IsNullOrEmpty(productfm))
+            { return string.Empty; }
+
+            var dict = new Dictionary<string, string>();
+            dict.Add("@productfm", productfm);
+
+            if (!sixinch)
+            {
+                var sql = @"select na.Array_Length from  [EngrData].[dbo].[NeoMAP_MWR_Arrays] na with (nolock) where na.product_out = @productfm";
+                var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+                foreach (var line in dbret)
+                { return UT.O2S(line[0]); }
+            }
+            else
+            {
+                var sql = @"SELECT ARRAY_COUNT_X FROM [ShermanData].[dbo].[PRODUCT_VIEW] WITH (NOLOCK) WHERE PRODUCT_FAMILY = @productfm";
+                var dbret = DBUtility.ExeShermanSqlWithRes(sql, dict);
+                foreach (var line in dbret)
+                { return UT.O2S(line[0]); }
+            }
+
+            return string.Empty;
+        }
+
         public string WaferNum { set; get; }
         public string EvalPN { set; get; }
         public string DCDName { set; get; }

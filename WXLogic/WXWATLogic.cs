@@ -31,7 +31,7 @@ namespace WXLogic
             }
             else
             {
-                CouponGroup = coupongroup1.Substring(0, 12);
+                CouponGroup = coupongroup1.Substring(0, 12).ToUpper();
             }
 
 
@@ -82,6 +82,28 @@ namespace WXLogic
                 ret.AppErrorMsg = "Fail to get WAT test data by : " + CouponGroup;
                 return ret;
             }
+
+            var couponcount = watprobeval[0].CouponCount;
+            var waferarray = WXEvalPN.GetWaferArrayInfo(containerinfo.wafer);
+            if (!string.IsNullOrEmpty(waferarray) && CouponGroup.Contains("E08"))
+            {
+                var necessarynum = 0;
+                var arraynum = UT.O2I(waferarray);
+                if (arraynum == 1)
+                { necessarynum = 4; }
+                else if (arraynum == 4)
+                { necessarynum = 12; }
+                else if (arraynum == 12)
+                { necessarynum = 34; }
+
+                if (couponcount < necessarynum)
+                {
+                    ret.AppErrorMsg = "For 1x"+waferarray+" wafer, the necessary coupon count of E08 WAT logic check should be great than " + necessarynum.ToString();
+                    return ret;
+                }
+            }
+
+
             var probecount = watprobeval[0].ProbeCount;
             var readcount = WXWATProbeTestData.GetReadCount(watprobeval, RP);
 
