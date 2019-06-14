@@ -160,10 +160,30 @@ namespace WAT.Models
             var scrapspec = SpecBinPassFail.GetScrapSpec(containerinfo.ProductName, dcdname,allspec);
 
             logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, rp, readcount, failcount, bitemp, failmodes);
+
             logicresult.ValueCollect = ret.ValueCollect;
             logicresult.ExclusionInfo = ret.ExclusionInfo;
             logicresult.DataTables.Add(watpassfailcoupondata);
             logicresult.DataTables.Add(failmodes);
+
+            if (logicresult.ScrapIt)
+            {
+                var fmstr = "";
+                foreach (var fm in failmodes)
+                {
+                    if (string.Compare(fm.Failure, "WEAROUT", true) == 0
+                    || string.Compare(fm.Failure, "DELAM", true) == 0
+                    || string.Compare(fm.Failure, "DVF", true) == 0
+                    || string.Compare(fm.Failure, "LOWPOWERLOWLEAKAGE", true) == 0)
+                    {
+                        fmstr += fm.UnitNum+":"+fm.Failure+"//";
+                    }
+                }
+
+                logicresult.ResultMsg = fmstr;
+            }
+
+            StoreOperateInstruction(containerinfo.containertype, containername, containerinfo.ProductName, dcdname, logicresult.SummaryRes, failunit);
 
             return logicresult;
         }
@@ -501,6 +521,148 @@ namespace WAT.Models
             DataTables = new List<object>();
         }
 
+
+        public static AllenWATLogic ForVerify(string containername, string dcdname_, bool noexclusion = false)
+        {
+            var ret = new AllenWATLogic();
+
+            var dcdname = dcdname_.Replace("_dp", "_rp").Replace("_BurnInTest", "");
+            var rp = Convert.ToInt32(dcdname.Split(new string[] { "_rp" }, StringSplitOptions.RemoveEmptyEntries)[1]);
+
+            //Container Info
+            var containerinfo = ContainerInfo.GetInfo(containername);
+            if (string.IsNullOrEmpty(containerinfo.containername))
+            {
+                //System.Windows.MessageBox.Show("Fail to get container info.....");
+                ret.AppErrorMsg = "Fail to get container info.....";
+                return ret;
+            }
+
+            //BITemp
+            var bitemp = WATBITemp.GetBITemp(containerinfo.ProductName, rp.ToString());
+
+            //SPEC
+            var allspec = SpecBinPassFail.GetAllSpec();
+            var dutminitem = SpecBinPassFail.GetMinDUT(containerinfo.ProductName, dcdname, allspec);
+            if (dutminitem.Count == 0)
+            {
+                //System.Windows.MessageBox.Show("Fail to get min DUT count.....");
+                ret.AppErrorMsg = "Fail to get min DUT count.....";
+                return ret;
+            }
+
+            var shippable = WaferShippable.WFShippable(containerinfo.wafer);
+
+            //PROBE COUNT
+            var probecount = ProbeDataQty.GetCount(containerinfo.containername);
+
+            //WAT PROB
+            var watprobeval = WATProbeTestData.GetData(containerinfo.containername, rp);
+            if (watprobeval.Count == 0)
+            {
+                //System.Windows.MessageBox.Show("Fail to get wat prob data.....");
+                ret.AppErrorMsg = "Fail to get wat prob data.....";
+                return ret;
+            }
+            var readcount = WATProbeTestData.GetReadCount(watprobeval, rp.ToString());
+
+            //sample XY
+            var samplexy = SampleCoordinate.GetCoordinate(containerinfo.containername, watprobeval);
+            var unitdict = SampleCoordinate.GetNonExclusionUnitDict(samplexy, noexclusion);
+            ret.ExclusionInfo = SampleCoordinate.GetExclusionComment(samplexy);
+
+
+            //filter bin
+            var filterbindict = WATACFilterBin.GetFilterBin(containerinfo.ProductName);
+
+            //WAT PROB FILTER
+            var watprobevalfiltered = WATProbeTestDataFiltered.GetFilteredData(watprobeval, rp.ToString(), unitdict, filterbindict);
+            if (watprobevalfiltered.Count == 0)
+            {
+                //System.Windows.MessageBox.Show("Fail to get wat prob filtered data.....");
+                ret.AppErrorMsg = "Fail to get wat prob filtered data.....";
+                return ret;
+            }
+
+            //FAIL MODE
+            var spec4fmode = SpecBinPassFail.GetParam4FailMode(containerinfo.ProductName, rp.ToString(), allspec);
+            var failmodes = WATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode, bitemp);
+
+            //Coupon Stat Data
+            var binpndict = SpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
+            var couponstatdata = WATCouponStats.GetCouponData(watprobevalfiltered, binpndict);
+            //if (couponstatdata.Count == 0)
+            //{
+            //    //System.Windows.MessageBox.Show("Fail to get wat coupon data.....");
+            //    ret.AppErrorMsg = "FFail to get wat coupon stat data.....";
+            //    return ret;
+            //}
+
+            //CPK
+            var cpkspec = SpecBinPassFail.GetCPKSpec(containerinfo.ProductName, dcdname, allspec);
+            var cpktab = WATCPK.GetCPK(rp.ToString(), couponstatdata, watprobevalfiltered, cpkspec);
+
+            //TTF
+            var fitspec = SpecBinPassFail.GetFitSpec(containerinfo.ProductName, dcdname, allspec);
+            var ttfdata = WATTTF.GetTTFData(containerinfo.ProductName, rp, fitspec, watprobevalfiltered, failmodes);
+
+            //TTFSorted
+            var ttfdatasorted = WATTTFSorted.GetSortedTTFData(ttfdata);
+
+            //TTFTerms
+            var ttftermdata = WATTTFTerms.GetTTRTermsData(ttfdatasorted);
+
+            //TTFfit
+            var ttffit = WATTTFfit.GetFitData(ttftermdata);
+
+            //TTFuse
+            var ttpspec = SpecBinPassFail.GetFitTTPSpec(containerinfo.ProductName, allspec);
+            var ttfuse = WATTTFuse.GetTTFuseData(ttpspec, ttffit);
+
+            //TTFUnit
+            var ttfunitspec = SpecBinPassFail.GetTTFUnitSpec(containerinfo.ProductName, allspec);
+            var ttfunitdata = WATTTFUnit.GetUnitData(watprobevalfiltered, rp.ToString(), ttfuse, ttfdatasorted, ttfunitspec);
+
+            var ttfmu = WATTTFmu.GetmuData(fitspec, rp.ToString(), watprobevalfiltered, ttfuse, ttffit);
+            //Pass Fail Unit
+            var passfailunitspec = SpecBinPassFail.GetPassFailUnitSpec(containerinfo.ProductName, dcdname, allspec);
+            var passfailunitdata = WATPassFailUnit.GetPFUnitData(rp.ToString(), dcdname, passfailunitspec
+                , watprobevalfiltered, couponstatdata, cpktab, ttfmu, ttfunitdata);
+
+            //if (passfailunitdata.Count == 0)
+            //{
+            //    System.Windows.MessageBox.Show("Fail to get wat passfailunit data .....");
+            //    ret.ProgramMsg = "Fail to get wat passfailunit data .....";
+            //    return ret;
+            //}
+
+            var failcount = WATPassFailUnit.GetFailCount(passfailunitdata);
+            var failunit = WATPassFailUnit.GetFailUnit(passfailunitdata);
+
+            //Pass Fail Coupon
+            var watpassfailcoupondata = WATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
+            var findisposedata = PassFailCoupon4Comparing.GetData(containername, dcdname, watpassfailcoupondata);
+            if (findisposedata.Count > 0)
+            { PassFailCoupon4Comparing.StoreComparingData(containername, dcdname, findisposedata); }
+
+            return ret;
+        }
+
+        public static void StoreOperateInstruction(string containertype, string containername, string productname, string dcdname, string instruct, string failunit)
+        {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@containertype", containertype);
+            dict.Add("@containername", containername);
+            dict.Add("@productname", productname);
+            dict.Add("@ParameterSetName",dcdname);
+            dict.Add("@OperatorInstruction", instruct);
+            dict.Add("@FailingUnits", failunit);
+
+            var sql = @"insert into [WAT].[dbo].[OpInstruct4Comparing2](containertype,containername,productname,ParameterSetName,OperatorInstruction,FailingUnits)  
+                            values(@containertype,@containername,@productname,@ParameterSetName,@OperatorInstruction,@FailingUnits)";
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
         public bool TestPass { set; get; }
         public bool NeedRetest { set; get; }
         public bool ScrapIt { set; get; }
@@ -510,5 +672,46 @@ namespace WAT.Models
         public List<SampleCoordinate> ExclusionInfo { set; get; }
         public Dictionary<string, string> ValueCollect { set; get; }
         public List<object> DataTables { set; get; }
+
+
+        public string SummaryRes
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(AppErrorMsg))
+                {
+                    return "APPError:" + AppErrorMsg;
+                }
+                else
+                {
+                    if (ScrapIt)
+                    {
+                        return "SCRAP WAFER:" + ResultMsg;
+                    }
+                    else
+                    {
+                        if (TestPass)
+                        {
+                            return ResultMsg;
+                        }
+                        else
+                        {
+                            if (NeedRetest)
+                            {
+                                return ResultMsg;
+                            }
+                            else
+                            {
+                                return ResultMsg;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
     }
 }

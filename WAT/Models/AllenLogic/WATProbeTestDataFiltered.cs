@@ -368,7 +368,7 @@ namespace WAT.Models
                 var dprobeval = Convert.ToDouble(data.ProbeValue);
                 couponminusprobe = (TestValue - dprobeval).ToString();
                 if (dprobeval != 0)
-                { couponminusprobePCT = ((TestValue - dprobeval)/ dprobeval).ToString(); }
+                { couponminusprobePCT = ((TestValue - dprobeval)/ dprobeval*100.0).ToString(); }
                 else { couponminusprobePCT = ""; }
             }
             else

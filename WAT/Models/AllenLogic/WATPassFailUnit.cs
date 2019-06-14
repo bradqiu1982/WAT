@@ -223,7 +223,11 @@ namespace WAT.Models
             }//end foreach
             if (unitdict.Count > 0)
             {
-                return string.Join(",", unitdict.Keys.ToList());
+                var unitlist = unitdict.Keys.ToList();
+                unitlist.Sort(delegate(string obj1,string obj2) {
+                    return UT.O2I(obj1).CompareTo(UT.O2I(obj2));
+                });
+                return "Fails: " + string.Join(",",unitlist);
             }
             else
             { return ""; }

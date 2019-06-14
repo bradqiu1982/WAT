@@ -237,3 +237,26 @@ CREATE TABLE WUX_WATShareData(
     [BinName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 );
 
+
+
+create Table PassFailCoupon4Comparing(
+	[ContainerName]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[DCDName]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[ProductName]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[ParameterName]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[UpperSpecLimit]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[LowerSpecLimit]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[TargetValue]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[ActualValue]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[PassFail]   NVARCHAR (256) DEFAULT ('') NOT NULL
+);
+
+
+create Table OpInstruct4Comparing(
+	[containertype]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[containername]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[productname]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[ParameterSetName]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[OperatorInstruction]   NVARCHAR (256) DEFAULT ('') NOT NULL,
+	[FailingUnits]   NVARCHAR (256) DEFAULT ('') NOT NULL
+);

@@ -143,5 +143,13 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+
+        public ActionResult VerifyAllenLogic()
+        {
+            AllenLogicVerify.Verify();
+            return View("HeartBeat");
+        }
+
+
     }
 }

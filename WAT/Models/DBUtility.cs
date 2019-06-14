@@ -5,7 +5,6 @@ using System.Web;
 using System.Data.SqlClient;
 using System.IO;
 using System.Data;
-using Oracle.DataAccess.Client;
 using System.Web.Caching;
 using System.Web.Mvc;
 using System.Text;
@@ -1842,70 +1841,6 @@ namespace WAT.Models
                 ret.Clear();
                 return ret;
             }
-        }
-
-        public static List<List<object>> ExeATESqlWithRes(string sql)
-        {
-
-            var ret = new List<List<object>>();
-
-            OracleConnection Oracleconn = null;
-            try
-            {
-                var ConnectionStr = "User Id=extviewer;Password=extviewer;Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=shg-oracle)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ateshg)));";
-
-                Oracleconn = new OracleConnection(ConnectionStr);
-                try
-                {
-                    if (Oracleconn.State == ConnectionState.Closed)
-                    {
-                        Oracleconn.Open();
-                    }
-                    else if (Oracleconn.State == ConnectionState.Broken)
-                    {
-                        Oracleconn.Close();
-                        Oracleconn.Open();
-                    }
-                }
-                catch (Exception e)
-                {
-                    //System.Windows.MessageBox.Show(e.Message);
-                }
-
-                OracleCommand cmd = new OracleCommand(sql, Oracleconn);
-                cmd.CommandType = CommandType.Text;
-                OracleDataReader dr = cmd.ExecuteReader();
-
-                while (dr.Read())
-                {
-                    var line = new List<object>();
-                    for (int idx = 0; idx < dr.FieldCount; idx++)
-                    {
-                        line.Add(dr[idx]);
-                    }
-                    ret.Add(line);
-                }
-
-                Oracleconn.Close();
-            }
-            catch (Exception ex)
-            {
-                logthdinfo("execute exception: " + sql + "\r\n" + ex.Message + "\r\n");
-
-                //System.Windows.MessageBox.Show(ex.Message);
-
-                try
-                {
-                    if (Oracleconn != null)
-                    {
-                        Oracleconn.Close();
-                    }
-                }
-                catch (Exception ex1) { }
-
-            }
-            return ret;
-
         }
 
     }

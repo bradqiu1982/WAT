@@ -5,7 +5,6 @@ using System.Web;
 using System.Data.SqlClient;
 using System.IO;
 using System.Data;
-using Oracle.DataAccess.Client;
 using System.Web.Caching;
 using System.Web.Mvc;
 using System.Text;
