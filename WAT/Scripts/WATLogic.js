@@ -5,6 +5,7 @@
         var extable = null;
         var coupontable = null;
         var fmodetable = null;
+        var funittable = null;
 
         $.post('/WATLogic/GetAllenContainerList', {
         }, function (output) {
@@ -244,6 +245,61 @@
                     });
 
                     fmodetable = $('#fmodetable').DataTable({
+                        'iDisplayLength': 20,
+                        'aLengthMenu': [[20, 50, 100, -1],
+                        [20, 50, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+
+
+                    if (funittable) {
+                        funittable.destroy();
+                        funittable = null;
+                    }
+                    $("#funithead").empty();
+                    $("#funitcontent").empty();
+
+                    $("#funithead").append(
+                            '<tr>' +
+                            '<th>Eval_PN</th>' +
+                            '<th>Bin_PN</th>' +
+                            '<th>UnitNum</th>' +
+                            '<th>ParamName</th>' +
+                            '<th>Value</th>' +
+                            '<th>LowLimit</th>' +
+                            '<th>HighLimit</th>' +
+                            '<th>FailType</th>' +
+                            '<th>RP</th>' +
+                            '<th>X</th>' +
+                            '<th>Y</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.datatables[2], function (i, val) {
+                        $("#funitcontent").append(
+                            '<tr>' +
+                            '<td>' + val.Eval_PN + '</td>' +
+                            '<td>' + val.Bin_PN + '</td>' +
+                            '<td>' + val.UnitNum + '</td>' +
+                            '<td>' + val.ParamName + '</td>' +
+                            '<td>' + val.TVAL + '</td>' +
+                            '<td>' + val.LowLimit + '</td>' +
+                            '<td>' + val.UpperLimit + '</td>' +
+                            '<td>' + val.FailType + '</td>' +
+                            '<td>' + val.RP + '</td>' +
+                            '<td>' + val.X + '</td>' +
+                            '<td>' + val.Y + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    funittable = $('#funittable').DataTable({
                         'iDisplayLength': 20,
                         'aLengthMenu': [[20, 50, 100, -1],
                         [20, 50, 100, "All"]],

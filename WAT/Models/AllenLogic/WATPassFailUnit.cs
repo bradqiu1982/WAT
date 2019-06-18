@@ -233,6 +233,19 @@ namespace WAT.Models
             { return ""; }
         }
 
+        public static List<WATPassFailUnit> GetFailUnitWithFailure(List<WATPassFailUnit> srcdata)
+        {
+            var ret = new List<WATPassFailUnit>();
+            foreach (var item in srcdata)
+            {
+                if (!string.IsNullOrEmpty(item.FailType))
+                {
+                    ret.Add(item);
+                }//end if
+            }//end foreach
+            return ret;
+        }
+
         private WATPassFailUnit(WATProbeTestDataFiltered data, SpecBinPassFail spec,string testname,string val)
         {
             ParamName = spec.ParamName;

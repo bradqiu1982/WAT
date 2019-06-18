@@ -33,7 +33,7 @@ namespace WAT.Models
                 foreach (var rp in rplist)
                 {
                     //AllenWATLogic.ForVerify(wafer, dcdname + rp);
-                    AllenWATLogic.PassFail(wafer, dcdname + rp,true);
+                    AllenWATLogic.PassFail(wafer, dcdname + rp);
                 }
 
             }
