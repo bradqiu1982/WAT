@@ -231,7 +231,7 @@ namespace WXLogic
                 {
                     tempvm.X = samplexydict[xykey].X;
                     tempvm.Y = samplexydict[xykey].Y;
-                    tempvm.UnitNum = tempvm.X + "-" + tempvm.Y;
+                    tempvm.UnitNum = (UT.O2I(tempvm.Containername.Substring(12,2))*10000+UT.O2I(tempvm.ChannelInfo)).ToString();
                     uniqdict.Add(tempvm.Containername +"-"+tempvm.ChannelInfo + "-" + tempvm.TestTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"), true);
                     ret.Add(tempvm);
                 }

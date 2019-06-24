@@ -28,26 +28,26 @@ namespace WXLogic
             { return string.Empty; }
 
             var containername = modes[0].ContainerName;
-            var samplexy = WATSampleXY.GetSampleXYByCouponGroup(containername);
-            var samplexydict = new Dictionary<string, WATSampleXY>();
-            foreach (var sitem in samplexy)
-            {
-                var key = sitem.X + "-" + sitem.Y;
-                if (!samplexydict.ContainsKey(key))
-                { samplexydict.Add(key, sitem); }
-            }
+            //var samplexy = WATSampleXY.GetSampleXYByCouponGroup(containername);
+            //var samplexydict = new Dictionary<string, WATSampleXY>();
+            //foreach (var sitem in samplexy)
+            //{
+            //    var key = sitem.X + "-" + sitem.Y;
+            //    if (!samplexydict.ContainsKey(key))
+            //    { samplexydict.Add(key, sitem); }
+            //}
 
             var ret = string.Empty;
             foreach (var fu in failunit)
             {
-                if (samplexydict.ContainsKey(fu.UnitNum))
-                {
-                    ret += samplexydict[fu.UnitNum].CouponID + "-" + samplexydict[fu.UnitNum].ChannelInfo + ":" + fu.Failure + ",";
-                }
-                else
-                {
+                //if (samplexydict.ContainsKey(fu.UnitNum))
+                //{
+                //    ret += samplexydict[fu.UnitNum].CouponID + "-" + samplexydict[fu.UnitNum].ChannelInfo + ":" + fu.Failure + ",";
+                //}
+                //else
+                //{
                     ret += fu.ContainerName+":"+fu.UnitNum + ":" + fu.Failure + ",";
-                }
+                //}
             }
 
             return ret;
