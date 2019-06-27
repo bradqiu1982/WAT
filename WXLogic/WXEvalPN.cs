@@ -238,6 +238,7 @@ namespace WXLogic
                 var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
                 foreach (var line in dbret)
                 { return UT.O2S(line[0]); }
+                return "1";
             }
             else
             {
@@ -245,9 +246,8 @@ namespace WXLogic
                 var dbret = DBUtility.ExeShermanSqlWithRes(sql, dict);
                 foreach (var line in dbret)
                 { return UT.O2S(line[0]); }
+                return "1";
             }
-
-            return string.Empty;
         }
 
         public string WaferNum { set; get; }

@@ -128,7 +128,7 @@ namespace WAT.Models
                     new System.Threading.ManualResetEvent(false).WaitOne(300);
                 }
 
-                WebLog.Log(wafer, "DIESORT", " fail to prepare WAT data by wafer " + wafer);
+                WebLog.Log(wafer, "DIESORT", " fail to prepare WAT probe test data by wafer " + wafer);
                 return false;
             }
 
@@ -188,6 +188,16 @@ namespace WAT.Models
                     }
                 }
 
+
+
+                var bin57dict = new Dictionary<string, string>();
+                var bin57countkey = "DIESORTSAMPLEBIN57X" + waferarray;
+                if (syscfgdict.ContainsKey(bin57countkey))
+                {
+                    var samplecount = UT.O2I(syscfgdict[bin57countkey]);
+                    bin57dict = GetBin57Dict(root, samplecount);
+                }
+
                 var passedbinxydict = GetPassedBinXYDict(root);
                 if (passedbinxydict.Count == 0)
                 {
@@ -201,7 +211,7 @@ namespace WAT.Models
                     return false;
                 }
 
-                var selectxydict = GetSelectedXYDict(passedbinxydict, SampleCount);
+                var selectxydict = GetSelectedXYDict(passedbinxydict, SampleCount,bin57dict);
                 if (selectxydict.Count == 0)
                 {
                     if (!WebLog.CheckEmailRecord(wafer, "EM-SELECT"))
@@ -221,6 +231,13 @@ namespace WAT.Models
                     var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
                     { nd.SetAttribute("diesort", "selected"); }
+                }
+
+                foreach (var kv in bin57dict)
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                    { nd.SetAttribute("diesort", "selected2"); }
                 }
 
                 var layoutnodes = root.SelectNodes("//Layout[@LayoutId]");
@@ -246,6 +263,18 @@ namespace WAT.Models
                 doc.Load(waferfile);
                 doc = StripNamespace(doc);
                 root = doc.DocumentElement;
+
+                var allbincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                foreach (XmlElement nd in allbincodelist)
+                {
+                    var binnum = UT.O2I(nd.InnerText);
+                    if ((binnum >= 30 && binnum <= 39)
+                        || (binnum >= 50 && binnum <= 59))
+                    { }
+                    else
+                    { nd.InnerText = "99"; }
+                }                
+
                 foreach (var kv in selectxydict)
                 {
                     var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
@@ -253,6 +282,23 @@ namespace WAT.Models
                     {
                         nd.InnerText = "1";
                     }
+                }
+
+                foreach (var kv in bin57dict)
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                    {
+                        nd.InnerText = "2";
+                    }
+                }
+
+                var allgoodnode = root.SelectNodes("//BinDefinition[@BinDescription='GOOD']");
+                var gidx = 1;
+                foreach (XmlElement gn in allgoodnode)
+                {
+                    gn.SetAttribute("BinDescription", "GOOD" + gidx);
+                    gidx += 1;
                 }
 
                 //layoutnodes = root.SelectNodes("//Layout[@LayoutId]");
@@ -300,9 +346,15 @@ namespace WAT.Models
 
                 var mapfile = Path.GetFileName(waferfile);
                 //write sample X,Y database
-                StoreWaferSampleData(mapfile, wafer, selectxydict, arraySTR, bompn, fpn);
+                StoreWaferSampleData(mapfile, wafer, selectxydict,bin57dict, arraySTR, bompn, fpn);
+                
                 //write wafer related data
-                StoreWaferPassBinData(mapfile, wafer, selectxydict, passedbinxydict, arraySTR, bompn, fpn, bomdesc, product);
+                var allselectdict = new Dictionary<string, string>();
+                foreach (var s in selectxydict)
+                { allselectdict.Add(s.Key, s.Value); }
+                foreach (var s in bin57dict)
+                { allselectdict.Add(s.Key, s.Value); }
+                StoreWaferPassBinData(mapfile, wafer, allselectdict, passedbinxydict, arraySTR, bompn, fpn, bomdesc, product);
 
                 FileLoadedData.UpdateLoadedFile(wafer, "WAFER");
 
@@ -322,6 +374,7 @@ namespace WAT.Models
                 var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
                 foreach (var line in dbret)
                 { return O2S(line[0]); }
+                return "1";
             }
             else
             {
@@ -329,9 +382,9 @@ namespace WAT.Models
                 var dbret = DBUtility.ExeShermanSqlWithRes(sql, dict);
                 foreach (var line in dbret)
                 { return O2S(line[0]); }
+                return "1";
             }
 
-            return string.Empty;
         }
 
 
@@ -442,18 +495,18 @@ namespace WAT.Models
                 catch (Exception ex) { }
             }
 
-            var bin1nodes = root.SelectNodes("//BinDefinition[@BinCode='1']");
-            if (bin1nodes.Count > 0)
-            {
-                if (!WebLog.CheckEmailRecord(wafer, "EM-BIN1"))
-                {
-                    EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + wafer + " FATAL ERROR", towho, "Detail: Wafer contains BIN 1 ");
-                    new System.Threading.ManualResetEvent(false).WaitOne(300);
-                }
+            //var bin1nodes = root.SelectNodes("//BinDefinition[@BinCode='1']");
+            //if (bin1nodes.Count > 0)
+            //{
+            //    if (!WebLog.CheckEmailRecord(wafer, "EM-BIN1"))
+            //    {
+            //        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + wafer + " FATAL ERROR", towho, "Detail: Wafer contains BIN 1 ");
+            //        new System.Threading.ManualResetEvent(false).WaitOne(300);
+            //    }
 
-                WebLog.Log(wafer, "DIESORT", "fail to check source file,bin 1 exist");
-                return false;
-            }
+            //    WebLog.Log(wafer, "DIESORT", "fail to check source file,bin 1 exist");
+            //    return false;
+            //}
 
             return true;
         }
@@ -480,7 +533,7 @@ namespace WAT.Models
             return true;
         }
 
-        private static void StoreWaferSampleData(string mapfile, string wafer, Dictionary<string, string> selectxy, string array,string mpn,string fpn)
+        private static void StoreWaferSampleData(string mapfile, string wafer, Dictionary<string, string> selectxy, Dictionary<string, string> bin57dict, string array,string mpn,string fpn)
         {
             var sql = "delete from WaferSampleData where MAPFILE = '<MAPFILE>'";
             sql = sql.Replace("<MAPFILE>", mapfile);
@@ -502,6 +555,25 @@ namespace WAT.Models
                 dict.Add("@FPN",fpn);
                 dict.Add("@PArray", array);
                 dict.Add("@MAPFILE",mapfile);
+                dict.Add("@UpdateTime", updatetime);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+            }
+
+            foreach (var kv in bin57dict)
+            {
+                var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var x = xystr[0];
+                var y = xystr[1];
+                sql = "insert into WaferSampleData(WAFER,X,Y,BIN,MPN,FPN,PArray,MAPFILE,UpdateTime) values(@WAFER,@X,@Y,@BIN,@MPN,@FPN,@PArray,@MAPFILE,@UpdateTime)";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@WAFER", wafer);
+                dict.Add("@X", x);
+                dict.Add("@Y", y);
+                dict.Add("@BIN", "57X");
+                dict.Add("@MPN", mpn);
+                dict.Add("@FPN", fpn);
+                dict.Add("@PArray", array);
+                dict.Add("@MAPFILE", mapfile);
                 dict.Add("@UpdateTime", updatetime);
                 DBUtility.ExeLocalSqlNoRes(sql, dict);
             }
@@ -598,6 +670,51 @@ namespace WAT.Models
             }
         }
 
+        private static Dictionary<string, string> GetBin57Dict(XmlElement root, int samplecount)
+        {
+            var ret = new Dictionary<string, string>();
+            var goodbin57 = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode='57' and @Pick='true']");
+            if (goodbin57.Count > 0)
+            {
+                var all57list = new List<string>();
+                var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                foreach (XmlElement nd in bincodelist)
+                {
+                    if (string.Compare(nd.InnerText, "57", true) == 0)
+                    {
+                        all57list.Add(nd.GetAttribute("X") + ":::" + nd.GetAttribute("Y"));
+                    }
+                }
+
+                if (samplecount < all57list.Count)
+                {
+                    var sectionlist = new List<int>();
+                    sectionlist.Add(0);
+                    sectionlist.Add(all57list.Count / 4);
+                    sectionlist.Add(all57list.Count / 2);
+                    sectionlist.Add(all57list.Count * 3 / 4);
+                    var maxsection = all57list.Count / 4;
+                    var rad = new Random(DateTime.Now.Millisecond);
+
+                    while (ret.Count < samplecount)
+                    {
+                        foreach (var s in sectionlist)
+                        {
+                            var sidx = s + rad.Next(maxsection);
+                            if (sidx < all57list.Count && !ret.ContainsKey(all57list[sidx]))
+                            {
+                                ret.Add(all57list[sidx], "57");
+                                if (ret.Count == samplecount)
+                                { return ret; }
+                            }
+                        }//end foreach
+                    }//end while
+                }//end if
+            }
+            return ret;
+        }
+
+
         private static Dictionary<string,string> GetPassedBinXYDict(XmlElement root,string defbin="")
         {
             var passbinnodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode and @Pick='true']");
@@ -650,7 +767,7 @@ namespace WAT.Models
         //    return true;
         //}
 
-        private static Dictionary<string, string> GetSelectedXYDict(Dictionary<string, string> passedbinxydict,int selectcount)
+        private static Dictionary<string, string> GetSelectedXYDict(Dictionary<string, string> passedbinxydict,int selectcount,Dictionary<string,string> bin57dict)
         {
             var ret = new Dictionary<string, string>();
             var xdict = new Dictionary<int,bool>();
@@ -710,7 +827,7 @@ namespace WAT.Models
                         var yval = ystart + yrad;
                         var k = xval.ToString() + ":::" + yval.ToString();
 
-                        if (passedbinxydict.ContainsKey(k) && !ret.ContainsKey(k))
+                        if (passedbinxydict.ContainsKey(k) && !ret.ContainsKey(k) && !bin57dict.ContainsKey(k))
                         {
                              ret.Add(k, passedbinxydict[k]);
                             if (ret.Count == selectcount)
@@ -883,7 +1000,13 @@ namespace WAT.Models
                 {
                     var k = nd.GetAttribute("X") + ":::" + nd.GetAttribute("Y");
                     if (valdict.ContainsKey(k))
-                    { valdict[k] = 10; }
+                    {
+                        var sval = nd.GetAttribute("diesort");
+                        if (string.Compare(sval, "selected", true) != 0)
+                        { valdict[k] = 1; }
+                        else
+                        { valdict[k] = 10; }
+                    }
                 }
                 catch (Exception ex) { }
             }

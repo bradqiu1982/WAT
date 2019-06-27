@@ -171,6 +171,7 @@
             var pwd = $('#cfmpwd').val();
             if (pwd != '10086')
             { return false; }
+            $('#cfmpwd').val('');
             reconstructdata();
         });
         
