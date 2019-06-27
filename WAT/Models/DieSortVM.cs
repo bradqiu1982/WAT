@@ -264,16 +264,20 @@ namespace WAT.Models
                 doc = StripNamespace(doc);
                 root = doc.DocumentElement;
 
+                var bin99count = 0;
                 var allbincodelist = root.SelectNodes("//BinCode[@X and @Y]");
                 foreach (XmlElement nd in allbincodelist)
                 {
                     var binnum = UT.O2I(nd.InnerText);
-                    if ((binnum >= 30 && binnum <= 39)
-                        || (binnum >= 50 && binnum <= 59))
+                    if ((binnum >= 30 && binnum <= 39))
                     { }
                     else
-                    { nd.InnerText = "99"; }
-                }                
+                    {
+                        nd.InnerText = "99";
+                        bin99count += 1;
+                    }
+                }
+                bin99count = bin99count - selectxydict.Count - bin57dict.Count;
 
                 foreach (var kv in selectxydict)
                 {
@@ -293,12 +297,39 @@ namespace WAT.Models
                     }
                 }
 
-                var allgoodnode = root.SelectNodes("//BinDefinition[@BinDescription='GOOD']");
-                var gidx = 1;
-                foreach (XmlElement gn in allgoodnode)
+                var defpnodelist = root.SelectNodes("//BinDefinitions");
+                var defpnode = defpnodelist.Item(0);
+                var alldefnodes = root.SelectNodes("//BinDefinition[@BinCode]");
+                var clonenode = alldefnodes.Item(0).Clone();
+                foreach (XmlElement dn in alldefnodes)
                 {
-                    gn.SetAttribute("BinDescription", "GOOD" + gidx);
-                    gidx += 1;
+                    var binnum = UT.O2I(dn.GetAttribute("BinCode"));
+                    if (binnum < 30 || binnum > 39)
+                    { defpnode.RemoveChild(dn); }
+                }
+
+                XmlElement bin99node = doc.CreateElement("BinDefinition");
+                bin99node.SetAttribute("BinCode", "99");
+                bin99node.SetAttribute("BinCount", bin99count.ToString());
+                bin99node.SetAttribute("BinDescription", "Bin_99");
+                bin99node.SetAttribute("Pick", "false");
+                defpnode.AppendChild(bin99node);
+
+                XmlElement binode = doc.CreateElement("BinDefinition");
+                binode.SetAttribute("BinCode", "1");
+                binode.SetAttribute("BinCount", selectxydict.Count.ToString());
+                binode.SetAttribute("BinDescription", "GOOD1");
+                binode.SetAttribute("Pick", "true");
+                defpnode.AppendChild(binode);
+
+                if (bin57dict.Count > 0)
+                {
+                    XmlElement bin57node = doc.CreateElement("BinDefinition");
+                    bin57node.SetAttribute("BinCode", "2");
+                    bin57node.SetAttribute("BinCount", bin57dict.Count.ToString());
+                    bin57node.SetAttribute("BinDescription", "GOOD2");
+                    bin57node.SetAttribute("Pick", "true");
+                    defpnode.AppendChild(bin57node);
                 }
 
                 //layoutnodes = root.SelectNodes("//Layout[@LayoutId]");
