@@ -543,17 +543,17 @@ namespace WAT.Models
         }
 
 
-        private static bool PrepareProbeData(string wafernum)
+        public static bool PrepareProbeData(string wafernum)
         {
             return WXProbeData.PrepareProbeData(wafernum);
         }
 
-        private static bool PrepareEvalPN(string wafernum)
+        public static bool PrepareEvalPN(string wafernum)
         {
             return WXEvalPN.PrepareEvalPN(wafernum);
         }
 
-        private static bool PrepareData4WAT(string wafernum)
+        public static bool PrepareData4WAT(string wafernum)
         {
             if (!PrepareProbeData(wafernum))
             { return false; }

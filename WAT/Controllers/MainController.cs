@@ -150,6 +150,11 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult PrepareEvalPN()
+        {
+            DieSortVM.PrepareEvalPN("184517-40");
+            return View("HeartBeat");
+        }
 
     }
 }
