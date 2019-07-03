@@ -29,8 +29,8 @@ Global
 		{FDB7E3C4-8D06-496E-873B-3E6D390CEB63}.Debug|x86.Build.0 = Debug|x86
 		{FDB7E3C4-8D06-496E-873B-3E6D390CEB63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDB7E3C4-8D06-496E-873B-3E6D390CEB63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FDB7E3C4-8D06-496E-873B-3E6D390CEB63}.Release|x86.ActiveCfg = Release|Any CPU
-		{FDB7E3C4-8D06-496E-873B-3E6D390CEB63}.Release|x86.Build.0 = Release|Any CPU
+		{FDB7E3C4-8D06-496E-873B-3E6D390CEB63}.Release|x86.ActiveCfg = Release|x86
+		{FDB7E3C4-8D06-496E-873B-3E6D390CEB63}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

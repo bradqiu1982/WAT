@@ -45,5 +45,13 @@ namespace WAT
             catch (Exception ex)
             { }
         }
+
+        protected void Application_Error(object sender, EventArgs e)
+        {
+            using (StreamWriter sw = new StreamWriter("d:\\log\\wat_error_log.txt", true, System.Text.Encoding.UTF8))
+            {
+                sw.Write(HttpContext.Current.Error);
+            }
+        }
     }
 }
