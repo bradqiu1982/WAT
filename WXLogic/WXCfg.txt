@@ -13,3 +13,5 @@ SHARETOALLEN:::FALSE
 OGPCONNSTR:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;
 OGPSQLSTR:::select CouponID,ChannelInfo,X,Y from [EngrData].[dbo].[WATSampleXY] where CouponID like '<coupongroup>%'
 
+DIESORTFOLDER:::\\wux-engsys01.china.ads.finisar.com\DieSorting
+DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT

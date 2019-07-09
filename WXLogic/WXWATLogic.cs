@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.ServiceModel;
@@ -203,7 +204,53 @@ namespace WXLogic
             logicresult.DataTables.Add(watpassfailcoupondata);
             logicresult.DataTables.Add(failmodes);
 
+            if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
+                && logicresult.TestPass
+                && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01")))
+            {
+                MoveOriginalMapFile(containerinfo.wafer, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
+            }
             return logicresult;
+        }
+
+
+        private static void MoveOriginalMapFile(string wafer, string orgfolder, string PCT100folder)
+        {
+            try
+            {
+                var filedict = new Dictionary<string, string>();
+                var nofolderfiles = Directory.GetFiles(orgfolder);
+                foreach (var f in nofolderfiles)
+                {
+                    var uf = f.ToUpper();
+                    if (!filedict.ContainsKey(uf))
+                    { filedict.Add(uf, f); }
+                }
+
+                var folders = Directory.GetDirectories(orgfolder);
+                foreach (var fd in folders)
+                {
+                    var fs = Directory.GetFiles(fd);
+                    foreach (var f in fs)
+                    {
+                        var uf = f.ToUpper();
+                        if (!filedict.ContainsKey(uf))
+                        { filedict.Add(uf, f); }
+                    }
+                }
+
+                foreach (var kv in filedict)
+                {
+                    if (kv.Key.Contains(wafer.ToUpper()))
+                    {
+                        var desfile = Path.Combine(PCT100folder, Path.GetFileName(kv.Value));
+                        File.Copy(kv.Value, desfile, true);
+                        return;
+                    }
+                }
+
+            }
+            catch (Exception ex) { }
         }
 
         private static WXWATLogic RetestLogic(WXContainerInfo container, string DCDName, int rp, int shippable, int probeCount
