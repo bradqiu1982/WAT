@@ -177,6 +177,152 @@
         
     }
 
+    var wafer4planning = function ()
+    {
+        var wafertable = null;
+        var wfdatatable = null;
+
+        $.post('/DieSort/LoadSortedWafers', {
+        }, function (output) {
+            $('#wafernum').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.wafers;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#wafernum').attr('readonly', false);
+        });
+
+
+        var waferdatafun = function ()
+        {
+            var wafernum = $('#wafernum').val();
+            if (wafernum == '') {
+                alert('Please input wafer number!');
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DieSort/LoadWaferData4Plan', {
+                wafernum: wafernum
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (wafertable) {
+                    wafertable.destroy();
+                    wafertable = null;
+                }
+                $("#waferhead").empty();
+                $("#wafercontent").empty();
+
+                $("#waferhead").append(
+                        '<tr>' +
+                            '<th>Wafer</th>' +
+                            '<th>BIN</th>' +
+                            '<th>Count</th>' +
+                            '<th>Test</th>' +
+                            //'<th>Finisar PN</th>' +
+                            '<th>Array</th>' +
+                            '<th>Desc</th>' +
+                         '</tr>'
+                    );
+
+                $.each(output.sampledata, function (i, val) {
+                    $("#wafercontent").append(
+                        '<tr>' +
+                            '<td>' + val.Wafer + '</td>' +
+                            '<td>' + val.BIN + '</td>' +
+                            '<td>' + val.Count + '</td>' +
+                            '<td>' + val.Test + '</td>' +
+                            //'<td>' + val.FPN + '</td>' +
+                            '<td>' + val.Array + '</td>' +
+                            '<td>' + val.Desc + '</td>' +
+                        '</tr>'
+                        );
+                });
+
+                wafertable = $('#wafertable').DataTable({
+                    'iDisplayLength': 20,
+                    'aLengthMenu': [[20, 50, 100, -1],
+                    [20, 50, 100, "All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
+
+
+                if (wfdatatable) {
+                    wfdatatable.destroy();
+                    wfdatatable = null;
+                }
+                $("#wfdatahead").empty();
+                $("#wfdatacontent").empty();
+
+                $("#wfdatahead").append(
+                        '<tr>' +
+                            '<th>Wafer</th>' +
+                            '<th>BIN</th>' +
+                            '<th>Count</th>' +
+                            //'<th>Finisar PN</th>' +
+                            '<th>Array</th>' +
+                            '<th>Desc</th>' +
+                         '</tr>'
+                    );
+
+                $.each(output.waferorgdata, function (i, val) {
+                    $("#wfdatacontent").append(
+                        '<tr>' +
+                            '<td>' + val.Wafer + '</td>' +
+                            '<td>' + val.BIN + '</td>' +
+                            '<td>' + val.Count + '</td>' +
+                            //'<td>' + val.FPN + '</td>' +
+                            '<td>' + val.Array + '</td>' +
+                            '<td>' + val.Desc + '</td>' +
+                        '</tr>'
+                        );
+                });
+
+                wfdatatable = $('#wfdatatable').DataTable({
+                    'iDisplayLength': 20,
+                    'aLengthMenu': [[20, 50, 100, -1],
+                    [20, 50, 100, "All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
+
+            })
+        }
+
+
+        $('body').on('click', '#btn-search', function () {
+            waferdatafun();
+        });
+
+
+    }
 
     var managediesort = function ()
     {
@@ -336,6 +482,9 @@
         },
         MANAGEINIT: function () {
             managediesort();
+        },
+        WAFER4PLAN: function () {
+            wafer4planning();
         }
     }
 }();

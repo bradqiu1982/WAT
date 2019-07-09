@@ -178,6 +178,40 @@ namespace WAT.Controllers
             return View();
         }
 
+        public ActionResult Wafer4Planning()
+        { return View(); }
+
+        public JsonResult LoadSortedWafers()
+        {
+            var waferlist = DieSortVM.SortedWaferNum();
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wafers = waferlist
+            };
+
+            return ret;
+        }
+
+
+
+        public JsonResult LoadWaferData4Plan()
+        {
+            var wafernum = Request.Form["wafernum"];
+            var sampledata = DieSortVM.SampleData4Plan(wafernum);
+            var waferorgdata = DieSortVM.OrgData4Plan(wafernum);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sampledata = sampledata,
+                waferorgdata = waferorgdata
+            };
+
+            return ret;
+        }
+
     }
 
 }

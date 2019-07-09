@@ -1,0 +1,65 @@
+﻿
+@{
+    ViewBag.Title = "Wafer4Planning";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .highcharts-container {
+        height: 920px !important;
+    }
+
+    .v-box {
+        height: 920px !important;
+    }
+
+    th.dt-center, td.dt-center {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/diesort.js"></script>
+<script type="text/javascript">
+        $(function(){
+            DIESORT.WAFER4PLAN();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="form-control">Wafer Number</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="wafernum" name="wafernum" placeholder="Wafer Num" readonly="readonly">
+                    </div>
+                    <div class="col-xs-1 box-search" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="Search">
+                    </div>
+                    <div class="col-xs-2 box-search" style="padding-left:0">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="wafertable" style="margin-top:1%">
+                        <caption class="tb-caption">WAFER SAMPLE DATA</caption>
+                        <thead id="waferhead"></thead>
+                        <tbody id="wafercontent"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="wfdatatable" style="margin-top:1%">
+                        <caption class="tb-caption">WAFER DATA AFTER SAMPLE PICK</caption>
+                        <thead id="wfdatahead"></thead>
+                        <tbody id="wfdatacontent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

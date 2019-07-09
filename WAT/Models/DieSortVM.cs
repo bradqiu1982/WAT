@@ -617,7 +617,7 @@ namespace WAT.Models
             sql = sql.Replace("<MAPFILE>", mapfile);
             DBUtility.ExeLocalSqlNoRes(sql);
 
-            var channel = Convert.ToInt32(array.Replace("1X", ""));
+            //var channel = Convert.ToInt32(array.Replace("1X", ""));
             var passbincountdict = new Dictionary<string, int>();
             foreach (var kv in passxy)
             {
@@ -631,9 +631,9 @@ namespace WAT.Models
             foreach (var kv in selectxy)
             {
                 if (samplecountdict.ContainsKey(kv.Value))
-                {samplecountdict[kv.Value] += channel;}
+                {samplecountdict[kv.Value] += 1;}
                 else
-                {samplecountdict.Add(kv.Value, channel);}
+                {samplecountdict.Add(kv.Value, 1);}
             }
 
             var updatetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -1156,8 +1156,113 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<string> SortedWaferNum()
+        {
+            var ret = new List<string>();
+            var sql = "select distinct WAFER from [WAT].[dbo].[WaferPassBinData] order by WAFER";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                ret.Add(UT.O2S(line[0]));
+            }
+            return ret;
+        }
 
+        public static List<object> SampleData4Plan(string wafer)
+        {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
 
+            var array = "";
+            var pdesc = "";
+            var fpn = "";
+            var sql = "select top 1 parray,pdesc,fpn from [WAT].[dbo].[WaferPassBinData] where wafer = @wafer";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                array = UT.O2S(line[0]);
+                pdesc = UT.O2S(line[1]);
+                fpn = UT.O2S(line[2]);
+            }
+
+            var binlist = new List<string>();
+            sql = "select distinct bin from [WAT].[dbo].[WaferSampleData] where wafer = @wafer and bin <> '57X'";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                binlist.Add(UT.O2S(line[0]));
+            }
+
+            var watcount = 0;
+            sql = "select count(*) from [WAT].[dbo].[WaferSampleData] where wafer = @wafer and bin <> '57X'";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                watcount = UT.O2I(line[0]);
+            }
+
+            var hastcount = 0;
+            sql = "select count(*) from [WAT].[dbo].[WaferSampleData] where wafer = @wafer and bin = '57X'";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                hastcount = UT.O2I(line[0]);
+            }
+
+            var ret = new List<object>();
+
+            if (watcount > 0)
+            {
+                ret.Add(new {
+                    Wafer = wafer,
+                    BIN = string.Join(",",binlist),
+                    Count = watcount,
+                    Test = "WAT",
+                    FPN = fpn,
+                    Array = array,
+                    Desc = pdesc
+                });
+
+            }
+
+            if (hastcount > 0)
+            {
+                ret.Add(new
+                {
+                    Wafer = wafer,
+                    BIN = "57X",
+                    Count = hastcount,
+                    Test = "HASTbDH",
+                    FPN = fpn,
+                    Array = array,
+                    Desc = pdesc
+                });
+            }
+
+            return ret;
+        }
+
+        public static List<object> OrgData4Plan(string wafer)
+        {
+            var ret = new List<object>();
+            var sql = "select wafer,bin,bincount,parray,pdesc,fpn from [WAT].[dbo].[WaferPassBinData] where wafer = @wafer";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                ret.Add(new
+                {
+                    Wafer = UT.O2S(line[0]),
+                    BIN = UT.O2S(line[1]),
+                    Count = UT.O2I(line[2]),
+                    FPN = UT.O2S(line[5]),
+                    Array = UT.O2S(line[3]),
+                    Desc = UT.O2S(line[4])
+                });
+            }
+            return ret;
+        }
 
         private static string O2S(object obj)
         {

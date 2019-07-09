@@ -799,6 +799,7 @@
     <Content Include="Views\Wafer\WaferQUAL.cshtml" />
     <Content Include="Views\WATLogic\VerifyAllenLogic.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATLogic.cshtml" />
+    <Content Include="Views\DieSort\Wafer4Planning.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

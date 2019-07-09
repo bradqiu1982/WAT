@@ -127,32 +127,41 @@ namespace WAT.Controllers
         //    return View("HeartBeat");
         //}
 
-        public ActionResult WXLogic()
+        //public ActionResult WXLogic()
+        //{
+        //    //WXProbeData.PrepareProbeData("184637-30");
+        //    //WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
+        //    var wxlogic = new WXWATLogic();
+        //    wxlogic.WATPassFail("184637-30E01", "POSTHTOL2JUDGEMENT");
+
+        //    return View("HeartBeat");
+        //}
+
+        //public ActionResult ScanNewWafer() {
+        //    DieSortVM.ScanNewWafer(this);
+        //    return View("HeartBeat");
+        //}
+
+        //public ActionResult VerifyAllenLogic()
+        //{
+        //    AllenLogicVerify.Verify();
+        //    return View("HeartBeat");
+        //}
+
+        public ActionResult PrepareData4WAT()
         {
-            //WXProbeData.PrepareProbeData("184637-30");
-            //WXOriginalWATData.PrepareDataFromAllen("184637-30E01");
-            var wxlogic = new WXWATLogic();
-            wxlogic.WATPassFail("184637-30E01", "POSTHTOL2JUDGEMENT");
+            //var wlist = new List<string>();
+            //wlist.Add("190201-20");
+            //wlist.Add("190333-20");
+            //wlist.Add("190601-10");
+            //wlist.Add("190601-20");
+            //wlist.Add("190628-30");
+            //wlist.Add("190717-30");
+            //foreach (var w in wlist)
+            //{
+            //    DieSortVM.PrepareData4WAT(w);
+            //}
 
-            return View("HeartBeat");
-        }
-
-
-        public ActionResult ScanNewWafer() {
-            DieSortVM.ScanNewWafer(this);
-            return View("HeartBeat");
-        }
-
-
-        public ActionResult VerifyAllenLogic()
-        {
-            AllenLogicVerify.Verify();
-            return View("HeartBeat");
-        }
-
-        public ActionResult PrepareEvalPN()
-        {
-            DieSortVM.PrepareEvalPN("184517-40");
             return View("HeartBeat");
         }
 
