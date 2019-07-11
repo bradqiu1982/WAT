@@ -76,60 +76,78 @@ bool updateLinks)
               "IA","IB","IC","ID","IE","IF","IG","IH","II","IJ","IK","IL","IM","IN","IO","IP","IQ","IR","IS","IT","IU","IV","IW","IX","IY","IZ",
               "JA","JB","JC","JD","JE","JF","JG","JH","JI","JJ","JK","JL","JM","JN","JO","JP","JQ","JR","JS","JT","JU","JV","JW","JX","JY","JZ"};
 
-        private static List<List<string>> RetrieveDataFromExcel2(Excel.Worksheet sheet, int columns = 101)
+        private static List<List<string>> RetrieveDataFromExcel2(Excel.Worksheet sheet, int columns = 99)
         {
             var ret = new List<List<string>>();
             var totalrow = 100000;
-
             int emptycount = 0;
+            int alldatacount = 0;
 
-            for (var rowidx = 1; rowidx < totalrow; rowidx++)
+            if (columns > 101)
+            { columns = 101; }
+
+            try
             {
-                var newline = new List<string>();
-                try
+                for (var rowidx = 1; rowidx < totalrow;)
                 {
-                    var range = sheet.get_Range(columnFlag[0] + rowidx.ToString(), columnFlag[99] + rowidx.ToString());
+                    var range = sheet.get_Range(columnFlag[0] + rowidx.ToString(), columnFlag[columns] + (rowidx + 9999).ToString());
                     var saRet = (System.Object[,])range.get_Value(Type.Missing);
 
-                    for (var colidx = 1; colidx < columns; colidx++)
+                    for (var rowcount = 1; rowcount <= 10000; rowcount++)
                     {
-                        if (saRet[1, colidx] != null)
+                        var newline = new List<string>();
+                        for (var colidx = 1; colidx < columns; colidx++)
                         {
-                            newline.Add(saRet[1, colidx].ToString().Replace("'", "").Replace("\"", "").Trim());
+                            var val = saRet[rowcount, colidx];
+                            if (val != null)
+                            {
+                                newline.Add(val.ToString().Replace("'", "").Replace("\"", "").Trim());
+                            }
+                            else
+                            {
+                                newline.Add("");
+                            }
+                        }
+
+                        var empty = true;
+                        foreach (var item in newline)
+                        {
+                            if (!string.IsNullOrEmpty(item.Trim()))
+                            {
+                                empty = false;
+                            }
+                        }
+
+                        if (!empty)
+                        {
+                            emptycount = 0;
+                            ret.Add(newline);
+                            alldatacount += 1;
                         }
                         else
                         {
-                            newline.Add("");
+                            emptycount = emptycount + 1;
+                            alldatacount += 1;
                         }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    newline.Clear();
-                }
-
-                if (!WholeLineEmpty(newline))
-                {
-                    emptycount = 0;
-                    ret.Add(newline);
-                }
-                else
-                {
-                    emptycount = emptycount + 1;
-                }
 
 
-                if (emptycount > 20 || rowidx > 500000)
-                {
-                    break;
-                }
+                        if (emptycount > 20 || alldatacount > 500000)
+                        {
+                            return ret;
+                        }
 
-                if (rowidx == totalrow - 1)
-                {
-                    totalrow = totalrow + 100000;
-                }
+                        if (alldatacount == totalrow - 10)
+                        {
+                            totalrow = totalrow + 100000;
+                        }
+
+                    }//end rowcount
+
+                    rowidx = rowidx + 10000;
+
+                }//end for rowidx
             }
-
+            catch (Exception ex1){}
             return ret;
         }
 
