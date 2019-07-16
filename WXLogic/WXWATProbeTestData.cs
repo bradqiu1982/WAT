@@ -110,9 +110,13 @@ namespace WXLogic
             dict.Add("@RP", rp);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             if (dbret.Count > 0)
-            { return true; }
+            {
+                sql = "delete from [EngrData].[dbo].[WUX_WATShareData] where ContainerNum  = @ContainerNum and RP = @RP";
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+                return true;
+            }
 
-            return false;
+            return true;
         }
 
         private static void ShareDataToAllen(string coupongroup,List<WXWATProbeTestData> sharedata)
