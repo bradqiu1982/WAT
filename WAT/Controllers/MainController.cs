@@ -165,5 +165,11 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult LoadOGPData()
+        {
+            var ogpdata = WXLogic.WATSampleXY.GetSampleXYByCouponGroup("172015-30E08");
+            return View("HeartBeat");
+        }
+
     }
 }

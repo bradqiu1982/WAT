@@ -10,12 +10,6 @@ using System.Text;
 namespace WAT.Models
 {
 
-    public class WAFERARRAY {
-        public static string ARRAY1X1 = "1X1";
-        public static string ARRAY1X4 = "1X4";
-        public static string ARRAY1X12 = "1X12";
-    }
-
     public class DieSortVM
     {
         public static List<string> GetAllWaferFile(Controller ctrl)

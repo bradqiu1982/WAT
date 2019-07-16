@@ -10,8 +10,8 @@ PRLL_POST_HTOL2_TEST:::3
 
 SHARETOALLEN:::FALSE
 
-OGPCONNSTR:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;
-OGPSQLSTR:::select CouponID,ChannelInfo,X,Y from [EngrData].[dbo].[WATSampleXY] where CouponID like '<coupongroup>%'
+OGPCONNSTR:::Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
+OGPSQLSTR:::select SN,[Index],X,Y from [AIProjects].[dbo].[CouponData] where SN like '<coupongroup>%'
 
 DIESORTFOLDER:::\\wux-engsys01.china.ads.finisar.com\DieSorting
 DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
