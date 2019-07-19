@@ -74,7 +74,7 @@ namespace WAT.Models
         {
             var ret = new List<string>();
 
-            var sql = "select distinct Left(Containername,len(Containername)-2) from Insite.dbo.ProductionResult";
+            var sql = "select distinct Left(Containername,12) from Insite.dbo.ProductionResult where len(Containername) > 12";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             { ret.Add(UT.O2S(line[0])); }

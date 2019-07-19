@@ -168,6 +168,7 @@ CREATE TABLE  [ProductionResult] (
 	[KINK2BETTER]      VARCHAR (64)     NOT NULL,
 	[VI_MASK]          VARCHAR (64)     NOT NULL,
 	[VI_KINK]          VARCHAR (64)     NOT NULL,
+	[Uniformity]          VARCHAR (64)     NOT NULL,
 	[Notes]            VARCHAR (256)     NOT NULL,
 	[TestStep]         VARCHAR (256)     NOT NULL,
 
@@ -179,6 +180,8 @@ CREATE TABLE  [ProductionResult] (
 	[SoftVer]     VARCHAR (120)     NOT NULL,
 	[SpecVer]     VARCHAR (120)     NOT NULL
 );
+
+ALTER TABLE  [Insite].[dbo].[ProductionResult] ADD [Uniformity] VARCHAR (64) DEFAULT ('') NOT NULL;
 
 CREATE TABLE  [BI_Specification](
              [ID]            INT            IDENTITY (1,1) NOT NULL,
