@@ -42,12 +42,18 @@ namespace WAT.Controllers
             {
                 heartbeatlog("start heartbeat");
 
-                heartbeatlog("DieSortVM.ScanNewWafer");
-                try
+                var dailyscan = Server.MapPath("~/userfiles") + "\\" + "dailyscan_"+ DateTime.Now.ToString("yyyy-MM-dd");
+                if (!System.IO.File.Exists(dailyscan))
                 {
-                    DieSortVM.ScanNewWafer(this);
+                    System.IO.File.WriteAllText(dailyscan, "hello");
+
+                    heartbeatlog("DieSortVM.ScanNewWafer");
+                    try
+                    {
+                        DieSortVM.ScanNewWafer(this);
+                    }
+                    catch (Exception ex) { }
                 }
-                catch (Exception ex) { }
 
                 //heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
                 //try

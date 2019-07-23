@@ -27,9 +27,13 @@ namespace WAT.Models
             var allwfdict = new Dictionary<string, string>();
             foreach (var f in allwffiles)
             {
-                var uf = f.ToUpper();
-                if (!allwfdict.ContainsKey(uf))
-                { allwfdict.Add(uf, f); }
+                var createtime = File.GetCreationTime(f);
+                if (createtime > DateTime.Parse("2019-03-01 00:00:00"))
+                {
+                    var uf = f.ToUpper();
+                    if (!allwfdict.ContainsKey(uf))
+                    { allwfdict.Add(uf, f); }
+                }
             }
 
             var solvedwafer = FileLoadedData.LoadedFiles(filetype);
