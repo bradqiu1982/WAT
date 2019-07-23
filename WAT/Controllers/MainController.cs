@@ -150,17 +150,17 @@ namespace WAT.Controllers
 
         public ActionResult PrepareData4WAT()
         {
-            //var wlist = new List<string>();
-            //wlist.Add("190201-20");
+            var wlist = new List<string>();
+            wlist.Add("172015-30");
             //wlist.Add("190333-20");
             //wlist.Add("190601-10");
             //wlist.Add("190601-20");
             //wlist.Add("190628-30");
             //wlist.Add("190717-30");
-            //foreach (var w in wlist)
-            //{
-            //    DieSortVM.PrepareData4WAT(w);
-            //}
+            foreach (var w in wlist)
+            {
+                DieSortVM.PrepareData4WAT(w);
+            }
 
             return View("HeartBeat");
         }
