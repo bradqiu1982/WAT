@@ -27,8 +27,8 @@ namespace WAT.Models
             var allwfdict = new Dictionary<string, string>();
             foreach (var f in allwffiles)
             {
-                var createtime = File.GetCreationTime(f);
-                if (createtime > DateTime.Parse("2019-03-01 00:00:00"))
+                var createtime = System.IO.File.GetLastWriteTime(f);
+                if (createtime > DateTime.Parse("2019-02-01 00:00:00"))
                 {
                     var uf = f.ToUpper();
                     if (!allwfdict.ContainsKey(uf))
@@ -37,11 +37,15 @@ namespace WAT.Models
             }
 
             var solvedwafer = FileLoadedData.LoadedFiles(filetype);
+            var nofmwafer = FileLoadedData.LoadedFiles("NOFAMILY");
+            var noprobewafer = FileLoadedData.LoadedFiles("NOPROBE");
 
             foreach (var wkv in allwfdict)
             {
                 var wf = Path.GetFileNameWithoutExtension(wkv.Key).ToUpper();
-                if (!solvedwafer.ContainsKey(wf))
+                if (!solvedwafer.ContainsKey(wf) 
+                    && !nofmwafer.ContainsKey(wf) 
+                    && !noprobewafer.ContainsKey(wf))
                 {
                     if (SolveANewWafer(wf,allwffiles,ctrl,""))
                     {
@@ -71,12 +75,13 @@ namespace WAT.Models
                 { sixinch = true; }
                 else
                 {
+                    FileLoadedData.UpdateLoadedFile(wafer, "NOFAMILY");
                     if (!WebLog.CheckEmailRecord(wafer, "EM-PRODFM"))
                     {
                         EmailUtility.SendEmail(ctrl, "DIE SORT WAFER FATAL ERROR-"+wafer, towho, "Detail: Fail to get product family by wafer " + wafer);
                         new System.Threading.ManualResetEvent(false).WaitOne(300);
                     }
-
+                    
                     WebLog.Log(wafer, "DIESORT", "fail to to get product family by wafer " + wafer);
                     return false;
                 }
@@ -92,7 +97,7 @@ namespace WAT.Models
                     new System.Threading.ManualResetEvent(false).WaitOne(300);
                 }
 
-                WebLog.Log(wafer, "DIESORT", "fail to to get product family by wafer " + wafer);
+                WebLog.Log(wafer, "DIESORT", "fail to to get array by wafer " + wafer);
                 return false;
             }
 
@@ -120,6 +125,8 @@ namespace WAT.Models
             //prepare eval_pn and probe test data
             if (!PrepareData4WAT(wafer))
             {
+                FileLoadedData.UpdateLoadedFile(wafer,"NOPROBE");
+
                 if (!WebLog.CheckEmailRecord(wafer, "EM-WAT"))
                 {
                     EmailUtility.SendEmail(ctrl, "DIE SORT WAFER FATAL ERROR-" + wafer, towho, "Detail: Fail to prepare WAT data by wafer " + wafer);
