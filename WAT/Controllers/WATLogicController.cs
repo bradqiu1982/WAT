@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using WAT.Models;
@@ -169,6 +170,42 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult WUXIWATDataManage()
+        {
+            return View();
+        }
 
+        public JsonResult WUXIWATDataMG()
+        {
+            var couponid = Request.Form["couponid"];
+            var mgdata = WuxiWATData4MG.GetData(couponid,this);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new { mgdata = mgdata };
+            return ret;
+        }
+
+
+
+        public JsonResult IgnoreWATDie()
+        {
+
+            var ignoredies = Request.Form["ignoredies"].Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            var reason = Request.Form["reason"];
+            var username = WXWATIgnoreDie.GetUserName(Request.UserHostName);
+
+            foreach (var die in ignoredies)
+            {
+                var waferxy = die.Split(new string[] { "E", "e", "_" }, StringSplitOptions.RemoveEmptyEntries);
+                if (waferxy.Length == 4)
+                {
+                    WXWATIgnoreDie.UpdateIgnoreDie(waferxy[0], waferxy[2], waferxy[3], reason, username);
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.Data = new { sucess = true };
+            return ret;
+        }
     }
 }

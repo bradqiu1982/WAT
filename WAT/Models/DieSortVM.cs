@@ -19,20 +19,53 @@ namespace WAT.Models
             return ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, srcfolder);
         }
 
+        private static Dictionary<string,bool> GetInspectedWaferInPast5Days()
+        {
+            var ret = new Dictionary<string, bool>();
+
+            var latestdate = DateTime.Now.AddDays(-5).ToString("yyyy-MM-dd HH:mm:ss");
+
+            var sql = @"SELECT distinct left([ParamValueString],9)
+                          FROM [InsiteDB].[insite].[dc_IQC_InspectionResult] irs  with (nolock) 
+                          left join InsiteDB.insite.DataCollectionHistory dch with (nolock) on irs.DataCollectionHistoryID = dch.DataCollectionHistoryId
+                          left join InsiteDB.insite.Product pd with (nolock) on pd.ProductId = dch.ProductId 
+                            where ParameterName = 'VendorLotNumber' and ParamValueString like '%-%' and right(left(ParamValueString,7),1) = '-' 
+	                        and len(ParameterName) > 8 and dch.TxnDate > '<latestdate>' and pd.Description like '%VCSEL%'";
+            sql = sql.Replace("<latestdate>", latestdate);
+
+            var dbret = DBUtility.ExeRealMESSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = Convert.ToString(line[0]);
+                if (!ret.ContainsKey(wf))
+                { ret.Add(wf, true); }
+            }
+
+            return ret;
+        }
+
         public static void ScanNewWafer(Controller ctrl)
         {
+            var inspectedwafer = GetInspectedWaferInPast5Days();
+            if (inspectedwafer.Count == 0)
+            { return; }
+
             var filetype = "WAFER";
             var allwffiles = GetAllWaferFile(ctrl);
 
             var allwfdict = new Dictionary<string, string>();
             foreach (var f in allwffiles)
             {
-                var createtime = System.IO.File.GetLastWriteTime(f);
-                if (createtime > DateTime.Parse("2019-02-01 00:00:00"))
+                var wf = Path.GetFileNameWithoutExtension(f);
+                if (inspectedwafer.ContainsKey(wf))
                 {
-                    var uf = f.ToUpper();
-                    if (!allwfdict.ContainsKey(uf))
-                    { allwfdict.Add(uf, f); }
+                    var createtime = System.IO.File.GetLastWriteTime(f);
+                    if (createtime > DateTime.Parse("2019-02-01 00:00:00"))
+                    {
+                        var uf = f.ToUpper();
+                        if (!allwfdict.ContainsKey(uf))
+                        { allwfdict.Add(uf, f); }
+                    }
                 }
             }
 
@@ -502,11 +535,11 @@ namespace WAT.Models
 
             var yield = (double)goodbin / (double)allbin * 100.0;
             var yieldstr = Math.Round(yield, 2).ToString();
-            if (yield < 80.0)
+            if (yield < 30.0)
             {
                 if (!WebLog.CheckEmailRecord(wafer, "EM-YIELD"))
                 {
-                    EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + wafer + " WARNING", towho, "Detail:  Wafer yield is less than 80%, it is " + yieldstr + "%");
+                    EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + wafer + " WARNING", towho, "Detail:  Wafer yield is less than 30%, it is " + yieldstr + "%");
                     new System.Threading.ManualResetEvent(false).WaitOne(300);
                 }
             }

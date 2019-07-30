@@ -39,5 +39,14 @@ ToConnect:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@
 MOVETABLELIST:::[EngrData].[insite].[FinEvalJobStartInfo]
 
 
+BVR_LD_A:::0:5
+PO_LD_W:::0.001:0.005
+VF_LD_V:::1.5:2.7
+SLOPE_WperA:::0.2:0.65
+THOLD_A:::0.0002:0.002
+R_LD_ohm:::35:80
+IMAX_A:::0.01:0.026
+
+
 
 

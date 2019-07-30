@@ -545,7 +545,177 @@
 
     }
 
+    var wuxidatamg = function () {
+        var watdatatable = null;
 
+        $.post('/WATLogic/GetWXCouponID', {
+        }, function (output) {
+            $('#couponid').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.couponidlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#couponid').attr('readonly', false);
+        });
+
+        $('body').on('click', '#btn-cmf', function () {
+            $('#ignoredlg').modal('hide');
+
+            var reason = $('#ignorereason').val();
+            if (reason == '' || reason == null)
+            {
+                alert('choose an ignore reason!');
+                return false;
+            }
+
+            var ignoredies = '';
+            $('.diecheck').each(function (i, obj) {
+                if ($(this).prop('checked') == true) {
+                    $(this).parent().parent().addClass("COMMENTLINE");
+                    ignoredies += $(this).attr('myid') + ':::';
+                }
+            });
+
+            $.post('/WATLogic/IgnoreWATDie', {
+                ignoredies: ignoredies,
+                reason: reason
+                    }, function (output) {
+
+                    });
+
+        });
+
+        $.fn.dataTable.ext.buttons.ignoredie = {
+            text: 'Ignore Die',
+            action: function (e, dt, node, config) {
+
+                var ignoredies = '';
+                $('.diecheck').each(function (i, obj) {
+                    if ($(this).prop('checked') == true)
+                    {
+                        ignoredies += $(this).attr('myid') + ':::';
+                    }
+                });
+
+                if (ignoredies != '')
+                {
+                    $('#ignoredlg').modal('show');
+                }
+            }
+        };
+
+        function reviewdata()
+        {
+            var couponid = $('#couponid').val();
+            if (couponid == '') {
+                alert('Please into correct coupon id and judgement step name!')
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATDataMG',
+                {
+                    couponid: couponid
+                },
+                function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (watdatatable) {
+                        watdatatable.destroy();
+                        watdatatable = null;
+                    }
+                    $("#watdatahead").empty();
+                    $("#watdatacontent").empty();
+
+                    $("#watdatahead").append(
+                            '<tr>' +
+                            '<th></th>' +
+                            '<th>CouponID</th>' +
+                            '<th>CH</th>' +
+                            '<th>X</th>' +
+                            '<th>Y</th>' +
+                            '<th>Test Step</th>' +
+                            '<th>BVR_LD_A</th>' +
+                            '<th>PO_LD_W</th>' +
+                            '<th>VF_LD_V</th>' +
+                            '<th>SLOPE_WperA</th>' +
+                            '<th>THOLD_A</th>' +
+                            '<th>R_LD_ohm</th>' +
+                            '<th>IMAX_A</th>' +
+                            '<th>Ith</th>' +
+                            '<th>SlopEff</th>' +
+                            '<th>SeriesR</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.mgdata, function (i, val) {
+                        var tempstr = '';
+                        if (val.IgnoredFlag != '') {
+                            tempstr += '<tr class="COMMENTLINE" data-toggle="tooltip" title="Ignore For ' + val.Comment + '">';
+                        }
+                        else {
+                            tempstr += '<tr>';
+                        }
+
+                        tempstr += '<td><input type="checkbox" class="diecheck" myid="' + val.CouponID + '_' + val.X + '_' + val.Y + '"></td>' +
+                            '<td>' + val.CouponID + '</td>' +
+                            '<td>' + val.CH + '</td>' +
+                            '<td>' + val.X + '</td>' +
+                            '<td>' + val.Y + '</td>' +
+                            '<td>' + val.TestStep + '</td>' +
+                            '<td class="' + val.BVR_LD_A_ST + '">' + val.BVR_LD_A + '</td>' +
+                            '<td class="' + val.PO_LD_W_ST + '">' + val.PO_LD_W + '</td>' +
+                            '<td class="' + val.VF_LD_V_ST + '">' + val.VF_LD_V + '</td>' +
+                            '<td class="' + val.SLOPE_WperA_ST + '">' + val.SLOPE_WperA + '</td>' +
+                            '<td class="' + val.THOLD_A_ST + '">' + val.THOLD_A + '</td>' +
+                            '<td class="' + val.R_LD_ohm_ST + '">' + val.R_LD_ohm + '</td>' +
+                            '<td class="' + val.IMAX_A_ST + '">' + val.IMAX_A + '</td>' +
+                            '<td>' + val.Ith + '</td>' +
+                            '<td>' + val.SlopEff + '</td>' +
+                            '<td>' + val.SeriesR + '</td>' +
+                            '</tr>';
+
+                        $("#watdatacontent").append(tempstr);
+                    });
+
+
+                    watdatatable = $('#watdatatable').DataTable({
+                        'iDisplayLength': 20,
+                        'aLengthMenu': [[20, 50, 100, -1],
+                        [20, 50, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5', 'ignoredie']
+                    });
+
+
+                });
+        }
+
+        $('body').on('click', '#btn-review', function () {
+            reviewdata();
+        });
+
+    }
 
     return {
         ALLENLOGICINIT: function () {
@@ -553,6 +723,10 @@
         },
         WUXILOGICINIT: function () {
             wuxilogic();
+        },
+        WUXIWATDATAMG: function ()
+        {
+            wuxidatamg();
         }
     }
 }();

@@ -1,0 +1,87 @@
+﻿
+@{
+    ViewBag.Title = "WUXI WAT Data Manage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    th.dt-center, td.dt-center {
+        text-align: center;
+        max-width: 600px;
+        word-wrap: break-word;
+    }
+
+    .FAILDATA {
+        color:orangered;
+    }
+
+    .COMMENTLINE {
+        background-color:darksalmon!important;
+    }
+</style>
+
+<link type="text/css" rel="stylesheet" href="~/Content/bootstrap-select.min.css" />
+<script type="text/javascript" src="~/Scripts/bootstrap-select.min.js"></script>
+
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.WUXIWATDATAMG();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="form-control">Coupon ID</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="couponid" name="couponid" placeholder="Coupon ID" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-review" id="btn-review" value="Review">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="watdatatable" style="margin-top:1%">
+                        <caption class="tb-caption">WUXI WAT DATA</caption>
+                        <thead id="watdatahead"></thead>
+                        <tbody id="watdatacontent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ignoredlg" tabindex="-1" role="dialog" style="margin-top:2%">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Ignore Die Reason</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-1"></div>
+                    <div class="col-sm-10">
+                        <select class="selectpicker" id="ignorereason" name="ignorereason">
+                            <option value="" selected disabled>Ignore Reason</option>
+                            <option value="ESD">ESD</option>
+                            <option value="Operate">Operate</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-1"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="btn-cmf" name="btn-cmf">OK</button>
+            </div>
+        </div>
+    </div>
+</div>

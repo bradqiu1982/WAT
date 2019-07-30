@@ -24,6 +24,8 @@ namespace WXLogic
                 }
             }
 
+            var ignoredict = WXWATIgnoreDie.RetrieveIgnoreDieDict(wafernum);
+
             var coupondict = new Dictionary<string, bool>();
             var pbcnt0 = 0;
             var pbcnt1 = 0;
@@ -32,10 +34,12 @@ namespace WXLogic
 
             foreach (var item in oringaldata)
             {
+                var key = item.X + ":" + item.Y;
+                if (ignoredict.ContainsKey(key))
+                { continue; }
+
                 if (!coupondict.ContainsKey(item.Containername))
                 { coupondict.Add(item.Containername, true); }
-
-                var key = item.X + ":" + item.Y;
 
                 var tempvm = new WXWATProbeTestData(item.TestTimeStamp, coupongroup, item.TestStation
                     ,item.RP,item.UnitNum,item.X,item.Y,item.BINNum,item.BINName);

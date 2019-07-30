@@ -123,6 +123,7 @@ namespace WXLogic
             }
             else
             {
+                UpdateLotTypeFromAllen(wafernum);
                 return true;
             }
         }
@@ -160,17 +161,20 @@ namespace WXLogic
                 dict.Add("@DCDName", tempvm.DCDName);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
+
+            UpdateLotTypeFromSherman(wafernum);
+
             return true;
         }
 
         public static bool PrepareEvalPN(string wafernum)
         {
             var allenret = PrepareAllenEvalPN(wafernum);
-            UpdateLotTypeFromAllen(wafernum);
+            //UpdateLotTypeFromAllen(wafernum);
             if (!allenret)
             {
                 var shermanret = PrepareShermanEvalPN(wafernum);
-                UpdateLotTypeFromSherman(wafernum);
+                //UpdateLotTypeFromSherman(wafernum);
                 if (!shermanret)
                 { return false; }
             }

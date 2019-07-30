@@ -123,6 +123,12 @@ namespace WAT.Models
             }
             else
             {
+                sql = "update [EngrData].[dbo].[WXEvalPN] set Product =@Product   where WaferNum = @WaferNum";
+                dict = new Dictionary<string, string>();
+                dict.Add("@WaferNum", wafernum);
+                dict.Add("@Product", pdfm);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+
                 return true;
             }
         }
@@ -160,6 +166,13 @@ namespace WAT.Models
                 dict.Add("@DCDName", tempvm.DCDName);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
+
+            sql = "update [EngrData].[dbo].[WXEvalPN] set Product =@Product   where WaferNum = @WaferNum";
+            dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafernum);
+            dict.Add("@Product", pdfm);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+
             return true;
         }
 
