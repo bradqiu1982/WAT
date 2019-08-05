@@ -9,7 +9,7 @@ namespace WAT.Models
     public class AllenWATLogic
     {
 
-        public static AllenWATLogic PassFail(string containername,string dcdname_,bool noexclusion=false)
+        public static AllenWATLogic PassFail(string containername,string dcdname_,bool noexclusion,bool storeres=false)
         {
             var ret = new AllenWATLogic();
 
@@ -185,7 +185,10 @@ namespace WAT.Models
                 logicresult.ResultMsg = fmstr;
             }
 
-            //StoreOperateInstruction(containerinfo.containertype, containername, containerinfo.ProductName, dcdname, logicresult.SummaryRes, failunit);
+            if (storeres)
+            {
+                StoreOperateInstruction(containerinfo.containertype, containername, containerinfo.ProductName, dcdname, logicresult.SummaryRes, failunit);
+            }
 
             return logicresult;
         }

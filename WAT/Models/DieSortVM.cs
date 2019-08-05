@@ -19,7 +19,7 @@ namespace WAT.Models
             return ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, srcfolder);
         }
 
-        private static Dictionary<string,bool> GetInspectedWaferInPast5Days()
+        public static Dictionary<string,bool> GetInspectedWaferInPast5Days()
         {
             var ret = new Dictionary<string, bool>();
 

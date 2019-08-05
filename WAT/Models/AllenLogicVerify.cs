@@ -11,11 +11,7 @@ namespace WAT.Models
         {
             var filepath = "E:\\100waferlogicverify.xlsx";
             var rplist = new List<string>();
-            rplist.Add("0");
-            rplist.Add("1");
-            rplist.Add("2");
             rplist.Add("3");
-            rplist.Add("4");
 
             var idx = 0;
             var data = ExcelReader.RetrieveDataFromExcel(filepath, null, 4);
@@ -33,7 +29,7 @@ namespace WAT.Models
                 foreach (var rp in rplist)
                 {
                     //AllenWATLogic.ForVerify(wafer, dcdname + rp);
-                    AllenWATLogic.PassFail(wafer, dcdname + rp);
+                    AllenWATLogic.PassFail(wafer, dcdname + rp,false,true);
                 }
 
             }

@@ -20,7 +20,7 @@ namespace WAT.Models
             return string.Empty;
         }
 
-        private static string GetArrayFromAllen(string wafer)
+        public static string GetArrayFromAllen(string wafer)
         {
             var sixinch = false;
             var productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);

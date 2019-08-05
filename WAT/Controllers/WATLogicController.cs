@@ -25,7 +25,7 @@ namespace WAT.Controllers
             var resname = "";
             if (string.Compare(exclusion, "withex", true) == 0)
             {
-                ret = AllenWATLogic.PassFail(container, dcdname);
+                ret = AllenWATLogic.PassFail(container, dcdname,false);
                 resname = "Logic Result With Exclusion";
             }
             else
