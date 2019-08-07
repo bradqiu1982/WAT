@@ -91,7 +91,7 @@ namespace WAT.Models
 
         public static bool SolveANewWafer(string wafer, List<string> allwffiles,Controller ctrl,string offeredpn)
         {
-            FileLoadedData.RemoveLoadedFile(wafer, "WAFER");
+            FileLoadedData.RemoveLoadedFile(wafer, "");
 
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
             var towho = syscfgdict["DIESORTWARINGLIST"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();

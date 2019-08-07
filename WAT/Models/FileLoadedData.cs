@@ -43,11 +43,21 @@ namespace WAT.Models
 
         public static void RemoveLoadedFile(string filename, string filetype)
         {
-            var sql = "delete from FileLoadedData where AppV_A = @AppV_A and AppV_B=@AppV_B";
+            var sql = "";
             var dict = new Dictionary<string, string>();
-            dict.Add("@AppV_A", filename);
-            dict.Add("@AppV_B", filetype);
+            if (!string.IsNullOrEmpty(filetype))
+            {
+                sql = "delete from FileLoadedData where AppV_A = @AppV_A and AppV_B=@AppV_B";
+                dict.Add("@AppV_A", filename);
+                dict.Add("@AppV_B", filetype);
+            }
+            else
+            {
+                sql = "delete from FileLoadedData where AppV_A = @AppV_A";
+                dict.Add("@AppV_A", filename);
+            }
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
+
     }
 }
