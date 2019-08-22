@@ -6,6 +6,7 @@
         var coupontable = null;
         var fmodetable = null;
         var funittable = null;
+        var rawdatatable = null;
 
         $.post('/WATLogic/GetAllenContainerList', {
         }, function (output) {
@@ -39,7 +40,7 @@
             $('#dcdname').attr('readonly', false);
         });
         
-        var allenrest = function (mode) {
+        var allenrest = function (mode,withraw) {
             var container = $('#container').val();
             var dcdname = $('#dcdname').val();
             if (container == '' || dcdname == '')
@@ -312,15 +313,71 @@
                         buttons: ['copyHtml5', 'csv', 'excelHtml5']
                     });
 
+
+                    if (rawdatatable) {
+                        rawdatatable.destroy();
+                        rawdatatable = null;
+                    }
+                    $("#rawdatahead").empty();
+                    $("#rawdatacontent").empty();
+
+                    if (withraw)
+                    {
+                        $("#rawdatahead").append(
+                                '<tr>' +
+                                '<th>ContainerNum</th>' +
+                                '<th>RP</th>' +
+                                '<th>UnitNum</th>' +
+                                '<th>CommonTestName</th>' +
+                                '<th>TestValue</th>' +
+                                '<th>ProbeValue</th>' +
+                                '<th>X</th>' +
+                                '<th>Y</th>' +
+                                '</tr>'
+                            );
+
+                        $.each(output.datatables[3], function (i, val) {
+                            $("#rawdatacontent").append(
+                                '<tr>' +
+                                '<td>' + val.ContainerNum + '</td>' +
+                                '<td>' + val.RP + '</td>' +
+                                '<td>' + val.UnitNum + '</td>' +
+                                '<td>' + val.CommonTestName + '</td>' +
+                                '<td>' + val.TestValue + '</td>' +
+                                '<td>' + val.ProbeValue + '</td>' +
+                                '<td>' + val.X + '</td>' +
+                                '<td>' + val.Y + '</td>' +
+                                '</tr>'
+                            );
+                        });
+
+                        rawdatatable = $('#rawdatatable').DataTable({
+                            'iDisplayLength': 20,
+                            'aLengthMenu': [[20, 50, 100, -1],
+                            [20, 50, 100, "All"]],
+                            "columnDefs": [
+                                { "className": "dt-center", "targets": "_all" }
+                            ],
+                            "aaSorting": [],
+                            "order": [],
+                            dom: 'lBfrtip',
+                            buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                        });
+                    }
+
                 });
         }
 
         $('body').on('click', '#btn-withoutex', function () {
-            allenrest('withoutex');
+            allenrest('withoutex',false);
         });
 
         $('body').on('click', '#btn-withex', function () {
-            allenrest('withex');
+            allenrest('withex',false);
+        });
+
+        $('body').on('click', '#btn-withraw', function () {
+            allenrest('withex',true);
         });
     }
 

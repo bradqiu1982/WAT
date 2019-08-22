@@ -167,6 +167,7 @@ namespace WAT.Models
             logicresult.DataTables.Add(watpassfailcoupondata);
             logicresult.DataTables.Add(failmodes);
             logicresult.DataTables.Add(failunittab);
+            logicresult.DataTables.Add(watprobeval);
 
             if (logicresult.ScrapIt)
             {

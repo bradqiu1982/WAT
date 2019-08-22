@@ -14,16 +14,16 @@
 <div class="row">
     <div class="col-xs-12">
         <div class="v-container">
-            <div class="v-filter">
-                <div class="row row-margin">
-                    <div class="col-xs-2">
-                        <label class="form-control">Container</label>
+            <div class="v-filter" style="padding-left:3%!important">
+                <div class="row">
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="font-size:100%!important;padding-top:5px!important;padding-bottom:12px!important;">Container</label>
                     </div>
                     <div class="col-xs-2">
                         <input class="form-control" type="text" id="container" name="container" placeholder="Container Number" readonly="readonly">
                     </div>
-                    <div class="col-xs-2">
-                        <label class="form-control">DCDName</label>
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="font-size:100%!important;padding-top:5px!important;padding-bottom:12px!important;">DCDName</label>
                     </div>
                     <div class="col-xs-2">
                         <input class="form-control" type="text" id="dcdname" name="dcdname" placeholder="DCD Name" readonly="readonly">
@@ -33,6 +33,9 @@
                     </div>
                     <div class="col-xs-2" style="padding-left:0">
                         <input type="button" class="btn btn-success" name="btn-withex" id="btn-withex" value="With-Exclusion">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-withraw" id="btn-withraw" value="With-RawData">
                     </div>
                 </div>
             </div>
@@ -70,6 +73,13 @@
                         <caption class="tb-caption">Fail Unit Data</caption>
                         <thead id="funithead"></thead>
                         <tbody id="funitcontent"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="rawdatatable" style="margin-top:1%">
+                        <caption class="tb-caption">WAT Raw Data</caption>
+                        <thead id="rawdatahead"></thead>
+                        <tbody id="rawdatacontent"></tbody>
                     </table>
                 </div>
             </div>
