@@ -40,6 +40,17 @@ namespace WAT.Controllers
         {
             try
             {
+                var heartbeatinprocess = Server.MapPath("~/userfiles") + "\\" + "InHeartBeatProcess";
+                if (System.IO.File.Exists(heartbeatinprocess))
+                {
+                    var lastinprocesstime = System.IO.File.GetLastWriteTime(heartbeatinprocess);
+                    if ((DateTime.Now - lastinprocesstime).Hours >= 6)
+                    { System.IO.File.Delete(heartbeatinprocess); }
+                    else
+                    { return View(); }
+                }
+                System.IO.File.WriteAllText(heartbeatinprocess, "hello");
+
                 heartbeatlog("start heartbeat");
 
                 var dailyscan = Server.MapPath("~/userfiles") + "\\" + "dailyscan_"+ DateTime.Now.ToString("yyyy-MM-dd");
@@ -72,6 +83,10 @@ namespace WAT.Controllers
                 //catch (Exception ex) { }
 
                 heartbeatlog("end heartbeat");
+
+                try
+                { System.IO.File.Delete(heartbeatinprocess); }
+                catch (Exception ex) { }
             }
             catch (Exception ex) { }
 

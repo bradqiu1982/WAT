@@ -281,6 +281,10 @@
                             '<th>Wafer</th>' +
                             '<th>BIN</th>' +
                             '<th>Count</th>' +
+                            '<th>Unsorted PN</th>' +
+                            '<th>Uninspect PN</th>' +
+                            '<th>Bom PN</th>' +
+                            '<th>PN BIN</th>' +
                             //'<th>Finisar PN</th>' +
                             '<th>Array</th>' +
                             '<th>Desc</th>' +
@@ -293,6 +297,10 @@
                             '<td>' + val.Wafer + '</td>' +
                             '<td>' + val.BIN + '</td>' +
                             '<td>' + val.Count + '</td>' +
+                            '<td>' + val.UnsortedPN + '</td>' +
+                            '<td>' + val.UninspectPN + '</td>' +
+                            '<td>' + val.BomPN + '</td>' +
+                            '<td>' + val.PNBIN + '</td>' +
                             //'<td>' + val.FPN + '</td>' +
                             '<td>' + val.Array + '</td>' +
                             '<td>' + val.Desc + '</td>' +

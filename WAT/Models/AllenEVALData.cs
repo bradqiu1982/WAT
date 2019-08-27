@@ -359,6 +359,18 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<string> GetAllen2WXWaferList()
+        {
+            var sql = "select distinct left(ContainerNum,9) from  AllenEVALData";
+            var ret = new List<string>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                ret.Add(Convert.ToString(line[0]));
+            }
+            return ret;
+        }
+
         public static List<string> GetAllenDCDName()
         {
             var sql = "select distinct DCDName from AllenEVALData";

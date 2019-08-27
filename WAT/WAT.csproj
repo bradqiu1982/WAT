@@ -235,6 +235,7 @@
     <Compile Include="Models\AllenLogic\WATTTFTerms.cs" />
     <Compile Include="Models\AllenLogic\WATTTFUnit.cs" />
     <Compile Include="Models\AllenLogic\WATTTFuse.cs" />
+    <Compile Include="Models\AllenVcselPNs.cs" />
     <Compile Include="Models\CfgUtility.cs" />
     <Compile Include="Models\CookieUtility.cs" />
     <Compile Include="Models\DBUtility.cs" />
@@ -790,7 +791,9 @@
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\_references.js" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
@@ -814,6 +817,8 @@
     <Content Include="Views\WATLogic\WUXIWATLogic.cshtml" />
     <Content Include="Views\DieSort\Wafer4Planning.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATDataManage.cshtml" />
+    <Content Include="Views\WATLogic\AllenWaferWAT.cshtml" />
+    <Content Include="Scripts\VCSELPN.xlsx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

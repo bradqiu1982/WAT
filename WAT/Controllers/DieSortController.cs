@@ -200,7 +200,7 @@ namespace WAT.Controllers
         {
             var wafernum = Request.Form["wafernum"];
             var sampledata = DieSortVM.SampleData4Plan(wafernum);
-            var waferorgdata = DieSortVM.OrgData4Plan(wafernum);
+            var waferorgdata = DieSortVM.OrgData4Plan(wafernum,this);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new

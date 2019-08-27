@@ -1,0 +1,42 @@
+﻿
+@{
+    ViewBag.Title = "AllenWaferWAT";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.ALLENWATINIT();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row">
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="font-size:100%!important;padding-top:5px!important;padding-bottom:12px!important;">WAFER</label>
+                    </div>
+                    <div class="col-xs-2">
+                        <input class="form-control" type="text" id="wafernum" name="wafernum" placeholder="Wafer Number" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="Search">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="logictable" style="margin-top:1%">
+                        <caption class="tb-caption">Allen WAT Result</caption>
+                        <thead id="logichead"></thead>
+                        <tbody id="logiccontent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

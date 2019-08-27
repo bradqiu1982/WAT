@@ -381,6 +381,112 @@
         });
     }
 
+    var allenwat = function () {
+        var logictable = null;
+
+        $.post('/WATLogic/GetAllen2WXWaferList', {
+        }, function (output) {
+            $('#wafernum').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.containlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#wafernum').attr('readonly', false);
+        });
+
+        var allenwatrest = function ()
+        {
+            var wafernum = $('#wafernum').val();
+            if (wafernum == '' || wafernum.indexOf('-') == -1)
+            {
+                alert('Please into correct wafernum number!');
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/AllenWaferWATData',
+                {
+                    wafernum: wafernum
+                },
+                function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (logictable) {
+                        logictable.destroy();
+                        logictable = null;
+                    }
+                    $("#logichead").empty();
+                    $("#logiccontent").empty();
+
+                    $("#logichead").append(
+                            '<tr>' +
+                            '<th>Container</th>' +
+                            '<th>RP</th>' +
+                            '<th>Parameter</th>' +
+                            '<th>Value</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.msglist, function (i, val) {
+                        var valtd = '<td>' + val.pval + '</td>';
+                        if (val.pname.indexOf('WAT Result') != -1
+                            && val.pval != ''
+                            && val.pval.indexOf('Proceed') == -1
+                            && val.pval.indexOf('Not Production WAT') == -1)
+                        {
+                            valtd = '<td style="background-color:orangered">' + val.pval + '</td>';
+                        }
+
+                        if (val.pname.indexOf('App Exception') != -1)
+                        {
+                            valtd = '<td style="background-color:orangered">' + val.pval + '</td>';
+                        }
+
+                        $("#logiccontent").append(
+                            '<tr>' +
+                            '<td>' + val.container + '</td>' +
+                            '<td>' + val.rp + '</td>' +
+                            '<td>' + val.pname + '</td>' +
+                             valtd +
+                            '</tr>'
+                        );
+                    });
+
+                    logictable = $('#logictable').DataTable({
+                        'iDisplayLength': -1,
+                        'aLengthMenu': [[30, 60, 100, -1],
+                        [30, 60, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+                });
+        }
+
+
+        $('body').on('click', '#btn-search', function () {
+            allenwatrest();
+        });
+    }
 
     var wuxilogic = function () {
 
@@ -777,6 +883,9 @@
     return {
         ALLENLOGICINIT: function () {
             allenlogic();
+        },
+        ALLENWATINIT: function () {
+            allenwat();
         },
         WUXILOGICINIT: function () {
             wuxilogic();

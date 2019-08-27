@@ -1280,8 +1280,10 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<object> OrgData4Plan(string wafer)
+        public static List<object> OrgData4Plan(string wafer,Controller ctrl)
         {
+            var localpndata = AllenVcselPNs.GetMapFromLocal(ctrl);
+
             var ret = new List<object>();
             var sql = "select wafer,bin,bincount,parray,pdesc,fpn from [WAT].[dbo].[WaferPassBinData] where wafer = @wafer";
             var dict = new Dictionary<string, string>();
@@ -1289,11 +1291,16 @@ namespace WAT.Models
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
+                var pns = AllenVcselPNs.GetPNsFromAllen(wafer, UT.O2S(line[1]), localpndata);
                 ret.Add(new
                 {
                     Wafer = UT.O2S(line[0]),
                     BIN = UT.O2S(line[1]),
                     Count = UT.O2I(line[2]),
+                    UnsortedPN = pns.UnsortedPN,
+                    UninspectPN = pns.UninspectPN,
+                    BomPN = pns.BomPN,
+                    PNBIN = pns.PNBIN,
                     FPN = UT.O2S(line[5]),
                     Array = UT.O2S(line[3]),
                     Desc = UT.O2S(line[4])

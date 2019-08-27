@@ -84,6 +84,153 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public JsonResult GetAllen2WXWaferList()
+        {
+            var containlist = AllenEVALData.GetAllen2WXWaferList();
+            var ret = new JsonResult();
+            ret.Data = new
+            {
+                containlist = containlist
+            };
+            return ret;
+        }
+
+        public ActionResult AllenWaferWAT()
+        {
+            return View();
+        }
+
+        public JsonResult AllenWaferWATData()
+        {
+            var wafernum = Request.Form["wafernum"];
+            var rplist = new List<string>();
+            rplist.Add("Eval_50up_rp00");
+            rplist.Add("Eval_50up_rp01");
+            rplist.Add("Eval_50up_rp02");
+            rplist.Add("Eval_50up_rp03");
+
+            var clist = new List<string>();
+            clist.Add("E01");
+            clist.Add("E06AA");
+            clist.Add("E06AB");
+            clist.Add("E08AA");
+            clist.Add("E08AB");
+
+            var msglist = new List<object>();
+
+            foreach (var c in clist)
+            {
+                foreach (var rp in rplist)
+                {
+                    var ret = AllenWATLogic.PassFail(wafernum+c, rp, false);
+                    if (!string.IsNullOrEmpty(ret.AppErrorMsg))
+                    {
+                        msglist.Add(new
+                        {
+                            container = wafernum+c,
+                            rp = rp,
+                            pname = "App Exception",
+                            pval = ret.AppErrorMsg
+                        });
+                    }
+                    else
+                    {
+                        msglist.Add(new
+                        {
+                            container = wafernum + c,
+                            rp = rp,
+                            pname = "WAT Result",
+                            pval = ret.ResultMsg
+                        });
+
+                        foreach (var kv in ret.ValueCollect)
+                        {
+                            msglist.Add(new
+                            {
+                                container = wafernum + c,
+                                rp = rp,
+                                pname = kv.Key,
+                                pval = kv.Value
+                            });
+                        }
+                    }
+
+                    msglist.Add(new
+                    {
+                        container = "",
+                        rp = "",
+                        pname = "",
+                        pval = ""
+                    });
+                }//end foreach
+            }//end foreach
+
+            rplist = new List<string>();
+            rplist.Add("Eval_COB_rp00");
+            rplist.Add("Eval_COB_rp01");
+            rplist.Add("Eval_COB_rp02");
+            rplist.Add("Eval_COB_rp03");
+
+            clist = new List<string>();
+            clist.Add("E10");
+
+            foreach (var c in clist)
+            {
+                foreach (var rp in rplist)
+                {
+                    var ret = AllenWATLogic.PassFail(wafernum + c, rp, false);
+                    if (!string.IsNullOrEmpty(ret.AppErrorMsg))
+                    {
+                        msglist.Add(new
+                        {
+                            container = wafernum + c,
+                            rp = rp,
+                            pname = "App Exception",
+                            pval = ret.AppErrorMsg
+                        });
+                    }
+                    else
+                    {
+                        msglist.Add(new
+                        {
+                            container = wafernum + c,
+                            rp = rp,
+                            pname = "WAT Result",
+                            pval = ret.ResultMsg
+                        });
+
+                        foreach (var kv in ret.ValueCollect)
+                        {
+                            msglist.Add(new
+                            {
+                                container = wafernum + c,
+                                rp = rp,
+                                pname = kv.Key,
+                                pval = kv.Value
+                            });
+                        }
+                    }
+
+                    msglist.Add(new
+                    {
+                        container = "",
+                        rp = "",
+                        pname = "",
+                        pval = ""
+                    });
+                }//end foreach
+            }//end foreach
+
+            var jret = new JsonResult();
+            jret.MaxJsonLength = Int32.MaxValue;
+            jret.Data = new
+            {
+                msglist = msglist
+            };
+            return jret;
+        }
+
+
         public JsonResult GetAllenDCDName()
         {
             var dcdnamelist = AllenEVALData.GetAllenDCDName();
