@@ -819,6 +819,7 @@
     <Content Include="Views\WATLogic\WUXIWATDataManage.cshtml" />
     <Content Include="Views\WATLogic\AllenWaferWAT.cshtml" />
     <Content Include="Scripts\VCSELPN.xlsx" />
+    <Content Include="Views\WATLogic\WATOGPData.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

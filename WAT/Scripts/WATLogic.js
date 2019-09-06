@@ -880,6 +880,97 @@
 
     }
 
+    var watogp = function () {
+        var logictable = null;
+
+        $.post('/WATLogic/LoadOGPWafer', {
+        }, function (output) {
+            $('#wafernum').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.waferlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#wafernum').attr('readonly', false);
+        });
+
+        var ogprest = function () {
+            var wafernum = $('#wafernum').val();
+            if (wafernum == '' || wafernum.indexOf('-') == -1) {
+                alert('Please into correct wafernum number!');
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/LoadOGPData',
+                {
+                    wafer: wafernum
+                },
+                function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (logictable) {
+                        logictable.destroy();
+                        logictable = null;
+                    }
+                    $("#logichead").empty();
+                    $("#logiccontent").empty();
+
+                    $("#logichead").append(
+                            '<tr>' +
+                            '<th>CouponID</th>' +
+                            '<th>ChannelInfo</th>' +
+                            '<th>X</th>' +
+                            '<th>Y</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.ogpdatalist, function (i, val) {
+                        $("#logiccontent").append(
+                            '<tr>' +
+                            '<td>' + val.CouponID + '</td>' +
+                            '<td>' + val.ChannelInfo + '</td>' +
+                            '<td>' + val.X+ '</td>' +
+                             '<td>' + val.Y + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    logictable = $('#logictable').DataTable({
+                        'iDisplayLength': -1,
+                        'aLengthMenu': [[30, 60, 100, -1],
+                        [30, 60, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+                });
+        }
+
+
+        $('body').on('click', '#btn-search', function () {
+            ogprest();
+        });
+    }
+
     return {
         ALLENLOGICINIT: function () {
             allenlogic();
@@ -893,6 +984,9 @@
         WUXIWATDATAMG: function ()
         {
             wuxidatamg();
+        },
+        OGPINIT: function () {
+            watogp();
         }
     }
 }();

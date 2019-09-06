@@ -194,8 +194,6 @@ namespace WAT.Controllers
             return ret;
         }
 
-
-
         public JsonResult LoadWaferData4Plan()
         {
             var wafernum = Request.Form["wafernum"];

@@ -332,8 +332,6 @@ namespace WAT.Controllers
             return ret;
         }
 
-
-
         public JsonResult IgnoreWATDie()
         {
 
@@ -354,5 +352,37 @@ namespace WAT.Controllers
             ret.Data = new { sucess = true };
             return ret;
         }
+
+
+        public ActionResult WATOGPData()
+        {
+            return View();
+        }
+
+        public JsonResult LoadOGPWafer()
+        {
+            var waferlist = DieSortVM.GetAllOGPWafers(this);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                waferlist = waferlist
+            };
+            return ret;
+        }
+
+        public JsonResult LoadOGPData()
+        {
+            var wafer = Request.Form["wafer"];
+            var ogpdatalist = DieSortVM.GetOGPData(wafer, this);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                ogpdatalist = ogpdatalist
+            };
+            return ret;
+        }
+
     }
 }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Runtime.InteropServices;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Windows.Documents;
+using System.Diagnostics;
 
 namespace WAT.Models
 {
@@ -151,6 +153,9 @@ bool updateLinks)
             return ret;
         }
 
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
         public static List<List<string>> RetrieveDataFromExcel(string wholefn, string sheetname, int columns = 101)
         {
             var data = new List<List<string>>();
@@ -159,6 +164,8 @@ bool updateLinks)
             Excel.Workbook wkb = null;
             Excel.Workbooks books = null;
             Excel.Worksheet sheet = null;
+            int hWnd = 0;
+            uint processID = 0;
 
             try
             {
@@ -166,6 +173,9 @@ bool updateLinks)
                 excel.DisplayAlerts = false;
                 books = excel.Workbooks;
                 wkb = OpenBook(books, wholefn, true, false, false);
+
+                hWnd = excel.Application.Hwnd;
+                GetWindowThreadProcessId((IntPtr)hWnd, out processID);
 
                 if (string.IsNullOrEmpty(sheetname))
                 {
@@ -198,10 +208,28 @@ bool updateLinks)
 
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+
+                try
+                {
+                    Process[] procs = Process.GetProcessesByName("EXCEL");
+                    foreach (Process p in procs)
+                    {
+                        if (p.Id == processID)
+                        {
+                            p.Kill();
+                        }
+                        else
+                        {
+                            var btime = p.TotalProcessorTime;
+                            new System.Threading.ManualResetEvent(false).WaitOne(200);
+                            p.Refresh();
+                            var etime = p.TotalProcessorTime;
+                            if ((etime - btime).Ticks <= 10)
+                            { p.Kill(); }
+                        }
+                    }
+                }
+                catch (Exception e) { }
 
                 return ret;
 
@@ -235,6 +263,28 @@ bool updateLinks)
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
+
+                try
+                {
+                    Process[] procs = Process.GetProcessesByName("EXCEL");
+                    foreach (Process p in procs)
+                    {
+                        if (p.Id == processID)
+                        {
+                            p.Kill();
+                        }
+                        else
+                        {
+                            var btime = p.TotalProcessorTime;
+                            new System.Threading.ManualResetEvent(false).WaitOne(200);
+                            p.Refresh();
+                            var etime = p.TotalProcessorTime;
+                            if ((etime - btime).Ticks <= 10)
+                            { p.Kill(); }
+                        }
+                    }
+                }
+                catch (Exception e) { }
 
                 return data;
             }

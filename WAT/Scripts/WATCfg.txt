@@ -38,6 +38,7 @@ FromConnect:::Server=TEX-CSSQL.texas.ads.finisar.com;User ID=jmpuser;Password=Uh
 ToConnect:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@123;Database=EngrData;Connection Timeout=120;
 MOVETABLELIST:::[EngrData].[insite].[FinEvalJobStartInfo]
 
+OGPCONNSTR:::Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
 
 BVR_LD_A:::0:5
 PO_LD_W:::0.001:0.005

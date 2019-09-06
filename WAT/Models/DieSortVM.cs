@@ -648,6 +648,47 @@ namespace WAT.Models
             }
         }
 
+        public static List<string> GetAllOGPWafers(Controller ctrl)
+        {
+            var ret = new List<string>();
+            var syscfg = CfgUtility.GetSysConfig(ctrl);
+            var ogpconn = DBUtility.GetConnector(syscfg["OGPCONNSTR"]);
+            var sql = "  select distinct left(SN,9) from [AIProjects].[dbo].[CouponData] where len(SN) > 9";
+            var dbret = DBUtility.ExeSqlWithRes(ogpconn, sql);
+            DBUtility.CloseConnector(ogpconn);
+
+            foreach (var line in dbret)
+            {
+                ret.Add(UT.O2S(line[0]));
+            }
+
+            return ret;
+        }
+
+        public static List<object> GetOGPData(string wafer, Controller ctrl)
+        {
+            var ret = new List<object>();
+            var syscfg = CfgUtility.GetSysConfig(ctrl);
+            var ogpconn = DBUtility.GetConnector(syscfg["OGPCONNSTR"]);
+            var sql = "select SN,[Index],X,Y from [AIProjects].[dbo].[CouponData] where SN like '<wafer>%'";
+            sql = sql.Replace("<wafer>", wafer);
+
+            var dbret = DBUtility.ExeSqlWithRes(ogpconn, sql);
+            DBUtility.CloseConnector(ogpconn);
+
+            foreach (var line in dbret)
+            {
+                ret.Add(new
+                {
+                    CouponID = UT.O2S(line[0]),
+                    ChannelInfo = UT.O2S(line[1]),
+                    X = UT.O2S(line[2]),
+                    Y = UT.O2S(line[3])
+                });
+            }
+
+            return ret;
+        }
 
         private static void StoreWaferPassBinData(string mapfile, string wafer, Dictionary<string, string> selectxy, Dictionary<string, string> passxy, string array, string mpn, string fpn,string pdesc,string product)
         {
