@@ -1321,6 +1321,24 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<object> GetSampleXY(string wafer)
+        {
+            var ret = new List<object>();
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+            var sql = "select X,Y from [WAT].[dbo].[WaferSampleData] where wafer = @wafer";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                ret.Add(new
+                {
+                    X=UT.O2S(line[0]),
+                    Y=UT.O2S(line[1])
+                });
+            }
+            return ret;
+        }
+
         public static List<object> OrgData4Plan(string wafer,Controller ctrl)
         {
             var localpndata = AllenVcselPNs.GetMapFromLocal(ctrl);
