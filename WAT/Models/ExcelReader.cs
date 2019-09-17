@@ -92,7 +92,14 @@ bool updateLinks)
             }
             else if (ext.Contains("XLS"))
             {
-                return RetrieveDataFromExcel_XLS(wholefn, sheetname, columns);
+                var ret = RetrieveDataFromExcel_XLS(wholefn, sheetname, columns);
+                if (ret.Count == 1
+                    && ret[0].Count == 1
+                    && ret[0][0].ToUpper().Contains("BIFF5"))
+                {
+                    return RetrieveDataFromExcel_OLD(wholefn, sheetname, columns);
+                }
+                return ret;
             }
             else if (ext.Contains("CSV"))
             {
@@ -141,9 +148,7 @@ bool updateLinks)
                         {
                             idlist.Sort(delegate (StringValue obj1, StringValue obj2)
                             {
-                                var i1 = Convert.ToInt32(obj1.Value);
-                                var i2 = Convert.ToInt32(obj2.Value);
-                                return i1.CompareTo(i2);
+                                return obj1.Value.CompareTo(obj2.Value);
                             });
                             wsPart = (WorksheetPart)wbPart.GetPartById(idlist[0]);
                         }
@@ -402,7 +407,18 @@ bool updateLinks)
             {
                 if (hssfwb != null)
                 { hssfwb.Close(); }
-                logthdinfo(DateTime.Now.ToString() + " Exception on " + wholefn + " :" + ex.Message + "\r\n\r\n");
+
+                if (ex.Message.ToUpper().Contains("BIFF5"))
+                {
+                    ret.Clear();
+                    var line = new List<string>();
+                    line.Add(ex.Message);
+                    ret.Add(line);
+                }
+                else
+                {
+                    logthdinfo(DateTime.Now.ToString() + " Exception on " + wholefn + " :" + ex.Message + "\r\n\r\n");
+                }
             }
 
             return ret;
