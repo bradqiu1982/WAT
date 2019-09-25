@@ -148,7 +148,7 @@ namespace WAT.Models
                     }
                     catch (Exception ex)
                     {
-                        logthdinfo("send exception: " + ex.Message);
+                        logthdinfo("WAT send exception: " + ex.Message);
                     }
                 }).Start();
             }
