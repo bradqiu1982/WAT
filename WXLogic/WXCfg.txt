@@ -8,10 +8,10 @@ PRLL_VCSEL_POST_BURN_IN_TEST:::1
 PRLL_POST_HTOL1_TEST:::2
 PRLL_POST_HTOL2_TEST:::3
 
-SHARETOALLEN:::FALSE
+SHARETOALLEN:::TRUE
 
 OGPCONNSTR:::Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
-OGPSQLSTR:::select SN,[Index],X,Y from [AIProjects].[dbo].[CouponData] where SN like '<coupongroup>%'
+OGPSQLSTR:::select SN,[Index],X,Y from [AIProjects].[dbo].[CouponData] where SN like '<coupongroup>%' and X <> '' and Y <> '' and X is not null and Y is not null
 
 DIESORTFOLDER:::\\wux-engsys01.china.ads.finisar.com\DieSorting
 DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT

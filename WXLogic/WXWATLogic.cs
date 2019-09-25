@@ -206,7 +206,8 @@ namespace WXLogic
 
             if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
                 && logicresult.TestPass
-                && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01")))
+                && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01"))
+                && string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0)
             {
                 MoveOriginalMapFile(containerinfo.wafer, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
             }

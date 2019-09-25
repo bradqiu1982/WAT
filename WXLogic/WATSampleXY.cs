@@ -96,18 +96,19 @@ namespace WXLogic
 
             if (string.Compare(array, "1") == 0)
             {
-                var coupon01 = coupongroup + "01";
-                var diecount = 0;
-                foreach (var item in ret)
-                {
-                    if (string.Compare(coupon01, item.CouponID, true) == 0)
-                    { diecount += 1; }
-                }
+                return ret;
+                //var coupon01 = coupongroup + "01";
+                //var diecount = 0;
+                //foreach (var item in ret)
+                //{
+                //    if (string.Compare(coupon01, item.CouponID, true) == 0)
+                //    { diecount += 1; }
+                //}
 
-                if (diecount == 32)
-                { return ret; }
-                else
-                { return new List<WATSampleXY>(); }
+                //if (diecount == 32)
+                //{ return ret; }
+                //else
+                //{ return new List<WATSampleXY>(); }
             }
             else
             {

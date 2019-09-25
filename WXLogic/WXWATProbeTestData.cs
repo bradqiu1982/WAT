@@ -142,7 +142,7 @@ namespace WXLogic
 
             foreach (var rkv in rpdict)
             {
-                if (!CheckSharedData(coupongroup,rkv.Key))
+                if (CheckSharedData(coupongroup,rkv.Key))
                 {
                     var sharelist = rkv.Value;
                     foreach (var data in sharelist)
