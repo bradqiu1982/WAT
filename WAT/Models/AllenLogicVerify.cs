@@ -22,9 +22,10 @@ namespace WAT.Models
             clist.Add("E06AB");
             clist.Add("E08AA");
             clist.Add("E08AB");
+            clist.Add("E10");
 
             var idx = 0;
-            var data = ExcelReader.RetrieveDataFromExcel(filepath, null, 4);
+            var data = ExcelReader.RetrieveDataFromExcel(filepath, "Sheet1", 4);
             foreach (var line in data)
             {
                 if (idx == 0)
@@ -33,7 +34,7 @@ namespace WAT.Models
                     continue;
                 }
 
-                var wafer = line[0];
+                var wafer = line[0].Substring(0,9);
                 var dcdname = line[1];
                 foreach (var c in clist)
                 {
