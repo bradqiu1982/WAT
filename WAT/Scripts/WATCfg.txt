@@ -6,7 +6,10 @@ SHAREFOLDERPWD:::wangle@4567893
 
 APPEMAILADRESS:::WXNPI.Trace@finisar.com
 APPEMAILPWD:::abc@12345
-EMAILSERVER:::wmail.finisar.com
+#EMAILSERVER:::wmail.finisar.com
+#EMAILSSL:::TRUE
+EMAILSERVER:::sny-mrs.ads.finisar.com
+EMAILSSL:::FALSE
 
 DIESORTWARINGLIST:::brad.qiu@finisar.com;tyler.zhang@finisar.com
 
