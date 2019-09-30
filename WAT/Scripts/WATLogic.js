@@ -971,6 +971,104 @@
         });
     }
 
+    var wuxiwat = function ()
+    {
+        var logictable = null;
+
+        $.post('/WATLogic/LoadOGPWafer', {
+        }, function (output) {
+            $('#wafernum').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.waferlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#wafernum').attr('readonly', false);
+        });
+
+        var wuxiwaferwat = function () {
+            var wafernum = $('#wafernum').val();
+            if (wafernum == '' || wafernum.indexOf('-') == -1) {
+                alert('Please into correct wafernum number!');
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWaferWATData',
+                {
+                    wafer: wafernum
+                },
+                function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (logictable) {
+                        logictable.destroy();
+                        logictable = null;
+                    }
+                    $("#logichead").empty();
+                    $("#logiccontent").empty();
+
+                    $("#logichead").append(
+                            '<tr>' +
+                            '<th>Container</th>' +
+                            '<th>Test</th>' +
+                            '<th>Result</th>' +
+                            '<th>Test Times</th>' +
+                            '<th>Failure Count</th>' +
+                            '<th>Failure Mode</th>' +
+                            '<th>Failed Param</th>' +
+                            '</tr>'
+                        );
+
+                    $.each(output.reslist, function (i, val) {
+                        $("#logiccontent").append(
+                            '<tr>' +
+                            '<td>' + val.coupongroup + '</td>' +
+                            '<td>' + val.teststep + '</td>' +
+                            '<td>' + val.result + '</td>' +
+                             '<td>' + val.testtimes + '</td>' +
+                             '<td>' + val.failcount + '</td>' +
+                             '<td>' + val.failmode + '</td>' +
+                             '<td>' + val.couponstr + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    logictable = $('#logictable').DataTable({
+                        'iDisplayLength': -1,
+                        'aLengthMenu': [[30, 60, 100, -1],
+                        [30, 60, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+                });
+        }
+
+
+        $('body').on('click', '#btn-search', function () {
+            wuxiwaferwat();
+        });
+    }
+
     return {
         ALLENLOGICINIT: function () {
             allenlogic();
@@ -987,6 +1085,10 @@
         },
         OGPINIT: function () {
             watogp();
+        },
+        WUXIWATINIT: function ()
+        {
+            wuxiwat();
         }
     }
 }();

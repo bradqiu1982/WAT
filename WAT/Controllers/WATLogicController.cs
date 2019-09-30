@@ -384,5 +384,125 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult WUXIWaferWAT()
+        { return View(); }
+
+        private object GetWuxiWaferWATRest(string coupongroup, string step)
+        {
+            var wxlogic = new WXLogic.WXWATLogic();
+            var ret = wxlogic.WATPassFail(coupongroup, step);
+
+            var stepdict = new Dictionary<string, string>();
+            stepdict.Add("POSTBIJUDGEMENT", "(RP01)");
+            stepdict.Add("POSTHTOL1JUDGEMENT", "(RP02)");
+            stepdict.Add("POSTHTOL2JUDGEMENT", "(RP03)");
+
+            var failcount = "";
+            var couponstr = "";
+            var failmode = "";
+            var testtimes = "";
+            var result = "";
+
+            if (!string.IsNullOrEmpty(ret.AppErrorMsg))
+            { result = ret.AppErrorMsg; }
+            else
+            {
+                if (ret.TestPass)
+                {
+                    testtimes = ret.ValueCollect["readcount"];
+                    result = "PASS";
+                }
+                else
+                {
+                    if (ret.ScrapIt)
+                    {
+                        failcount = ret.ValueCollect["failcount"];
+                        couponstr = ret.ValueCollect["fail coupon string"].Replace("Fails:","");
+                        testtimes = ret.ValueCollect["readcount"];
+                        result = "SCRAP";
+                    }
+                    else
+                    {
+                        if (ret.NeedRetest)
+                        {
+                            failcount = ret.ValueCollect["failcount"];
+                            couponstr = ret.ValueCollect["fail coupon string"].Replace("Fails:", "");
+                            testtimes = ret.ValueCollect["readcount"];
+                            result = "FAIL/RETESTABLE";
+                        }
+                        else
+                        {
+                            failcount = ret.ValueCollect["failcount"];
+                            couponstr = ret.ValueCollect["fail coupon string"].Replace("Fails:", "");
+                            testtimes = ret.ValueCollect["readcount"];
+                            result = "FAIL/NON-RETESTABLE";
+                        }
+                    }//end else
+                }//end else
+            }
+
+            if (ret.ValueCollect.ContainsKey("fail mode") && !string.IsNullOrEmpty(ret.ValueCollect["fail mode"]))
+            {
+                var mddict = new Dictionary<string, bool>();
+                var unitstr = ret.ValueCollect["fail mode"].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var u in unitstr)
+                {
+                    var md = u.Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[2];
+                    if (!mddict.ContainsKey(md))
+                    { mddict.Add(md, true); }
+                }
+                failmode = string.Join(",", mddict.Keys);
+            }
+
+            if (result.Contains("Fail to get wat prob filtered data"))
+            { result = "Not Tested"; }
+            if (stepdict.ContainsKey(step))
+            { step += stepdict[step]; }
+
+            return new
+            {
+                coupongroup = coupongroup,
+                teststep = step,
+                result = result,
+                testtimes = testtimes,
+                failcount = failcount,
+                failmode = failmode,
+                couponstr = couponstr
+            };
+        }
+
+        public JsonResult WUXIWaferWATData()
+        {
+            var wafer = Request.Form["wafer"];
+            var cdclist = new List<string>();
+            cdclist.Add("E08");
+            cdclist.Add("E07");
+            cdclist.Add("E10");
+
+            var steplist = new List<string>();
+            steplist.Add("POSTBIJUDGEMENT");
+            steplist.Add("POSTHTOL1JUDGEMENT");
+            steplist.Add("POSTHTOL2JUDGEMENT");
+
+            var reslist = new List<object>();
+
+            foreach (var cdc in cdclist)
+            {
+                foreach (var step in steplist)
+                {
+                    reslist.Add(GetWuxiWaferWATRest(wafer+cdc,step));
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                reslist = reslist
+            };
+            return ret;
+
+        }
+
     }
 }
