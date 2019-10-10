@@ -102,11 +102,18 @@ namespace WAT.Controllers
         {
             var wafer = Request.Form["fs"].ToUpper();
             var offeredpn = Request.Form["pn"];
+            var ctype = Request.Form["ctype"];
+
+            var supply = false;
+            if (!string.IsNullOrEmpty(ctype) && ctype.Contains("S"))
+            {
+                supply = true;
+            }
 
             WebLog.LogVisitor(Request.UserHostName, "try to re-construct file:" + wafer);
 
             var allfiles = DieSortVM.GetAllWaferFile(this);
-            if (DieSortVM.SolveANewWafer(wafer,allfiles,this,offeredpn))
+            if (DieSortVM.SolveANewWafer(wafer,allfiles,this,offeredpn,supply))
             {
                 var syscfgdict = CfgUtility.GetSysConfig(this);
                 var reviewfolder = syscfgdict["DIESORTREVIEW"];

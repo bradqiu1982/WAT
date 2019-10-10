@@ -10,8 +10,25 @@ namespace WAT.Controllers
 {
     public class WATLogicController : Controller
     {
+        private static string DetermineCompName(string IP)
+        {
+            try
+            {
+                IPAddress myIP = IPAddress.Parse(IP);
+                IPHostEntry GetIPHost = Dns.GetHostEntry(myIP);
+                List<string> compName = GetIPHost.HostName.ToString().Split('.').ToList();
+                return compName.First();
+            }
+            catch (Exception ex)
+            { return string.Empty; }
+        }
+
         public ActionResult VerifyAllenLogic()
         {
+            var machine = DetermineCompName(Request.UserHostName);
+            if (machine.ToUpper().Contains("IPH"))
+            { return RedirectToAction("AllenWaferWAT", "WATLogic"); }
+
             return View();
         }
 

@@ -2,7 +2,7 @@
 
 SHAREFOLDERUSER:::brad.qiu
 SHAREFOLDERDOMIN:::china
-SHAREFOLDERPWD:::wangle@4567893
+SHAREFOLDERPWD:::wangle@4567895
 
 APPEMAILADRESS:::WXNPI.Trace@finisar.com
 APPEMAILPWD:::abc@12345
@@ -13,7 +13,7 @@ EMAILSSL:::FALSE
 
 DIESORTWARINGLIST:::brad.qiu@finisar.com;tyler.zhang@finisar.com
 
-DIESORTFOLDER:::\\wux-engsys01.china.ads.finisar.com\DieSorting
+DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
 DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
 DIESORTSHARE:::\\wux-engsys01.china.ads.finisar.com\DieSortingNew
 

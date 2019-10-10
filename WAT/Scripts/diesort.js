@@ -131,6 +131,7 @@
             }
 
             var pn = $('#cmf-pn').val();
+            var ctype = $('#constructtype').val();
 
             var options = {
                 loadingTips: "loading data......",
@@ -144,7 +145,8 @@
 
             $.post('/DieSort/ReConstructDieSort', {
                 fs: fs,
-                pn: pn
+                pn: pn,
+                ctype: ctype
             }, function (output) {
                 $.bootstrapLoading.end();
 

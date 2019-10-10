@@ -6,6 +6,7 @@ using System.Xml;
 using System.IO;
 using System.Web.Mvc;
 using System.Text;
+using System.Web.Caching;
 
 namespace WAT.Models
 {
@@ -14,9 +15,19 @@ namespace WAT.Models
     {
         public static List<string> GetAllWaferFile(Controller ctrl)
         {
+            var cachelist = (List<string>)ctrl.HttpContext.Cache.Get("allwafermapfiles");
+            if (cachelist != null)
+            { return cachelist; }
+
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
             var srcfolder = syscfgdict["DIESORTFOLDER"];
-            return ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, srcfolder);
+            var allwafermapfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, srcfolder);
+
+            if (ctrl.HttpContext.Cache != null)
+            {
+                ctrl.HttpContext.Cache.Insert("allwafermapfiles", allwafermapfiles, null, DateTime.Now.AddHours(2), Cache.NoSlidingExpiration);
+            }
+            return allwafermapfiles;
         }
 
         public static Dictionary<string,bool> GetInspectedWaferInPast5Days()
@@ -80,7 +91,7 @@ namespace WAT.Models
                     && !nofmwafer.ContainsKey(wf) 
                     && !noprobewafer.ContainsKey(wf))
                 {
-                    if (SolveANewWafer(wf,allwffiles,ctrl,""))
+                    if (SolveANewWafer(wf,allwffiles,ctrl,"",false))
                     {
                         solvedwafer.Add(wf, true);
                     }
@@ -89,7 +100,7 @@ namespace WAT.Models
 
         }
 
-        public static bool SolveANewWafer(string wafer, List<string> allwffiles,Controller ctrl,string offeredpn)
+        public static bool SolveANewWafer(string wafer, List<string> allwffiles,Controller ctrl,string offeredpn,bool supply)
         {
             FileLoadedData.RemoveLoadedFile(wafer, "");
 
@@ -172,28 +183,42 @@ namespace WAT.Models
 
 
             //get the actual wafer file
-            var waferfile = "";
+            var swaferfile = "";
             foreach (var f in allwffiles)
             {
                 var uf = f.ToUpper();
                 if (uf.Contains(productfm.ToUpper()) && uf.Contains(wafer.ToUpper()))
                 {
-                    waferfile = f;
+                    swaferfile = f;
                     break;
                 }
             }
 
-            if (string.IsNullOrEmpty(waferfile))
+            if (string.IsNullOrEmpty(swaferfile))
             {
                 foreach (var f in allwffiles)
                 {
                     var uf = f.ToUpper();
                     if (uf.Contains(wafer.ToUpper()))
                     {
-                        waferfile = f;
+                        swaferfile = f;
                         break;
                     }
                 }
+            }
+
+            if (string.IsNullOrEmpty(swaferfile))
+            {
+                WebLog.Log(wafer, "DIESORT", " map file does not exist: " + swaferfile);
+                return false;
+            }
+
+
+            var waferfile = ExternalDataCollector.DownloadShareFile(swaferfile, ctrl);
+            if (waferfile == null)
+            {
+                WebLog.Log(wafer, "DIESORT", " fail to download map file: " + swaferfile);
+                return false;
             }
 
             try
@@ -415,7 +440,7 @@ namespace WAT.Models
 
                 var mapfile = Path.GetFileName(waferfile);
                 //write sample X,Y database
-                StoreWaferSampleData(mapfile, wafer, selectxydict,bin57dict, arraySTR, bompn, fpn);
+                StoreWaferSampleData(mapfile, wafer, selectxydict,bin57dict, arraySTR, bompn, fpn,supply);
                 
                 //write wafer related data
                 var allselectdict = new Dictionary<string, string>();
@@ -602,11 +627,14 @@ namespace WAT.Models
             return true;
         }
 
-        private static void StoreWaferSampleData(string mapfile, string wafer, Dictionary<string, string> selectxy, Dictionary<string, string> bin57dict, string array,string mpn,string fpn)
+        private static void StoreWaferSampleData(string mapfile, string wafer, Dictionary<string, string> selectxy, Dictionary<string, string> bin57dict, string array,string mpn,string fpn,bool supply)
         {
-            var sql = "delete from WaferSampleData where MAPFILE = '<MAPFILE>'";
-            sql = sql.Replace("<MAPFILE>", mapfile);
-            DBUtility.ExeLocalSqlNoRes(sql);
+            if (!supply)
+            {
+                var sql = "delete from WaferSampleData where MAPFILE = '<MAPFILE>'";
+                sql = sql.Replace("<MAPFILE>", mapfile);
+                DBUtility.ExeLocalSqlNoRes(sql);
+            }
 
             var updatetime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             foreach (var kv in selectxy)
@@ -614,7 +642,7 @@ namespace WAT.Models
                 var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                 var x = xystr[0];
                 var y = xystr[1];
-                sql = "insert into WaferSampleData(WAFER,X,Y,BIN,MPN,FPN,PArray,MAPFILE,UpdateTime) values(@WAFER,@X,@Y,@BIN,@MPN,@FPN,@PArray,@MAPFILE,@UpdateTime)";
+                var sql = "insert into WaferSampleData(WAFER,X,Y,BIN,MPN,FPN,PArray,MAPFILE,UpdateTime) values(@WAFER,@X,@Y,@BIN,@MPN,@FPN,@PArray,@MAPFILE,@UpdateTime)";
                 var dict = new Dictionary<string, string>();
                 dict.Add("@WAFER",wafer);
                 dict.Add("@X",x);
@@ -633,7 +661,7 @@ namespace WAT.Models
                 var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                 var x = xystr[0];
                 var y = xystr[1];
-                sql = "insert into WaferSampleData(WAFER,X,Y,BIN,MPN,FPN,PArray,MAPFILE,UpdateTime) values(@WAFER,@X,@Y,@BIN,@MPN,@FPN,@PArray,@MAPFILE,@UpdateTime)";
+                var sql = "insert into WaferSampleData(WAFER,X,Y,BIN,MPN,FPN,PArray,MAPFILE,UpdateTime) values(@WAFER,@X,@Y,@BIN,@MPN,@FPN,@PArray,@MAPFILE,@UpdateTime)";
                 var dict = new Dictionary<string, string>();
                 dict.Add("@WAFER", wafer);
                 dict.Add("@X", x);

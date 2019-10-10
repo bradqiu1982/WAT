@@ -209,7 +209,14 @@ namespace WXLogic
                 && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01"))
                 && string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0)
             {
-                MoveOriginalMapFile(containerinfo.wafer, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
+                try
+                {
+                    using (NativeMethods cv = new NativeMethods("brad.qiu", "china", cfg["SHAREFOLDERPWD"]))
+                    {
+                        MoveOriginalMapFile(containerinfo.wafer, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
+                    }
+                }
+                catch (Exception ex) { }
             }
             return logicresult;
         }
@@ -249,7 +256,6 @@ namespace WXLogic
                         return;
                     }
                 }
-
             }
             catch (Exception ex) { }
         }
