@@ -21,8 +21,8 @@ namespace WXLogic
             if (cfg.ContainsKey("SHARETOALLEN") && cfg["SHARETOALLEN"].Contains("FALSE"))
             { sharedatatoallen = false; }
 
-            var bitemp = 100;
-            var shippable = 1;
+            if (!string.IsNullOrEmpty(AnalyzeParam))
+            { sharedatatoallen = false; }
 
             var CouponGroup = "";
             if (coupongroup1.Length < 12)
@@ -35,6 +35,11 @@ namespace WXLogic
                 CouponGroup = coupongroup1.Substring(0, 12).ToUpper();
             }
 
+            var bitemp = 100;
+            if (CouponGroup.Contains("E06"))
+            { bitemp = 25; }
+
+            var shippable = 1;
 
             var testname = GetTestNameFromCurrentStep(CurrentStepName);
             if (string.IsNullOrEmpty(testname))
@@ -93,9 +98,9 @@ namespace WXLogic
                 if (arraynum == 1)
                 { necessarynum = 4; }
                 else if (arraynum == 4)
-                { necessarynum = 12; }
+                { necessarynum = 10; }
                 else if (arraynum == 12)
-                { necessarynum = 34; }
+                { necessarynum = 30; }
 
                 if (couponcount < necessarynum)
                 {
@@ -122,13 +127,35 @@ namespace WXLogic
             var failmodes = WXWATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode, bitemp);
             var failmodestr = WXWATFailureMode.GetFailModeString(failmodes);
 
+            if ((AnalyzeParam.Contains("_AD_")
+                || AnalyzeParam.Contains("_DB_")
+                || AnalyzeParam.Contains("_RD_"))
+                && !AnalyzeParam.Contains("_CPK_"))
+            {
+                CollectAnalyzeDeltaValue(watprobevalfiltered);
+                return ret;
+            }
+
             //Coupon Stat Data
             var binpndict = WXSpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
             var couponstatdata = WXWATCouponStats.GetCouponData(watprobevalfiltered, binpndict);
 
+            if ((AnalyzeParam.Contains("_MDD_")
+                || AnalyzeParam.Contains("_MXDP_")))
+            {
+                CollectAnalyzePOLDSummary(couponstatdata);
+                return ret;
+            }
+
             //CPK
             var cpkspec = WXSpecBinPassFail.GetCPKSpec(containerinfo.ProductName, DCDName, allspec);
             var cpktab = WXWATCPK.GetCPK(RP, couponstatdata, watprobevalfiltered, cpkspec);
+
+            if (AnalyzeParam.Contains("_CPK_"))
+            {
+                CollectAnalyzeCPKValue(cpktab);
+                return ret;
+            }
 
             //TTF
             var fitspec = WXSpecBinPassFail.GetFitSpec(containerinfo.ProductName, DCDName, allspec);
@@ -159,6 +186,11 @@ namespace WXLogic
             var passfailunitdata = WXWATPassFailUnit.GetPFUnitData(RP, DCDName, passfailunitspec
                 , watprobevalfiltered, couponstatdata, cpktab, ttfmu, ttfunitdata);
 
+            if (AnalyzeParam.Contains("_C-P"))
+            {
+                CollectAnalyzeC_PValue(passfailunitdata);
+                return ret;
+            }
 
             var failcount = WXWATPassFailUnit.GetFailCount(passfailunitdata);
             var failunitinfo = WXWATPassFailUnit.GetFailUnitWithInfo(passfailunitdata);
@@ -173,6 +205,9 @@ namespace WXLogic
 
             var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
                , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails);
+
+            if (!string.IsNullOrEmpty(AnalyzeParam))
+            { logicresult.AnalyzeParamData.AddRange(AnalyzeParamData); }
 
             var scrapspec = WXSpecBinPassFail.GetScrapSpec(containerinfo.ProductName, DCDName, allspec);
             logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, UT.O2I(RP), readcount, failcount, bitemp, failmodes);
@@ -207,7 +242,8 @@ namespace WXLogic
             if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
                 && logicresult.TestPass
                 && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01"))
-                && string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0)
+                && string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0
+                && string.IsNullOrEmpty(AnalyzeParam))
             {
                 try
                 {
@@ -221,6 +257,61 @@ namespace WXLogic
             return logicresult;
         }
 
+        private void CollectAnalyzeDeltaValue(List<WXWATProbeTestDataFiltered> filterdata)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_AD_", "_DB_", "_RD_" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+            foreach (var srcdata in filterdata)
+            {
+                if (string.Compare(srcdata.CommonTestName, orginalname, true) == 0)
+                {
+                    if (AnalyzeParam.Contains("_AD_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].absolutedeltaref))
+                    { AnalyzeParamData.Add(new XYVAL(srcdata.X,srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].absolutedeltaref))); }
+                    if (AnalyzeParam.Contains("_DB_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].dBdeltaref))
+                    { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].dBdeltaref))); }
+                    if (AnalyzeParam.Contains("_RD_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].ratiodeltaref))
+                    { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].ratiodeltaref))); }
+                }
+            }
+        }
+
+        private void CollectAnalyzePOLDSummary(List<WXWATCouponStats> couponstat)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_RP"}, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+            foreach (var cp in couponstat)
+            {
+                foreach (var kv in cp.CPValDict)
+                {
+                    if (kv.Key.ToUpper().Contains(orginalname) && !string.IsNullOrEmpty(kv.Value))
+                    {
+                        AnalyzeParamData.Add(new XYVAL(cp.X, cp.Y,cp.UnitNum, UT.O2D(kv.Value)));
+                    }
+                }
+            }
+        }
+
+        private void CollectAnalyzeCPKValue(List<WXWATCPK> cpktab)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_REF" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper() + "_REF";
+            foreach (var c in cpktab)
+            {
+                if (c.CommonTestName.ToUpper().Contains(orginalname) && !string.IsNullOrEmpty(c.TestValue))
+                {
+                    AnalyzeParamData.Add(new XYVAL(c.X, c.Y,c.UnitNum, UT.O2D(c.TestValue)));
+                }
+            }
+        }
+
+        private void CollectAnalyzeC_PValue(List<WXWATPassFailUnit> pfunit)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_RP" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+            foreach (var pfu in pfunit)
+            {
+                if (pfu.CommonTestName.ToUpper().Contains(orginalname) && !string.IsNullOrEmpty(pfu.TVAL))
+                {
+                    AnalyzeParamData.Add(new XYVAL(pfu.X, pfu.Y,pfu.UnitNum, UT.O2D(pfu.TVAL)));
+                }
+            }
+        }
 
         private static void MoveOriginalMapFile(string wafer, string orgfolder, string PCT100folder)
         {
@@ -498,6 +589,10 @@ namespace WXLogic
                 {
                     return "PRLL_Post_HTOL2_Test";
                 }
+                if (string.Compare(stepnametrim, "PREBIJUDGEMENT") == 0)
+                {
+                    return "PRLL_VCSEL_Pre_Burn_in_Test";
+                }
                 else
                 {
                     return string.Empty;
@@ -583,6 +678,9 @@ namespace WXLogic
 
             ValueCollect = new Dictionary<string, string>();
             DataTables = new List<object>();
+
+            AnalyzeParam = "";
+            AnalyzeParamData = new List<XYVAL>();
         }
 
         public bool TestPass { set; get; } //test pass
@@ -593,5 +691,8 @@ namespace WXLogic
 
         public Dictionary<string, string> ValueCollect { set; get; }
         public List<object> DataTables { set; get; }
+
+        public string AnalyzeParam { set; get; }
+        public List<XYVAL> AnalyzeParamData { set; get; }
     }
 }

@@ -9,7 +9,7 @@ namespace WAT.Models
     public class AllenWATLogic
     {
 
-        public static AllenWATLogic PassFail(string containername,string dcdname_,bool noexclusion,bool storeres=false)
+        public static AllenWATLogic PassFail(string containername,string dcdname_,bool noexclusion,bool storeres=false,string AnalyzeParam = null)
         {
             var ret = new AllenWATLogic();
 
@@ -75,19 +75,38 @@ namespace WAT.Models
             var spec4fmode = SpecBinPassFail.GetParam4FailMode(containerinfo.ProductName, rp.ToString(), allspec);
             var failmodes = WATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode, bitemp);
 
+            if (!string.IsNullOrEmpty(AnalyzeParam)
+                && (AnalyzeParam.Contains("_AD_")
+                || AnalyzeParam.Contains("_DB_")
+                || AnalyzeParam.Contains("_RD_"))
+                && !AnalyzeParam.Contains("_CPK_"))
+            {
+                ret.CollectAnalyzeDeltaValue(watprobevalfiltered,AnalyzeParam);
+                return ret;
+            }
+
             //Coupon Stat Data
             var binpndict = SpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
             var couponstatdata = WATCouponStats.GetCouponData(watprobevalfiltered, binpndict);
-            //if (couponstatdata.Count == 0)
-            //{
-            //    //System.Windows.MessageBox.Show("Fail to get wat coupon data.....");
-            //    ret.AppErrorMsg = "FFail to get wat coupon stat data.....";
-            //    return ret;
-            //}
+
+            if (!string.IsNullOrEmpty(AnalyzeParam)
+                &&(AnalyzeParam.Contains("_MDD_")
+                || AnalyzeParam.Contains("_MXDP_")))
+            {
+                ret.CollectAnalyzePOLDSummary(couponstatdata, AnalyzeParam);
+                return ret;
+            }
 
             //CPK
             var cpkspec = SpecBinPassFail.GetCPKSpec(containerinfo.ProductName, dcdname, allspec);
             var cpktab = WATCPK.GetCPK(rp.ToString(), couponstatdata, watprobevalfiltered, cpkspec);
+
+            if (!string.IsNullOrEmpty(AnalyzeParam)
+                && AnalyzeParam.Contains("_CPK_"))
+            {
+                ret.CollectAnalyzeCPKValue(cpktab, AnalyzeParam);
+                return ret;
+            }
 
             //TTF
             var fitspec = SpecBinPassFail.GetFitSpec(containerinfo.ProductName, dcdname, allspec);
@@ -116,12 +135,12 @@ namespace WAT.Models
             var passfailunitdata = WATPassFailUnit.GetPFUnitData(rp.ToString(), dcdname, passfailunitspec
                 , watprobevalfiltered, couponstatdata,cpktab,ttfmu,ttfunitdata);
 
-            //if (passfailunitdata.Count == 0)
-            //{
-            //    System.Windows.MessageBox.Show("Fail to get wat passfailunit data .....");
-            //    ret.ProgramMsg = "Fail to get wat passfailunit data .....";
-            //    return ret;
-            //}
+            if (!string.IsNullOrEmpty(AnalyzeParam)
+                && AnalyzeParam.Contains("_C-P"))
+            {
+                ret.CollectAnalyzeC_PValue(passfailunitdata, AnalyzeParam);
+                return ret;
+            }
 
             var failcount = WATPassFailUnit.GetFailCount(passfailunitdata);
             var failunit = WATPassFailUnit.GetFailUnit(passfailunitdata);
@@ -158,6 +177,9 @@ namespace WAT.Models
             var logicresult = RetestLogic(containerinfo, dcdname, rp, shippable, probecount.ProbeCount, readcount
                 , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,allunitexclusion);
 
+            if (!string.IsNullOrEmpty(AnalyzeParam))
+            { logicresult.AnalyzeParamData.AddRange(ret.AnalyzeParamData); }
+
             var scrapspec = SpecBinPassFail.GetScrapSpec(containerinfo.ProductName, dcdname,allspec);
 
             logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, rp, readcount, failcount, bitemp, failmodes);
@@ -192,6 +214,62 @@ namespace WAT.Models
             }
 
             return logicresult;
+        }
+
+        private  void CollectAnalyzeDeltaValue(List<WATProbeTestDataFiltered> filterdata,string AnalyzeParam)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_AD_", "_DB_", "_RD_" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+            foreach (var srcdata in filterdata)
+            {
+                if (string.Compare(srcdata.CommonTestName, orginalname, true) == 0)
+                {
+                    if (AnalyzeParam.Contains("_AD_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].absolutedeltaref))
+                    { AnalyzeParamData.Add(new WXLogic.XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].absolutedeltaref))); }
+                    if (AnalyzeParam.Contains("_DB_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].dBdeltaref))
+                    { AnalyzeParamData.Add(new WXLogic.XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].dBdeltaref))); }
+                    if (AnalyzeParam.Contains("_RD_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].ratiodeltaref))
+                    { AnalyzeParamData.Add(new WXLogic.XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].ratiodeltaref))); }
+                }
+            }
+        }
+
+        private void CollectAnalyzePOLDSummary(List<WATCouponStats> couponstat,string AnalyzeParam)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_RP" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+            foreach (var cp in couponstat)
+            {
+                foreach (var kv in cp.CPValDict)
+                {
+                    if (kv.Key.ToUpper().Contains(orginalname) && !string.IsNullOrEmpty(kv.Value))
+                    {
+                        AnalyzeParamData.Add(new WXLogic.XYVAL(cp.X, cp.Y,cp.UnitNum, UT.O2D(kv.Value)));
+                    }
+                }
+            }
+        }
+
+        private void CollectAnalyzeCPKValue(List<WATCPK> cpktab, string AnalyzeParam)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_REF" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper()+"_REF";
+            foreach (var c in cpktab)
+            {
+                if (c.CommonTestName.ToUpper().Contains(orginalname) && !string.IsNullOrEmpty(c.TestValue))
+                {
+                    AnalyzeParamData.Add(new WXLogic.XYVAL(c.X, c.Y,c.UnitNum, UT.O2D(c.TestValue)));
+                }
+            }
+        }
+
+        private void CollectAnalyzeC_PValue(List<WATPassFailUnit> pfunit, string AnalyzeParam)
+        {
+            var orginalname = AnalyzeParam.Split(new string[] { "_RP" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+            foreach (var pfu in pfunit)
+            {
+                if (pfu.CommonTestName.ToUpper().Contains(orginalname) && !string.IsNullOrEmpty(pfu.TVAL))
+                {
+                    AnalyzeParamData.Add(new WXLogic.XYVAL(pfu.X, pfu.Y,pfu.UnitNum, UT.O2D(pfu.TVAL)));
+                }
+            }
         }
 
         private static AllenWATLogic RetestLogic(ContainerInfo container,string DCDName,int rp,int shippable,int probeCount
@@ -525,6 +603,7 @@ namespace WAT.Models
 
             ValueCollect = new Dictionary<string, string>();
             DataTables = new List<object>();
+            AnalyzeParamData = new List<WXLogic.XYVAL>();
         }
 
 
@@ -678,7 +757,7 @@ namespace WAT.Models
         public List<SampleCoordinate> ExclusionInfo { set; get; }
         public Dictionary<string, string> ValueCollect { set; get; }
         public List<object> DataTables { set; get; }
-
+        public List<WXLogic.XYVAL> AnalyzeParamData { set; get; }
 
         public string SummaryRes
         {

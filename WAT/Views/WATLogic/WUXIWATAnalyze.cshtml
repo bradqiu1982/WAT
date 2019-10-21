@@ -1,0 +1,63 @@
+﻿
+@{
+    ViewBag.Title = "WUXIWATAnalyze";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/highcharts/annotations.js"></script>
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.WUXIWATANALYZE();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="height:2em">WAFER</label>
+                    </div>
+                    <div class="col-xs-9">
+                        <input type="text" class="form-control" data-provide="typeahead"
+                               id="wafers" name="wafers" autocomplete="off" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-distrib" id="btn-distrib" data-toggle="tooltip" title="Show Distribute of WUXI WAT Data" value="DISTRIBUTION">
+                    </div>
+                </div>
+                <div class="row row-margin">
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="height:2em">PARAM</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="param" name="param" readonly="readonly">
+                    </div>
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="height:2em">RP</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <select class="form-control" id="rplist" name="rplist">
+                            <option value="RP01" selected>RP01</option>
+                            <option value="RP02">RP02</option>
+                            <option value="RP03">RP03</option>
+                            <option value="RP00">RP00</option>
+                        </select>
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-cmp" id="btn-cmp" style="margin-left:40px;" data-toggle="tooltip" title="Compare WUXI WAT Data with same wafers" value="SELF_CMP">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-sample" id="btn-sample" data-toggle="tooltip" title="Compare WUXI WAT Data with ALLEN E08 wafers" value="SAMPLE_CMP">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+            </div>
+            <div class="v-content" id="chartdiv" name ="chartdiv">
+            </div>
+        </div>
+    </div>
+</div>

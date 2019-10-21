@@ -1069,6 +1069,233 @@
         });
     }
 
+    var wuxiwatanalyze = function () {
+
+        $.post('/WATLogic/WATAnalyzeParams', {
+        }, function (output) {
+            $('#param').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.paramlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#param').attr('readonly', false);
+        });
+
+        $.post('/WATLogic/LoadOGPWafer', {}, function (output) {
+            $('#wafers').tagsinput({
+                freeInput: false,
+                typeahead: {
+                    source: output.waferlist,
+                    minLength: 0,
+                    showHintOnFocus: true,
+                    autoSelect: false,
+                    selectOnBlur: false,
+                    changeInputOnSelect: false,
+                    changeInputOnMove: false,
+                    afterSelect: function (val) {
+                        this.$element.val("");
+                    }
+                }
+            });
+
+            $('#wafers').attr('readonly', false);
+        });
+
+
+
+        function analyzedata(act)
+        {
+            var param = $('#param').val();
+            var wafers = $.trim($('#wafers').tagsinput('items'));
+            if (wafers == '') {
+                wafers = $.trim($('#wafers').parent().find('input').eq(0).val());
+            }
+            var rp = $('#rplist').val();
+            
+            if (param == '' || wafers == '' || rp == '')
+            {
+                alert('Please input your query condition!');
+                return false;
+            }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATAnalyzeData', {
+                param: param,
+                wafers: wafers,
+                rp: rp,
+                act: act
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-1"></div><div class="col-xs-10" style="height: 410px;">' +
+                               '<div class="v-box" id="' + output.boxdata.id + '"></div>' +
+                               '</div><div class="col-xs-1"></div></div>';
+                    $('#chartdiv').append(appendstr);
+                    drawboxplot(output.boxdata);
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-distrib', function () {
+            analyzedata('distrib');
+        });
+
+        $('body').on('click', '#btn-cmp', function () {
+            analyzedata('cmp');
+        });
+
+        $('body').on('click', '#btn-sample', function () {
+            analyzedata('sample');
+        });
+
+        var drawboxplot = function (boxplot_data) {
+            var options = {
+                chart: {
+                    zoomType: 'xy',
+                    type: 'boxplot'
+                },
+
+                title: {
+                    text: boxplot_data.title
+                },
+
+                legend: {
+                    enabled: false
+                },
+
+                xAxis: {
+                    categories: boxplot_data.xAxis.data,
+                    title: {
+                        text: boxplot_data.xAxis.title
+                    }
+                },
+
+                yAxis: {
+                    title: {
+                        text: boxplot_data.yAxis.title
+                    },
+                    plotLines: [{
+                        value: boxplot_data.lowlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'LL',
+                            align: 'left'
+                        }
+                    }, {
+                        value: boxplot_data.highlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'UL',
+                            align: 'left'
+                        }
+                    }]
+                },
+                annotations: [{
+                    labels: boxplot_data.labels,
+                    color: '#d4d4d4',
+                    draggable: 'xy'
+                }],
+                series: [{
+                    name: boxplot_data.data.name,
+                    data: boxplot_data.data.data,
+                    tooltip: {
+                        headerFormat: '<em>{point.key}</em><br/>'
+                    },
+                    turboThreshold: 100000
+                },
+                {
+                    name: 'Outlier',
+                    type: 'scatter',
+                    data: boxplot_data.outlierdata,
+                    marker: {
+                        lineWidth: 1,
+                        radius: 2.5
+                    },
+                    tooltip: {
+                        headerFormat: '',
+                        pointFormat: "{point.y}"
+                    },
+                    turboThreshold:100000
+                }],
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + boxplot_data.id).parent().toggleClass('chart-modal');
+                                $('#' + boxplot_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(boxplot_data.id, options);
+        }
+    }
+
     return {
         ALLENLOGICINIT: function () {
             allenlogic();
@@ -1089,6 +1316,9 @@
         WUXIWATINIT: function ()
         {
             wuxiwat();
+        },
+        WUXIWATANALYZE : function(){
+            wuxiwatanalyze();
         }
     }
 }();

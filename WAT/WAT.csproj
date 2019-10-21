@@ -265,6 +265,7 @@
     <Compile Include="Models\AllenLogic\WATTTFUnit.cs" />
     <Compile Include="Models\AllenLogic\WATTTFuse.cs" />
     <Compile Include="Models\AllenVcselPNs.cs" />
+    <Compile Include="Models\CBOXData.cs" />
     <Compile Include="Models\CfgUtility.cs" />
     <Compile Include="Models\CookieUtility.cs" />
     <Compile Include="Models\DBUtility.cs" />
@@ -279,6 +280,7 @@
     <Compile Include="Models\WaferPN.cs" />
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />
+    <Compile Include="Models\WATAnalyzeVM.cs" />
     <Compile Include="Models\WATSampleXY.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
@@ -759,6 +761,7 @@
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.standalone.min.css" />
     <Content Include="Scripts\bootstrap-select.min.js" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.min.js.map" />
+    <Content Include="Scripts\highcharts\annotations.js" />
     <Content Include="WXCfg.txt" />
     <None Include="Properties\PublishProfiles\watpublish.pubxml" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker.css.map" />
@@ -850,6 +853,7 @@
     <Content Include="Scripts\VCSELPN.xlsx" />
     <Content Include="Views\WATLogic\WATOGPData.cshtml" />
     <Content Include="Views\WATLogic\WUXIWaferWAT.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATAnalyze.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

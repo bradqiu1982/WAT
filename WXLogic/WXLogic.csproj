@@ -111,6 +111,7 @@
     <Compile Include="WXWATTTFTerms.cs" />
     <Compile Include="WXWATTTFUnit.cs" />
     <Compile Include="WXWATTTFuse.cs" />
+    <Compile Include="XYVAL.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -5,6 +5,7 @@ using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using WAT.Models;
+using WXLogic;
 
 namespace WAT.Controllers
 {
@@ -520,6 +521,579 @@ namespace WAT.Controllers
             return ret;
 
         }
+
+        public ActionResult WUXIWATAnalyze()
+        {
+            return View();
+        }
+
+        public JsonResult WATAnalyzeParams()
+        {
+            var paramlist = new List<string>();
+            paramlist.AddRange(WATAnalyzeVM.GetWATRawParamList());
+            paramlist.AddRange(WATAnalyzeVM.GetWATLogicParamList());
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                paramlist = paramlist
+            };
+            return ret;
+        }
+
+        private JsonResult WATDataAnalyzeChart(string param, List<string> wflist, string rp, bool cmp
+            , double lowlimit, double highlimit, double lowrange,double highrange,int rd,bool raw)
+        {
+
+            var xaxisdata = new List<string>();
+            var boxlistdata = new List<object>();
+            var outlierdata = new List<object>();
+            var xidx = 0;
+
+            Dictionary<string, List<XYVAL>> wuxiwatdatadict = new Dictionary<string, List<XYVAL>>();
+            if (raw)
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATRawData(param, wflist, rp, lowrange, highrange);}
+            else
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATLogicData(param, wflist, rp, lowrange, highrange); }
+                
+            var allwxwatdata = new List<XYVAL>();
+            if (wuxiwatdatadict.Count > 1)
+            {
+                foreach (var kv in wuxiwatdatadict)
+                { allwxwatdata.AddRange(kv.Value); }
+                allwxwatdata.Sort(delegate (XYVAL obj1, XYVAL obj2) {
+                    return obj1.Val.CompareTo(obj2.Val);
+                });
+                wuxiwatdatadict.Add("ALLDATA", allwxwatdata);
+            }
+
+            foreach (var kv in wuxiwatdatadict)
+            {
+                xaxisdata.Add("WUXI-" + kv.Key);
+
+                var tmplist = new List<double>();
+                foreach (var v in kv.Value)
+                { tmplist.Add(v.Val); }
+
+                var box = CBOXData.CBOXFromRaw(tmplist, lowlimit, highlimit);
+                var boxrawdata = (CBOXData)box[0];
+                var outlier = (List<VXVal>)box[1];
+
+                boxlistdata.Add(new
+                {
+                    x = xidx,
+                    low = Math.Round(boxrawdata.min, rd),
+                    q1 = Math.Round(boxrawdata.lower, rd),
+                    median = Math.Round(boxrawdata.mean, rd),
+                    q3 = Math.Round(boxrawdata.upper, rd),
+                    high = Math.Round(boxrawdata.max, rd),
+                    color = "#0053a2"
+                });
+
+                foreach (var outitem in outlier)
+                {
+                    outlierdata.Add(new
+                    {
+                        x = Math.Round(xidx + outitem.x, 4),
+                        y = Math.Round(outitem.ival, rd),
+                        color = "#0053a2"
+                    });
+                }
+
+
+                xidx++;
+            }
+
+
+            Dictionary<string, List<XYVAL>> allenrawdict = new Dictionary<string, List<XYVAL>>(); 
+            if (cmp)
+            {
+                var allallenwatdata = new List<XYVAL>();
+                if (raw)
+                { allenrawdict = WATAnalyzeVM.GetALLENWATRawData(param, wflist, rp, lowrange, highrange); }
+                else
+                { allenrawdict = WATAnalyzeVM.GetALLENWATLogicData(param, wflist, rp, lowrange, highrange); }
+                
+                if (allenrawdict.Count > 0)
+                {
+                    if (allenrawdict.Count > 1)
+                    {
+                        foreach (var kv in allenrawdict)
+                        { allallenwatdata.AddRange(kv.Value); }
+                        allallenwatdata.Sort(delegate (XYVAL obj1, XYVAL obj2) {
+                            return obj1.Val.CompareTo(obj2.Val);
+                        });
+                        allenrawdict.Add("ALLDATA", allallenwatdata);
+                    }
+
+
+                    foreach (var kv in allenrawdict)
+                    {
+                        xaxisdata.Add("ALLEN-" + kv.Key);
+
+                        var tmplist = new List<double>();
+                        foreach (var v in kv.Value)
+                        { tmplist.Add(v.Val); }
+
+                        var box = CBOXData.CBOXFromRaw(tmplist, lowlimit, highlimit);
+                        var boxrawdata = (CBOXData)box[0];
+                        var outlier = (List<VXVal>)box[1];
+
+                        boxlistdata.Add(new
+                        {
+                            x = xidx,
+                            low = Math.Round(boxrawdata.min, rd),
+                            q1 = Math.Round(boxrawdata.lower, rd),
+                            median = Math.Round(boxrawdata.mean, rd),
+                            q3 = Math.Round(boxrawdata.upper, rd),
+                            high = Math.Round(boxrawdata.max, rd),
+                            color = "#d91919"
+                        });
+
+                        foreach (var outitem in outlier)
+                        {
+                            outlierdata.Add(new
+                            {
+                                x = Math.Round(xidx + outitem.x, 4),
+                                y = Math.Round(outitem.ival, rd),
+                                color = "#d91919"
+                            });
+                        }
+
+
+                        xidx++;
+                    }//end foreach
+                }//end allendata
+            }//end cmp
+
+            if (wuxiwatdatadict.Count == 0 && allenrawdict.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No data for paramter " + param
+                };
+                return ret1;
+            }
+
+            var id = param.Replace(" ", "_") + "_id";
+            var title = param + " Distribution by Wafer";
+            var xAxis = new
+            {
+                title = "Wafer#",
+                data = xaxisdata
+            };
+            var yAxis = new { title = "Value" };
+            var data = new
+            {
+                name = param,
+                data = boxlistdata,
+            };
+
+            var labels = new List<object>();
+            labels.Add(new
+            {
+                format = "<table><tr><td>LL:" + lowlimit + "</td></tr><tr><td>HL:" + highlimit + "</td></tr></table>",
+                useHTML = true,
+                point = new
+                {
+                    x = 0,
+                    y = 0
+                }
+            });
+
+            var boxdata = new
+            {
+                id = id,
+                title = title,
+                xAxis = xAxis,
+                yAxis = yAxis,
+                lowlimit = lowlimit,
+                highlimit = highlimit,
+                labels = labels,
+                data = data,
+                outlierdata = outlierdata
+            };
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                boxdata = boxdata
+            };
+            return ret;
+        }
+
+
+        private JsonResult WATRawDistribution(string param, List<string> wflist, string rp,bool cmp)
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            if (!syscfg.ContainsKey(param))
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for RAW paramter "+param
+                };
+                return ret1;
+            }
+
+            var rawlimits = syscfg[param].Split(new string[] { ",", ";", ":" }, StringSplitOptions.RemoveEmptyEntries);
+            var lowlimit = Models.UT.O2D(rawlimits[0]);
+            var highlimit = Models.UT.O2D(rawlimits[1]);
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+
+            var lowrange = lowlimit -  3.0* Math.Abs(highlimit -lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+            return WATDataAnalyzeChart(param, wflist, rp, cmp
+            , lowlimit, highlimit, lowrange, highrange, rd, true);
+        }
+
+        private JsonResult WATLogicDistribution(string param, List<string> wflist, string rp,bool cmp)
+        {
+            var paramlimit = WATAnalyzeVM.GetWATSpecLimit(param,wflist);
+
+            if (paramlimit.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for LOGIC paramter " + param
+                };
+                return ret1;
+            }
+
+            var lowlimit = paramlimit[0];
+            var highlimit = paramlimit[1];
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+            var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+
+            return WATDataAnalyzeChart(param, wflist, rp, cmp
+            , lowlimit, highlimit, lowrange, highrange, rd, false);
+        }
+
+
+        private JsonResult WATDataSampleAnalyzeChart(string param, List<string> wxwflist,List<string> allenwflist, string rp
+                    , double lowlimit, double highlimit, double lowrange, double highrange, int rd, bool raw)
+        {
+
+            var xaxisdata = new List<string>();
+            var boxlistdata = new List<object>();
+            var outlierdata = new List<object>();
+            var xidx = 0;
+
+            Dictionary<string, List<XYVAL>> wuxiwatdatadict = new Dictionary<string, List<XYVAL>>();
+            if (raw)
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATRawData(param, wxwflist, rp, lowrange, highrange); }
+            else
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATLogicData(param, wxwflist, rp, lowrange, highrange); }
+
+            var allwxwatdata = new List<XYVAL>();
+            if (wuxiwatdatadict.Count > 1)
+            {
+                foreach (var kv in wuxiwatdatadict)
+                { allwxwatdata.AddRange(kv.Value); }
+                allwxwatdata.Sort(delegate (XYVAL obj1, XYVAL obj2) {
+                    return obj1.Val.CompareTo(obj2.Val);
+                });
+                wuxiwatdatadict.Add("ALLDATA", allwxwatdata);
+            }
+
+            foreach (var kv in wuxiwatdatadict)
+            {
+                xaxisdata.Add("WUXI-" + kv.Key);
+
+                var tmplist = new List<double>();
+                foreach (var v in kv.Value)
+                { tmplist.Add(v.Val); }
+
+                var box = CBOXData.CBOXFromRaw(tmplist, lowlimit, highlimit);
+                var boxrawdata = (CBOXData)box[0];
+                var outlier = (List<VXVal>)box[1];
+
+                boxlistdata.Add(new
+                {
+                    x = xidx,
+                    low = Math.Round(boxrawdata.min, rd),
+                    q1 = Math.Round(boxrawdata.lower, rd),
+                    median = Math.Round(boxrawdata.mean, rd),
+                    q3 = Math.Round(boxrawdata.upper, rd),
+                    high = Math.Round(boxrawdata.max, rd),
+                    color = "#0053a2"
+                });
+
+                foreach (var outitem in outlier)
+                {
+                    outlierdata.Add(new
+                    {
+                        x = Math.Round(xidx + outitem.x, 4),
+                        y = Math.Round(outitem.ival, rd),
+                        color = "#0053a2"
+                    });
+                }
+
+
+                xidx++;
+            }
+
+            var allallenwatdata = new List<XYVAL>();
+            Dictionary<string, List<XYVAL>> allenrawdict = new Dictionary<string, List<XYVAL>>();
+
+            {
+                if (raw)
+                { allenrawdict = WATAnalyzeVM.GetALLENWATRawData(param, allenwflist, rp, lowrange, highrange); }
+                else
+                { allenrawdict = WATAnalyzeVM.GetALLENWATLogicData(param, allenwflist, rp, lowrange, highrange); }
+
+                if (allenrawdict.Count > 0)
+                {
+                    if (allenrawdict.Count > 1)
+                    {
+                        foreach (var kv in allenrawdict)
+                        { allallenwatdata.AddRange(kv.Value); }
+                        allallenwatdata.Sort(delegate (XYVAL obj1, XYVAL obj2) {
+                            return obj1.Val.CompareTo(obj2.Val);
+                        });
+                        allenrawdict.Add("ALLDATA", allallenwatdata);
+                    }
+
+                    foreach (var kv in allenrawdict)
+                    {
+                        xaxisdata.Add("ALLEN-" + kv.Key);
+
+                        var tmplist = new List<double>();
+                        foreach (var v in kv.Value)
+                        { tmplist.Add(v.Val); }
+
+                        var box = CBOXData.CBOXFromRaw(tmplist, lowlimit, highlimit);
+                        var boxrawdata = (CBOXData)box[0];
+                        var outlier = (List<VXVal>)box[1];
+
+                        boxlistdata.Add(new
+                        {
+                            x = xidx,
+                            low = Math.Round(boxrawdata.min, rd),
+                            q1 = Math.Round(boxrawdata.lower, rd),
+                            median = Math.Round(boxrawdata.mean, rd),
+                            q3 = Math.Round(boxrawdata.upper, rd),
+                            high = Math.Round(boxrawdata.max, rd),
+                            color = "#d91919"
+                        });
+
+                        foreach (var outitem in outlier)
+                        {
+                            outlierdata.Add(new
+                            {
+                                x = Math.Round(xidx + outitem.x, 4),
+                                y = Math.Round(outitem.ival, rd),
+                                color = "#d91919"
+                            });
+                        }
+
+
+                        xidx++;
+                    }//end foreach
+                }//end allendata
+            }
+
+            if (wuxiwatdatadict.Count == 0 && allenrawdict.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No data for paramter " + param
+                };
+                return ret1;
+            }
+
+            var id = param.Replace(" ", "_") + "_id";
+            var title = param + " Distribution by Wafer";
+            var xAxis = new
+            {
+                title = "Wafer#",
+                data = xaxisdata
+            };
+            var yAxis = new { title = "Value" };
+            var data = new
+            {
+                name = param,
+                data = boxlistdata,
+            };
+
+            var labels = new List<object>();
+            labels.Add(new
+            {
+                format = "<table><tr><td>LL:" + lowlimit + "</td></tr><tr><td>HL:" + highlimit + "</td></tr></table>",
+                useHTML = true,
+                point = new
+                {
+                    x = 0,
+                    y = 0
+                }
+            });
+
+            var boxdata = new
+            {
+                id = id,
+                title = title,
+                xAxis = xAxis,
+                yAxis = yAxis,
+                lowlimit = lowlimit,
+                highlimit = highlimit,
+                labels = labels,
+                data = data,
+                outlierdata = outlierdata
+            };
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                boxdata = boxdata
+            };
+            return ret;
+        }
+
+        private JsonResult WATRawSampleCmp(string param, List<string> wxwflist, string rp)
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            if (!syscfg.ContainsKey(param))
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for RAW paramter " + param
+                };
+                return ret1;
+            }
+
+            var rawlimits = syscfg[param].Split(new string[] { ",", ";", ":" }, StringSplitOptions.RemoveEmptyEntries);
+            var lowlimit = WAT.Models.UT.O2D(rawlimits[0]);
+            var highlimit = WAT.Models.UT.O2D(rawlimits[1]);
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+
+            var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+            var allenwflist = WATAnalyzeVM.GetE08SampleWaferList(wxwflist,16);
+
+            return WATDataSampleAnalyzeChart(param, wxwflist, allenwflist, rp
+                    , lowlimit, highlimit, lowrange, highrange, rd, true);
+        }
+
+        private JsonResult WATLogicSampleCmp(string param, List<string> wxwflist, string rp)
+        {
+            var paramlimit = WATAnalyzeVM.GetWATSpecLimit(param, wxwflist);
+
+            if (paramlimit.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for LOGIC paramter " + param
+                };
+                return ret1;
+            }
+
+            var lowlimit = paramlimit[0];
+            var highlimit = paramlimit[1];
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+            var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+            var allenwflist = WATAnalyzeVM.GetE08SampleWaferList(wxwflist,10);
+
+            return WATDataSampleAnalyzeChart(param, wxwflist, allenwflist, rp
+                    , lowlimit, highlimit, lowrange, highrange, rd, false);
+        }
+
+        public JsonResult WUXIWATAnalyzeData()
+        {
+            var param = Request.Form["param"].Trim();
+            var wafers = Request.Form["wafers"];
+            var rp = Request.Form["rp"];
+            var act = Request.Form["act"];
+
+            var wfdict = new Dictionary<string, bool>();
+            var wfarray = wafers.Split(new string[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            foreach (var item in wfarray)
+            {
+                if (!wfdict.ContainsKey(item.Trim()))
+                {
+                    wfdict.Add(item.Trim(), true);
+                }
+            }
+            var wflist = wfdict.Keys.ToList();
+            
+
+            var rawlist = WATAnalyzeVM.GetWATRawParamList();
+            var logiclist = WATAnalyzeVM.GetWATLogicParamList();
+
+            if (rawlist.Contains(param))
+            {
+                if (act.Contains("distrib"))
+                { return WATRawDistribution(param, wflist, rp, false); }
+                else if (act.Contains("cmp"))
+                { return WATRawDistribution(param, wflist, rp, true); }
+                else
+                { return WATRawSampleCmp(param, wflist, rp); }
+            }
+            else if (logiclist.Contains(param))
+            {
+                if (act.Contains("distrib"))
+                { return WATLogicDistribution(param.Replace("LOGIC", rp), wflist, rp, false); }
+                else if (act.Contains("cmp"))
+                { return WATLogicDistribution(param.Replace("LOGIC", rp), wflist, rp, true); }
+                else
+                { return WATLogicSampleCmp(param.Replace("LOGIC", rp), wflist, rp); }
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Parameter "+param+"is not supported!"
+                };
+                return ret;
+            }
+        }
+
 
     }
 }
