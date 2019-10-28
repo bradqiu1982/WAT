@@ -14,6 +14,7 @@ SHARETOALLEN:::TRUE
 OGPCONNSTR:::Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
 OGPSQLSTR:::select distinct SN,[Index],X,Y from [AIProjects].[dbo].[CouponData] where SN like '<coupongroup>%' and X <> '' and Y <> '' and X is not null and Y is not null
 
+DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
 DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
 DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
 SHAREFOLDERPWD:::wangle@4567895

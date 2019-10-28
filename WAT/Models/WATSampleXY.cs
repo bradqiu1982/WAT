@@ -61,79 +61,79 @@ namespace WAT.Models
         }
 
 
-        public static List<WATSampleXY> GetSampleXYByCouponGroup(string coupongroup)
-        {
-            var ret = new List<WATSampleXY>();
-            var wafer = coupongroup.ToUpper().Split(new string[] { "E" }, StringSplitOptions.RemoveEmptyEntries)[0];
-            var array = GetArrayFromDieSort(wafer);
-            if (string.IsNullOrEmpty(array))
-            { array = GetArrayFromAllen(wafer); }
-            if (string.IsNullOrEmpty(array))
-            { return ret; }
+        //public static List<WATSampleXY> GetSampleXYByCouponGroup(string coupongroup)
+        //{
+        //    var ret = new List<WATSampleXY>();
+        //    var wafer = coupongroup.ToUpper().Split(new string[] { "E" }, StringSplitOptions.RemoveEmptyEntries)[0];
+        //    var array = GetArrayFromDieSort(wafer);
+        //    if (string.IsNullOrEmpty(array))
+        //    { array = GetArrayFromAllen(wafer); }
+        //    if (string.IsNullOrEmpty(array))
+        //    { return ret; }
 
-            var watcfg = WXCfg.GetSysCfg();
-            if (watcfg.ContainsKey("OGPCONNSTR") && watcfg.ContainsKey("OGPSQLSTR"))
-            {
-                try
-                {
-                    var ogpconn = DBUtility.GetConnector(watcfg["OGPCONNSTR"]);
-                    var sql = watcfg["OGPSQLSTR"];
-                    sql = sql.Replace("<coupongroup>", coupongroup);
+        //    var watcfg = WXCfg.GetSysCfg();
+        //    if (watcfg.ContainsKey("OGPCONNSTR") && watcfg.ContainsKey("OGPSQLSTR"))
+        //    {
+        //        try
+        //        {
+        //            var ogpconn = DBUtility.GetConnector(watcfg["OGPCONNSTR"]);
+        //            var sql = watcfg["OGPSQLSTR"];
+        //            sql = sql.Replace("<coupongroup>", coupongroup);
 
-                    var dbret = DBUtility.ExeSqlWithRes(ogpconn, sql);
-                    DBUtility.CloseConnector(ogpconn);
+        //            var dbret = DBUtility.ExeSqlWithRes(ogpconn, sql);
+        //            DBUtility.CloseConnector(ogpconn);
 
-                    foreach (var line in dbret)
-                    {
-                        var tempvm = new WATSampleXY();
-                        tempvm.CouponID = UT.O2S(line[0]);
-                        tempvm.ChannelInfo = UT.O2S(line[1]);
-                        tempvm.X = UT.O2S(line[2]);
-                        tempvm.Y = UT.O2S(line[3]);
-                        ret.Add(tempvm);
-                    }
-                }
-                catch (Exception ex) { }
-            }
+        //            foreach (var line in dbret)
+        //            {
+        //                var tempvm = new WATSampleXY();
+        //                tempvm.CouponID = UT.O2S(line[0]);
+        //                tempvm.ChannelInfo = UT.O2S(line[1]);
+        //                tempvm.X = UT.O2S(line[2]);
+        //                tempvm.Y = UT.O2S(line[3]);
+        //                ret.Add(tempvm);
+        //            }
+        //        }
+        //        catch (Exception ex) { }
+        //    }
 
-            if (string.Compare(array, "1") == 0)
-            {
-                return ret;
-                //var coupon01 = coupongroup + "01";
-                //var diecount = 0;
-                //foreach (var item in ret)
-                //{
-                //    if (string.Compare(coupon01, item.CouponID, true) == 0)
-                //    { diecount += 1; }
-                //}
+        //    if (string.Compare(array, "1") == 0)
+        //    {
+        //        return ret;
+        //        //var coupon01 = coupongroup + "01";
+        //        //var diecount = 0;
+        //        //foreach (var item in ret)
+        //        //{
+        //        //    if (string.Compare(coupon01, item.CouponID, true) == 0)
+        //        //    { diecount += 1; }
+        //        //}
 
-                //if (diecount == 32)
-                //{ return ret; }
-                //else
-                //{ return new List<WATSampleXY>(); }
-            }
-            else
-            {
-                var newret = new List<WATSampleXY>();
-                var arraysize = UT.O2I(array);
+        //        //if (diecount == 32)
+        //        //{ return ret; }
+        //        //else
+        //        //{ return new List<WATSampleXY>(); }
+        //    }
+        //    else
+        //    {
+        //        var newret = new List<WATSampleXY>();
+        //        var arraysize = UT.O2I(array);
 
-                foreach (var item in ret)
-                {
-                    for (var die = 0; die < arraysize; die++)
-                    {
-                        var tempvm = new WATSampleXY();
-                        tempvm.CouponID = item.CouponID;
-                        tempvm.ChannelInfo = ((UT.O2I(item.ChannelInfo) - 1) * arraysize + 1 + die).ToString();
-                        tempvm.X = (UT.O2I(item.X) + die).ToString();
-                        tempvm.Y = item.Y;
-                        newret.Add(tempvm);
-                    }
-                }
+        //        foreach (var item in ret)
+        //        {
+        //            for (var die = 0; die < arraysize; die++)
+        //            {
+        //                var tempvm = new WATSampleXY();
+        //                tempvm.CouponID = item.CouponID;
+        //                tempvm.ChannelInfo = ((UT.O2I(item.ChannelInfo) - 1) * arraysize + 1 + die).ToString();
+        //                tempvm.X = (UT.O2I(item.X) + die).ToString();
+        //                tempvm.Y = item.Y;
+        //                newret.Add(tempvm);
+        //            }
+        //        }
 
-                return newret;
-            }
+        //        return newret;
+        //    }
 
-        }
+        //}
 
         WATSampleXY()
         {

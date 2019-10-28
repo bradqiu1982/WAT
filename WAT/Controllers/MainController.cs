@@ -64,6 +64,12 @@ namespace WAT.Controllers
                         DieSortVM.ScanNewWafer(this);
                     }
                     catch (Exception ex) { }
+
+                    try
+                    {
+                        WuxiWATData4MG.RefreshWATStatusDaily();
+                    }
+                    catch (Exception ex) { }
                 }
 
                 //heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
@@ -195,6 +201,12 @@ namespace WAT.Controllers
         public ActionResult GetInspectWafer()
         {
             var inspectwafer = DieSortVM.GetInspectedWaferInPast5Days();
+            return View("HeartBeat");
+        }
+
+        public ActionResult RefreshWATStatusDaily()
+        {
+            WuxiWATData4MG.RefreshWATStatusDaily();
             return View("HeartBeat");
         }
 

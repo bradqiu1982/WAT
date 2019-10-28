@@ -7,7 +7,7 @@ namespace WXLogic
 {
     public class WATSampleXY
     {
-        private static string GetArrayFromDieSort(string wafer)
+        public static string GetArrayFromDieSort(string wafer)
         {
             var dict = new Dictionary<string, string>();
             dict.Add("@wafer", wafer);
@@ -20,7 +20,7 @@ namespace WXLogic
             return string.Empty;
         }
 
-        private static string GetArrayFromAllen(string wafer)
+        public static string GetArrayFromAllen(string wafer)
         {
             var sixinch = false;
             var productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
@@ -60,16 +60,218 @@ namespace WXLogic
             }
         }
 
+        public static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X,int arrayx, int Array_Count)
+        {
+            var new_x = ((arrayx - DIE_ONE_X
+                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
+                + DIE_ONE_FIELD_MIN_X;
+            if (Array_Count != 1)
+            { return (int)Math.Round(new_x, 0)-1; }
+            else
+            { return (int)Math.Round(new_x, 0); }
+        }
+
+        private static List<char> MatchSameLenStr(string ogp, string sa,int len)
+        {
+            var ret = new List<char>();
+            var ogparray = ogp.ToCharArray();
+            var saarray = sa.ToCharArray();
+            for (var i = 0; i < len; i++)
+            {
+                if (ogparray[i] == saarray[i])
+                { ret.Add(ogparray[i]); }
+            }
+            return ret;
+        }
+
+        private static List<char> MatchDifLenStr(string ogp, string sa)
+        {
+            var ogplen = ogp.Length;
+            var salen = sa.Length;
+            var ls = "";var ll = 0;
+            var ss = "";var sl = 0;
+            if (ogplen > salen)
+            {
+                ls = ogp;ll = ogplen;
+                ss = sa;sl = salen;
+            }
+            else
+            {
+                ls = sa;ll = salen;
+                ss = ogp;sl = ogplen;
+            }
+
+            var matchlists = new List<List<char>>();
+            var times = ll - sl + 1;
+            for (var idx = 0;idx < times;idx++)
+            {
+                var sub = ls.Substring(idx, sl);
+                matchlists.Add(MatchSameLenStr(sub, ss,sl));
+            }
+
+            matchlists.Sort(delegate(List<char> obj1, List<char> obj2) {
+                return obj2.Count.CompareTo(obj1.Count);
+            });
+
+            return matchlists[0];
+        }
+
+        private static bool Match5Str(string ogpx,string ogpy,int ogplen,string sax,string say,int salen)
+        {
+            try
+            {
+                var matchtargetlen = 0;
+                if (ogplen == salen)
+                { matchtargetlen = ogplen - 1; }
+                else if (ogplen > salen)
+                { matchtargetlen = salen; }
+                else
+                { matchtargetlen = ogplen; }
+
+                var matchcharlist = new List<char>();
+
+                if (ogpx.Length == sax.Length)
+                { matchcharlist.AddRange(MatchSameLenStr(ogpx,sax,sax.Length)); }
+                else
+                { matchcharlist.AddRange(MatchDifLenStr(ogpx, sax)); }
+
+                if (ogpy.Length == say.Length)
+                { matchcharlist.AddRange(MatchSameLenStr(ogpy,say, say.Length)); }
+                else
+                { matchcharlist.AddRange(MatchDifLenStr(ogpy, say)); }
+
+                if (matchcharlist.Count >= matchtargetlen)
+                { return true; }
+            }
+            catch (Exception e) {
+                return false;
+            }
+            return false;
+        }
+
+        private static List<WATSampleXY> CorrectXYBySamplePick(string wafer,List<int> dieonex,int arraycount,List<WATSampleXY> ogpdata)
+        {
+            var newxy = new List<WATSampleXY>();
+            var xydict = new Dictionary<string, XYVAL>();
+            var rxydict = new Dictionary<string, XYVAL>();
+
+            var xdict = new Dictionary<string, List<XYVAL>>();
+            var ydict = new Dictionary<string, List<XYVAL>>();
+
+            var sql = "select distinct X,Y from [WAT].[dbo].[WaferSampleData] where wafer like '<wafer>%'";
+            sql = sql.Replace("<wafer>", wafer);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var ax = UT.O2S(line[0]);
+                var y = UT.O2S(line[1]);
+
+                var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraycount).ToString();
+
+                var key = x + ":::" + y;
+                xydict.Add(key, new XYVAL(x, y, "0", 0));
+
+                var rx = (UT.O2I(x) + (arraycount - 1)).ToString();
+                var rkey = rx + ":::" + y;
+                rxydict.Add(rkey, new XYVAL(x, y, "0", 0));
+            }
+
+            var markeddict = new Dictionary<string, bool>();
+
+            var xyleftdata = new List<WATSampleXY>();
+            foreach (var ogp in ogpdata)
+            {
+                var key = ogp.X + ":::" + ogp.Y;
+                if (xydict.ContainsKey(key))
+                {
+                    if (!markeddict.ContainsKey(key))
+                    { markeddict.Add(key, true); }
+                    newxy.Add(new WATSampleXY(ogp.CouponID, ogp.ChannelInfo, xydict[key].X, xydict[key].Y));
+                }
+                else
+                {
+                    xyleftdata.Add(new WATSampleXY(ogp.CouponID, ogp.ChannelInfo, ogp.X, ogp.Y));
+                }
+            }
+
+            var xysearchleftdata = new List<WATSampleXY>();
+            foreach (var ogp in xyleftdata)
+            {
+                var matchkeys = new List<string>();
+                var ogplen = ogp.X.Length + ogp.Y.Length;
+
+                foreach (var xykv in xydict)
+                {
+                    var sax = xykv.Value.X;
+                    var say = xykv.Value.Y;
+                    var salen = sax.Length + say.Length;
+
+                    if (!markeddict.ContainsKey(xykv.Key) && Match5Str(ogp.X,ogp.Y,ogplen,sax,say,salen))
+                    {
+                        matchkeys.Add(xykv.Key);
+                    }
+                }//end foreach
+
+                if (matchkeys.Count == 1)
+                {
+                    if (!markeddict.ContainsKey(matchkeys[0]))
+                    { markeddict.Add(matchkeys[0], true); }
+
+                    newxy.Add(new WATSampleXY(ogp.CouponID, ogp.ChannelInfo, xydict[matchkeys[0]].X, xydict[matchkeys[0]].Y));
+                }
+                else
+                { xysearchleftdata.Add(new WATSampleXY(ogp.CouponID, ogp.ChannelInfo, ogp.X, ogp.Y)); }
+            }
+
+            if (arraycount == 1)
+            {
+                newxy.AddRange(xysearchleftdata);
+            }
+            else
+            {
+                var rxysearchleftdata = new List<WATSampleXY>();
+                foreach (var ogp in xysearchleftdata)
+                {
+                    var matchkeys = new List<string>();
+                    var ogplen = ogp.X.Length + ogp.Y.Length;
+
+                    foreach (var xykv in rxydict)
+                    {
+                        var rxystr = xykv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                        var sax = rxystr[0];
+                        var say = rxystr[1];
+                        var salen = sax.Length + say.Length;
+
+                        if (!markeddict.ContainsKey(xykv.Key) && Match5Str(ogp.X, ogp.Y, ogplen, sax, say, salen))
+                        {
+                            matchkeys.Add(xykv.Key);
+                        }
+                    }//end foreach
+
+                    if (matchkeys.Count == 1)
+                    {
+                        newxy.Add(new WATSampleXY(ogp.CouponID, ogp.ChannelInfo, rxydict[matchkeys[0]].X, rxydict[matchkeys[0]].Y));
+                    }
+                    else
+                    { rxysearchleftdata.Add(new WATSampleXY(ogp.CouponID, ogp.ChannelInfo, ogp.X, ogp.Y)); }
+                }
+                newxy.AddRange(rxysearchleftdata);
+            }
+
+            return newxy;
+        }
 
         public static List<WATSampleXY> GetSampleXYByCouponGroup(string coupongroup)
         {
             var ret = new List<WATSampleXY>();
-            var wafer = coupongroup.ToUpper().Split(new string[] { "E" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            var wafer = coupongroup.ToUpper().Split(new string[] { "E","R" }, StringSplitOptions.RemoveEmptyEntries)[0];
             var array = GetArrayFromDieSort(wafer);
             if (string.IsNullOrEmpty(array))
             { array = GetArrayFromAllen(wafer); }
             if (string.IsNullOrEmpty(array))
             { return ret; }
+
+            var arraysize = UT.O2I(array);
 
             var watcfg = WXCfg.GetSysCfg();
             if (watcfg.ContainsKey("OGPCONNSTR") && watcfg.ContainsKey("OGPSQLSTR"))
@@ -87,12 +289,30 @@ namespace WXLogic
                         var tempvm = new WATSampleXY();
                         tempvm.CouponID = UT.O2S(line[0]);
                         tempvm.ChannelInfo = UT.O2S(line[1]);
-                        tempvm.X = UT.O2S(line[2]);
-                        tempvm.Y = UT.O2S(line[3]);
+                        if (arraysize != 1)
+                        {
+                            var tempx = UT.O2I(UT.O2S(line[2]).Replace("X", ""));
+                            if (tempx % arraysize == 0)
+                            { tempvm.X = (tempx - (arraysize - 1)).ToString(); }
+                            else
+                            { tempvm.X = UT.O2I(UT.O2S(line[2]).Replace("X", "")).ToString(); }
+                        }
+                        else
+                        {
+                            tempvm.X = UT.O2I(UT.O2S(line[2]).Replace("X", "")).ToString();
+                        }
+                        tempvm.Y = UT.O2I(UT.O2S(line[3]).Replace("Y","")).ToString();
                         ret.Add(tempvm);
                     }
                 } catch (Exception ex) { }
             }
+
+            var dieonex = AdminFileOperations.GetDieOneOfWafer(wafer);
+            if (dieonex.Count > 0)
+            {
+                ret = CorrectXYBySamplePick(wafer,dieonex,arraysize,ret);
+            }
+
 
             if (string.Compare(array, "1") == 0)
             {
@@ -113,7 +333,7 @@ namespace WXLogic
             else
             {
                 var newret = new List<WATSampleXY>();
-                var arraysize = UT.O2I(array);
+                
 
                 foreach (var item in ret)
                 {
@@ -139,6 +359,14 @@ namespace WXLogic
             ChannelInfo = "";
             X = "";
             Y = "";
+        }
+
+        WATSampleXY(string cp,string ch,string x,string y)
+        {
+            CouponID = cp;
+            ChannelInfo = ch;
+            X = x;
+            Y = y;
         }
 
         public string CouponID { set; get; }

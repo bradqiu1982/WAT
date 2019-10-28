@@ -89,10 +89,12 @@ namespace WXLogic
                 return ret;
             }
 
-            var couponcount = watprobeval[0].CouponCount;
+            
             var waferarray = WXEvalPN.GetWaferArrayInfo(containerinfo.wafer);
             if (!string.IsNullOrEmpty(waferarray) && CouponGroup.Contains("E08"))
             {
+                var couponcount = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
+
                 var necessarynum = 0;
                 var arraynum = UT.O2I(waferarray);
                 if (arraynum == 1)
@@ -243,7 +245,8 @@ namespace WXLogic
                 && logicresult.TestPass
                 && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01"))
                 && string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0
-                && string.IsNullOrEmpty(AnalyzeParam))
+                && string.IsNullOrEmpty(AnalyzeParam)
+                && AllowToMoveMapFile)
             {
                 try
                 {
@@ -681,6 +684,7 @@ namespace WXLogic
 
             AnalyzeParam = "";
             AnalyzeParamData = new List<XYVAL>();
+            AllowToMoveMapFile = true;
         }
 
         public bool TestPass { set; get; } //test pass
@@ -694,5 +698,6 @@ namespace WXLogic
 
         public string AnalyzeParam { set; get; }
         public List<XYVAL> AnalyzeParamData { set; get; }
+        public bool AllowToMoveMapFile { set; get; }
     }
 }

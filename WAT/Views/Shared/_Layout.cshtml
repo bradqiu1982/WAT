@@ -124,7 +124,13 @@
                                         @Html.ActionLink("Allen WAT", "AllenWaferWAT", "WATLogic")
                                     </li>
                                     <li>
-                                        @Html.ActionLink("Allen WAT Logic", "VerifyAllenLogic", "WATLogic")
+                                        @Html.ActionLink("Allen WAT Detail", "VerifyAllenLogic", "WATLogic")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("WUXI WAT", "WUXIWaferWAT", "WATLogic")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("WUXI WAT Detail", "WUXIWATLogic", "WATLogic")
                                     </li>
                                     <li>
                                         @Html.ActionLink("WUXI OGP Data", "WATOGPData", "WATLogic")
@@ -132,14 +138,22 @@
                                     <li>
                                         @Html.ActionLink("WUXI WAT Data Manage", "WUXIWATDataManage", "WATLogic")
                                     </li>
-                                    <li>
-                                        @Html.ActionLink("WUXI WAT Logic", "WUXIWATLogic", "WATLogic")
-                                    </li>
-                                    <li>
-                                        @Html.ActionLink("WUXI WAT", "WUXIWaferWAT", "WATLogic")
-                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">WAT Analyze<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
                                     <li>
                                         @Html.ActionLink("WUXI WAT Distribution", "WUXIWATAnalyze", "WATLogic")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("WUXI WAT On WAFER", "WUXIWATXY", "WATLogic")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("WUXI WAT With Coupon", "WUXIWATCoupon", "WATLogic")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("WUXI WAT Param vs Param", "WUXIWATPvsP", "WATLogic")
                                     </li>
                                 </ul>
                             </li>

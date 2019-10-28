@@ -1,29 +1,45 @@
 ﻿
 @{
-    ViewBag.Title = "WUXIWATAnalyze";
+    ViewBag.Title = "WUXIWATCoupon";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style type="text/css">
     .highcharts-container {
         height: 580px !important;
+        width: 1300px!important;
     }
 
     .v-box {
         height: 580px !important;
+        width: 1300px!important;
+        margin-left: -80px !important;
     }
 
     th.dt-center, td.dt-center {
         text-align: center;
     }
 
+    text[text-anchor="end"] {
+        font-size:6px !important;
+    }
+    
+    text[text-anchor="middle"] {
+        font-size:8px !important;
+    }
+
+    tspan {
+        font-size:16px !important;
+    }
 </style>
 
 <script type="text/javascript" src="~/Scripts/highcharts/annotations.js"></script>
+<script type="text/javascript" src="~/Scripts/highcharts/grouped-categories.js"></script>
+
 <script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
 <script type="text/javascript">
         $(function(){
-            WATLOGIC.WUXIWATANALYZE();
+            WATLOGIC.WUXIWATCOUPON();
         })
 </script>
 
@@ -40,7 +56,7 @@
                                id="wafers" name="wafers" autocomplete="off" readonly="readonly">
                     </div>
                     <div class="col-xs-2" style="padding-left:0">
-                        <input type="button" class="btn btn-success" name="btn-distrib" id="btn-distrib" data-toggle="tooltip" title="Show Distribute of WUXI WAT Data" value="DISTRIBUTION">
+                       
                     </div>
                 </div>
                 <div class="row row-margin">
@@ -62,16 +78,20 @@
                         </select>
                     </div>
                     <div class="col-xs-2" style="padding-left:0">
-                        <input type="button" class="btn btn-success" name="btn-cmp" id="btn-cmp" style="margin-left:40px;" data-toggle="tooltip" title="Compare WUXI WAT Data with same wafers" value="SELF_CMP">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" style="margin-left:40px;" data-toggle="tooltip" title="Show WUXI WAT Data with Coupon Channel" value="Search Data">
                     </div>
                     <div class="col-xs-2" style="padding-left:0">
-                        <input type="button" class="btn btn-success" name="btn-sample" id="btn-sample" data-toggle="tooltip" title="Compare WUXI WAT Data with ALLEN E08 wafers" value="SAMPLE_CMP">
+                        
                     </div>
                 </div>
+
+                <input class="form-control hide" type="text" id="hparam" name="hparam" value="@ViewBag.param">
+                <input class="form-control hide" type="text" id="hwafer" name="hwafer" value="@ViewBag.wafer">
+                <input class="form-control hide" type="text" id="hrp" name="hrp" value="@ViewBag.rp">
             </div>
             <div class="v-content">
             </div>
-            <div class="v-content" id="chartdiv" name ="chartdiv">
+            <div class="v-content" id="chartdiv" name="chartdiv">
             </div>
         </div>
     </div>

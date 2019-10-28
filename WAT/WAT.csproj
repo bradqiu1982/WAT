@@ -762,6 +762,8 @@
     <Content Include="Scripts\bootstrap-select.min.js" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.min.js.map" />
     <Content Include="Scripts\highcharts\annotations.js" />
+    <Content Include="Scripts\highcharts\groupcategories_styles.css" />
+    <Content Include="Scripts\highcharts\grouped-categories.js" />
     <Content Include="WXCfg.txt" />
     <None Include="Properties\PublishProfiles\watpublish.pubxml" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker.css.map" />
@@ -854,6 +856,10 @@
     <Content Include="Views\WATLogic\WATOGPData.cshtml" />
     <Content Include="Views\WATLogic\WUXIWaferWAT.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATAnalyze.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATXY.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATCoupon.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATPvsP.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATStatus.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

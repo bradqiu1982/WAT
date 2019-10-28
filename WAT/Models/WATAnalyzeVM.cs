@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Xml;
 using WXLogic;
 
 
@@ -67,7 +68,25 @@ namespace WAT.Models
 
                 retlist.Add(p + "_LOGIC");
             }
+            retlist.Add("THOLD_A_rd_LOGIC");
+
+            retlist.Add("DIth");
+            retlist.Add("DPO");
+            retlist.Add("Dvf");
+
             return retlist;
+        }
+
+        public static string RealParam(string param)
+        {
+            if (string.Compare(param, "DIth", true) == 0)
+            { return "THOLD_A_rd_LOGIC"; }
+            if (string.Compare(param, "DPO", true) == 0)
+            { return "PO_LD_W_dB_ref0_LOGIC"; }
+            if (string.Compare(param, "Dvf", true) == 0)
+            { return "VF_LD_V_ad_ref1_LOGIC"; }
+
+            return param;
         }
 
         private static List<double> getWATSpecLimit_(string param, List<string> wflist)
@@ -127,7 +146,14 @@ namespace WAT.Models
         {
             var limit = getWATSpecLimit_(param, wflist);
             if (limit.Count == 0)
-            { return getWATSpecLimit_(param.ToUpper().Split(new[] { "_REF" }, StringSplitOptions.RemoveEmptyEntries)[0],wflist); }
+            { limit = getWATSpecLimit_(param.ToUpper().Split(new[] { "_REF" }, StringSplitOptions.RemoveEmptyEntries)[0],wflist); }
+
+            if (limit.Count == 0)
+            {
+                limit.Add(-99999.0);
+                limit.Add(99999.0);
+            }
+
             return limit;
         }
 
@@ -142,8 +168,10 @@ namespace WAT.Models
                 { samplexydict.Add(key, sitem); }
             }
 
+            var containerdict = new Dictionary<string, bool>();
+
             var ret = new List<XYVAL>();
-            var sql = "select <param>,Containername,ChannelInfo from Insite.dbo.ProductionResult where (Containername like '<coupongroup>E08%' or Containername like '<coupongroup>R08%') and TestStep='<TestStep>'";
+            var sql = "select <param>,Containername,ChannelInfo from Insite.dbo.ProductionResult where (Containername like '<coupongroup>E08%' or Containername like '<coupongroup>R08%') and TestStep='<TestStep>' order by TestTimeStamp desc";
             sql = sql.Replace("<param>", param).Replace("<coupongroup>", wf).Replace("<TestStep>", teststep);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
@@ -156,6 +184,11 @@ namespace WAT.Models
                         var Containername = UT.O2S(line[1]).Substring(0, 14);
                         var ChannelInfo = UT.O2S(line[2]);
                         var xykey = Containername + "-" + ChannelInfo;
+                        if (containerdict.ContainsKey(xykey))
+                        { continue; }
+                        else
+                        { containerdict.Add(xykey,true); }
+
                         if (samplexydict.ContainsKey(xykey))
                         {
                             var UnitNum = (UT.O2I(Containername.Substring(12, 2)) * 10000 + UT.O2I(ChannelInfo)).ToString();
@@ -293,6 +326,7 @@ namespace WAT.Models
         private static List<XYVAL> GetWUXIWATLogicDataByWF(string param, string wf, string jstepname, double lowrange, double highrange)
         {
             var wxlogic = new WXLogic.WXWATLogic();
+            wxlogic.AllowToMoveMapFile = false;
             wxlogic.AnalyzeParam = param.ToUpper();
             wxlogic.WATPassFail(wf+"E08", jstepname);
 
@@ -373,6 +407,192 @@ namespace WAT.Models
                         return obj1.Val.CompareTo(obj2.Val);
                     });
                     ret.Add(wf, paramval);
+                }
+            }
+            return ret;
+        }
+
+        public static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
+        {
+            var new_x = ((arrayx - DIE_ONE_X
+                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
+                + DIE_ONE_FIELD_MIN_X;
+            if (Array_Count != 1)
+            {
+                return (int)Math.Round(new_x, 0) - 1;
+            }
+            else
+            {
+                return (int)Math.Round(new_x, 0);
+            }
+        }
+
+        //public static List<int> GetDieOneOfWafer(string wafer,Controller ctrl)
+        //{
+        //    var ret = new List<int>();
+        //    var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+        //    var reviewdir = syscfgdict["DIESORTREVIEW"];
+        //    var fs = "";
+        //    var allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl,reviewdir);
+        //    foreach (var f in allfiles)
+        //    {
+        //        if (f.Contains(wafer))
+        //        {
+        //            fs = f;
+        //            break;
+        //        }
+        //    }
+
+        //    if (string.IsNullOrEmpty(fs))
+        //    { return ret; }
+
+        //    var folderuser = syscfgdict["SHAREFOLDERUSER"];
+        //    var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
+        //    var folderpwd = syscfgdict["SHAREFOLDERPWD"];
+
+        //    using (NativeMethods cv = new NativeMethods(folderuser, folderdomin, folderpwd))
+        //    {
+        //        var doc = new XmlDocument();
+        //        doc.Load(fs);
+        //        var namesp = doc.DocumentElement.GetAttribute("xmlns");
+        //        doc = DieSortVM.StripNamespace(doc);
+        //        XmlElement root = doc.DocumentElement;
+        //        var dieonenodelist = root.SelectNodes("//BinDefinition[@BinDescription='DIE_ONE']");
+        //        var dieonebincode = "";
+        //        foreach (XmlElement nd in dieonenodelist)
+        //        {
+        //            try
+        //            {
+        //                dieonebincode = nd.GetAttribute("BinCode");
+        //                break;
+        //            }
+        //            catch (Exception ex) { }
+        //        }
+
+        //        if (string.IsNullOrEmpty(dieonebincode))
+        //        { return ret; }
+
+        //        var dieonex = "";
+        //        var dieoney = "";
+
+        //        var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+        //        foreach (XmlElement nd in bincodelist)
+        //        {
+        //            try
+        //            {
+        //                if (string.Compare(nd.InnerText, dieonebincode, true) == 0)
+        //                {
+        //                    dieonex = nd.GetAttribute("X");
+        //                    dieoney = nd.GetAttribute("Y");
+        //                    break;
+        //                }
+        //            }
+        //            catch (Exception ex) { }
+        //        }
+
+        //        if (string.IsNullOrEmpty(dieonex) || string.IsNullOrEmpty(dieoney))
+        //        { return ret; }
+
+        //        var dieonexs = new List<int>();
+        //        bincodelist = root.SelectNodes("//BinCode[@X and @Y='" + dieoney + "']");
+        //        foreach (XmlElement nd in bincodelist)
+        //        {
+        //            try
+        //            {
+        //                dieonexs.Add(UT.O2I(nd.GetAttribute("X")));
+        //            }
+        //            catch (Exception ex) { }
+        //        }
+
+        //        if (dieonexs.Count == 0)
+        //        { return ret; }
+
+        //        ret.Add(UT.O2I(dieonex));
+        //        ret.Add(dieonexs.Min());
+        //    }
+
+        //    return ret;
+        //}
+
+        public static Dictionary<string, bool> GetWaferCoordinate(string wafer,Controller ctrl)
+        {
+            var ret = new Dictionary<string, bool>();
+            var array = WXLogic.WATSampleXY.GetArrayFromDieSort(wafer);
+            if (string.IsNullOrEmpty(array))
+            { array = WXLogic.WATSampleXY.GetArrayFromAllen(wafer); }
+            if (string.IsNullOrEmpty(array))
+            { return ret; }
+            var arraysize = UT.O2I(array);
+
+            var dieonex = AdminFileOperations.GetDieOneOfWafer(wafer);
+            if (dieonex.Count == 0)
+            { return ret; }
+
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+            var reviewfolder = syscfgdict["DIESORTREVIEW"];
+            var allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, reviewfolder);
+            var fs = "";
+            foreach (var f in allfiles)
+            {
+                if (f.Contains(wafer))
+                {
+                    fs = f;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(fs))
+            {
+                allfiles = DieSortVM.GetAllWaferFile(ctrl);
+                foreach (var f in allfiles)
+                {
+                    if (f.Contains(wafer))
+                    {
+                        fs = f;
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(fs))
+            { return ret; }
+
+            var folderuser = syscfgdict["SHAREFOLDERUSER"];
+            var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
+            var folderpwd = syscfgdict["SHAREFOLDERPWD"];
+            using (NativeMethods cv = new NativeMethods(folderuser, folderdomin, folderpwd))
+            {
+                var doc = new XmlDocument();
+                doc.Load(fs);
+                var namesp = doc.DocumentElement.GetAttribute("xmlns");
+                doc = DieSortVM.StripNamespace(doc);
+                XmlElement root = doc.DocumentElement;
+                var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                foreach (XmlElement nd in bincodelist)
+                {
+                    try
+                    {
+                        var ax = nd.GetAttribute("X");
+                        var y = nd.GetAttribute("Y");
+                        var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString();
+
+                        if (arraysize == 1)
+                        {
+                            var k = x + ":::" + y;
+                            if (!ret.ContainsKey(k))
+                            { ret.Add(k, true); }
+                        }
+                        else
+                        {
+                            for (var die = 0; die < arraysize; die++)
+                            {
+                                var k = (UT.O2I(x)+die) + ":::" + y;
+                                if (!ret.ContainsKey(k))
+                                { ret.Add(k, true); }
+                            }
+                        }
+                    }
+                    catch (Exception ex) { }
                 }
             }
             return ret;

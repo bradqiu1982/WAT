@@ -526,13 +526,7 @@
             $('#jstepname').attr('readonly', false);
         });
 
-        var wuxirest = function () {
-            var couponid = $('#couponid').val();
-            var jstepname = $('#jstepname').val();
-            if (couponid == '' || jstepname == '') {
-                alert('Please into correct coupon id and judgement step name!')
-                return false;
-            }
+        var wuxirest = function (couponid, jstepname) {
 
             var options = {
                 loadingTips: "loading data......",
@@ -702,9 +696,25 @@
         }
 
         $('body').on('click', '#btn-run', function () {
-            wuxirest();
+            var couponid = $('#couponid').val();
+            var jstepname = $('#jstepname').val();
+            if (couponid == '' || jstepname == '') {
+                alert('Please into correct coupon id and judgement step name!')
+                return false;
+            }
+
+            wuxirest(couponid, jstepname);
         });
 
+        $(function () {
+            var couponid = $('#hcouponid').val();
+            var jstepname = $('#hjstepname').val();
+            if (couponid == '' || jstepname == '') {
+                return false;
+            }
+
+            wuxirest(couponid, jstepname);
+        });
 
     }
 
@@ -773,14 +783,8 @@
             }
         };
 
-        function reviewdata()
+        function reviewdata(couponid)
         {
-            var couponid = $('#couponid').val();
-            if (couponid == '') {
-                alert('Please into correct coupon id and judgement step name!')
-                return false;
-            }
-
             var options = {
                 loadingTips: "loading data......",
                 backgroundColor: "#aaa",
@@ -875,7 +879,18 @@
         }
 
         $('body').on('click', '#btn-review', function () {
-            reviewdata();
+            var couponid = $('#couponid').val();
+            if (couponid == '') {
+                alert('Please into correct coupon id and judgement step name!')
+                return false;
+            }
+            reviewdata(couponid);
+        });
+
+        $(function () {
+            var wf = $('#hcouponid').val();
+            if (wf != '')
+            { reviewdata(wf); }
         });
 
     }
@@ -1144,7 +1159,7 @@
 
                 if (output.sucess) {
                     $('#chartdiv').empty();
-                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-1"></div><div class="col-xs-10" style="height: 410px;">' +
+                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-1"></div><div class="col-xs-10">' +
                                '<div class="v-box" id="' + output.boxdata.id + '"></div>' +
                                '</div><div class="col-xs-1"></div></div>';
                     $('#chartdiv').append(appendstr);
@@ -1226,7 +1241,7 @@
                     tooltip: {
                         headerFormat: '<em>{point.key}</em><br/>'
                     },
-                    turboThreshold: 100000
+                    turboThreshold: 500000
                 },
                 {
                     name: 'Outlier',
@@ -1240,7 +1255,7 @@
                         headerFormat: '',
                         pointFormat: "{point.y}"
                     },
-                    turboThreshold:100000
+                    turboThreshold:500000
                 }],
                 exporting: {
                     menuItemDefinitions: {
@@ -1296,6 +1311,758 @@
         }
     }
 
+    var wuxiwatxyfun = function ()
+    {
+        $.post('/WATLogic/WATAnalyzeParams', {
+        }, function (output) {
+            $('#param').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.paramlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#param').attr('readonly', false);
+        });
+
+        $.post('/WATLogic/LoadOGPWafer', {
+        }, function (output) {
+            $('#wafernum').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.waferlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#wafernum').attr('readonly', false);
+        });
+
+        function watxy(param, wafernum, rp) {
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATXYDATA', {
+                param: param,
+                wafernum: wafernum,
+                rp: rp
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-1"></div><div class="col-xs-10">' +
+                               '<div class="v-box" id="' + output.xydata.id + '"></div>' +
+                               '</div><div class="col-xs-1"></div></div>';
+                    $('#chartdiv').append(appendstr);
+                    drawdiesortmap(output.xydata);
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var param = $('#param').val();
+            var wafernum = $('#wafernum').val();
+            var rp = $('#rplist').val();
+
+            if (param == '' || wafernum == '' || rp == '') {
+                alert('Please input your query condition!');
+                return false;
+            }
+            watxy(param,wafernum,rp);
+        });
+
+        $(function () {
+            var param = $('#hparam').val();
+            var wafernum = $('#hwafer').val();
+            var rp = $('#hrp').val();
+
+            if (param == '' || wafernum == '' || rp == '') {
+                return false;
+            }
+            watxy(param, wafernum, rp);
+        });
+
+        var drawdiesortmap = function (line_data) {
+            var options = {
+                title: {
+                    text: line_data.title
+                },
+                chart: {
+                    type: 'heatmap',
+                    zoomType: 'xy'
+                },
+                boost: {
+                    useGPUTranslations: true,
+                    usePreallocated: true,
+                    seriesThreshold: 1
+                },
+                xAxis: {
+                    title: {
+                        text: 'X'
+                    },
+                    max: line_data.xmax
+                },
+                yAxis: {
+                    title: {
+                        text: 'Y'
+                    },
+                    max: line_data.ymax,
+                    reversed: true
+                },
+                colorAxis: {
+                    min: line_data.datamin,
+                    max: line_data.datamax,
+                    stops: [
+                    [0, '#c8c8c8'],
+                    [0.1, '#0000ff'],
+                    [0.2, '#0080ff'],
+                    [0.3, '#00ffff'],
+                    [0.4, '#00ff80'],
+                    [0.5, '#00ff00'],
+                    [0.6, '#80ff00'],
+                    [0.7, '#ffff00'],
+                    [0.8, '#ff8000'],
+                    [0.9, '#ff0000']
+                    ]
+                },
+                series: line_data.serial,
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + line_data.id).parent().toggleClass('chart-modal');
+                                $('#' + line_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(line_data.id, options);
+
+        }
+    }
+
+    var wuxiwatcouponfun = function () {
+
+
+        $.post('/WATLogic/WATAnalyzeParams', {
+        }, function (output) {
+            $('#param').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.paramlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#param').attr('readonly', false);
+        });
+
+        $.post('/WATLogic/LoadOGPWafer', {}, function (output) {
+            $('#wafers').tagsinput({
+                freeInput: false,
+                typeahead: {
+                    source: output.waferlist,
+                    minLength: 0,
+                    showHintOnFocus: true,
+                    autoSelect: false,
+                    selectOnBlur: false,
+                    changeInputOnSelect: false,
+                    changeInputOnMove: false,
+                    afterSelect: function (val) {
+                        this.$element.val("");
+                    }
+                }
+            });
+
+            $('#wafers').attr('readonly', false);
+        });
+
+
+
+        function coupondatas(param, wafers, rp) {
+
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATCouponData', {
+                param: param,
+                wafers: wafers,
+                rp: rp
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-12">' +
+                               '<div class="v-box" id="' + output.coupondata.id + '"></div>' +
+                               '</div></div>';
+                    $('#chartdiv').append(appendstr);
+
+                    drawcouponplot(output.coupondata);
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var param = $('#param').val();
+            var wafers = $.trim($('#wafers').tagsinput('items'));
+            if (wafers == '') {
+                wafers = $.trim($('#wafers').parent().find('input').eq(0).val());
+            }
+            var rp = $('#rplist').val();
+
+            if (param == '' || wafers == '' || rp == '') {
+                alert('Please input your query condition!');
+                return false;
+            }
+
+            coupondatas(param, wafers,rp);
+        });
+
+        $(function () {
+            var param = $('#hparam').val();
+            var wafernum = $('#hwafer').val();
+            var rp = $('#hrp').val();
+
+            if (param == '' || wafernum == '' || rp == '') {
+                return false;
+            }
+
+            coupondatas(param, wafernum, rp);
+        });
+
+        var drawcouponplot = function (boxplot_data) {
+            var options = {
+                chart: {
+                    zoomType: 'xy',
+                    type: 'scatter'
+                },
+
+                title: {
+                    text: boxplot_data.title
+                },
+
+                legend: {
+                    enabled: false
+                },
+
+                xAxis: {
+                    categories: boxplot_data.categories
+                },
+
+                yAxis: {
+                    plotLines: [{
+                        value: boxplot_data.lowlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'LL',
+                            align: 'left'
+                        }
+                    }, {
+                        value: boxplot_data.highlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'UL',
+                            align: 'left'
+                        }
+                    }]
+                },
+                annotations: [{
+                    labels: boxplot_data.labels,
+                    color: '#d4d4d4',
+                    draggable: 'xy'
+                }],
+                series: [
+                {
+                    type: 'scatter',
+                    data: boxplot_data.datalist,
+                    marker: {
+                        lineWidth: 1,
+                        radius: 2.5
+                    },
+                    tooltip: {
+                        headerFormat: '',
+                        pointFormat: "{point.y}"
+                    },
+                    turboThreshold: 500000
+                }],
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + boxplot_data.id).parent().toggleClass('chart-modal');
+                                $('#' + boxplot_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(boxplot_data.id, options);
+        }
+    }
+
+    var wuxiwatpvpfun = function () {
+
+        $.post('/WATLogic/WATAnalyzeParams', {
+        }, function (output) {
+            $('#xparam').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.paramlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#xparam').attr('readonly', false);
+        });
+
+        $.post('/WATLogic/WATAnalyzeParams', {
+        }, function (output) {
+            $('#yparam').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.paramlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#yparam').attr('readonly', false);
+        });
+
+        $.post('/WATLogic/LoadOGPWafer', {}, function (output) {
+            $('#wafers').tagsinput({
+                freeInput: false,
+                typeahead: {
+                    source: output.waferlist,
+                    minLength: 0,
+                    showHintOnFocus: true,
+                    autoSelect: false,
+                    selectOnBlur: false,
+                    changeInputOnSelect: false,
+                    changeInputOnMove: false,
+                    afterSelect: function (val) {
+                        this.$element.val("");
+                    }
+                }
+            });
+
+            $('#wafers').attr('readonly', false);
+        });
+
+        function pvpdatas(xparam, yparam, wafers, rp) {
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATPvsPData', {
+                xparam: xparam,
+                yparam: yparam,
+                wafers: wafers,
+                rp: rp
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-12">' +
+                               '<div class="v-box" id="' + output.pvpdata.id + '"></div>' +
+                               '</div></div>';
+                    $('#chartdiv').append(appendstr);
+
+                    drawpvpplot(output.pvpdata);
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var xparam = $('#xparam').val();
+            var yparam = $('#yparam').val();
+
+            var wafers = $.trim($('#wafers').tagsinput('items'));
+            if (wafers == '') {
+                wafers = $.trim($('#wafers').parent().find('input').eq(0).val());
+            }
+
+            var rp = $('#rplist').val();
+
+            if (xparam == '' || yparam == '' || wafers == '' || rp == '') {
+                alert('Please input your query condition!');
+                return false;
+            }
+
+            pvpdatas(xparam, yparam, wafers,rp);
+        });
+
+        $(function () {
+            var xparam = $('#hxparam').val();
+            var yparam = $('#hyparam').val();
+            var wafernum = $('#hwafer').val();
+            var rp = $('#hrp').val();
+
+            if (xparam == '' || yparam == '' || wafernum == '' || rp == '') {
+                return false;
+            }
+
+            pvpdatas(xparam, yparam, wafernum, rp);
+        });
+
+        var drawpvpplot = function (boxplot_data) {
+            var options = {
+                chart: {
+                    zoomType: 'xy',
+                    type: 'scatter'
+                },
+
+                title: {
+                    text: boxplot_data.title
+                },
+                legend: {
+                    enabled: true
+                },
+                xAxis: {
+                    title: {
+                        text: boxplot_data.xtitle
+                    },
+                    plotLines: [{
+                        value: boxplot_data.xlowlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'X-LL',
+                            align: 'left'
+                        }
+                    }, {
+                        value: boxplot_data.xhighlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'X-UL',
+                            align: 'left'
+                        }
+                    }]
+                },
+
+                yAxis: {
+                    title: {
+                        text: boxplot_data.ytitle
+                    },
+                    plotLines: [{
+                        value: boxplot_data.ylowlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'Y-LL',
+                            align: 'left'
+                        }
+                    }, {
+                        value: boxplot_data.yhighlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'Y-UL',
+                            align: 'left'
+                        }
+                    }]
+                },
+                annotations: [{
+                    labels: boxplot_data.labels,
+                    color: '#d4d4d4',
+                    draggable: 'xy'
+                }],
+                series: boxplot_data.series,
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + boxplot_data.id).parent().toggleClass('chart-modal');
+                                $('#' + boxplot_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(boxplot_data.id, options);
+        }
+    }
+
+    var wuxiwatstatusfun = function () {
+        var logictable = null;
+        var wuxistat = function () {
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATStatusData',
+                { },
+                function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (logictable) {
+                        logictable.destroy();
+                        logictable = null;
+                    }
+                    $("#logichead").empty();
+                    $("#logiccontent").empty();
+
+                    $("#logichead").append(
+                            '<tr>' +
+                            '<th>CouponID</th>' +
+                            '<th>TestTime</th>' +
+                            '<th>TestStep</th>' +
+                            '<th>Result</th>' +
+                            '<th>FailurMode</th>' +
+                            '<th>RAWData</th>' +
+                            '<th>WATLogic</th>' +
+                            '<th>PowerOnCoupon</th>' +
+                            '<th>PowerOnWafer</th>' +
+                            '<th>DITHvsDPO</th>' +
+                            '</tr>'
+                        );
+                    
+                    $.each(output.wipdata, function (i, val) {
+                        var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + 'E08" target="_blank" >RAWDATA</a></td>';
+                        var logiclink = '<td></td>';
+                        var poweroncoupon = '<td></td>';
+                        var poweronwafer = '<td></td>';
+                        var powervsdith = '<td></td>';
+                        if (val.RPStr != '')
+                        {
+                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + 'E08&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
+                            poweroncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PowerOnCoupon</a></td>';
+                            poweronwafer = '<td><a href="/WATLogic/WUXIWATXY?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PowerOnWafer</a></td>';
+                            powervsdith = '<td><a href="/WATLogic/WUXIWATPvsP?xparam=DIth&yparam=DPO&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >DITHvsDPO</a></td>';
+                        }
+
+                        $("#logiccontent").append(
+                            '<tr>' +
+                            '<td>' + val.CouponID + '</td>' +
+                            '<td>' + val.TestTime + '</td>' +
+                            '<td>' + val.TestStep + '</td>' +
+                             '<td>' + val.ReTest + '</td>' +
+                             '<td class="FAILUREDETIAL" detailinfo="' + val.FailureStr + '">'
+                             + val.FailureShortStr + '</td>' +
+                             rawdatalink +
+                             logiclink +
+                             poweroncoupon +
+                             poweronwafer +
+                             powervsdith +
+                            '</tr>'
+                        );
+                    });
+
+                    logictable = $('#logictable').DataTable({
+                        'iDisplayLength': -1,
+                        'aLengthMenu': [[30, 60, 100, -1],
+                        [30, 60, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+                });
+        }
+
+
+        $(function(){
+            wuxistat();
+        });
+
+        $('body').on('click', '.FAILUREDETIAL', function () {
+            var detailinfo = $(this).attr('detailinfo');
+            if (detailinfo != '')
+            { alert(detailinfo); }
+        });
+
+    }
+
     return {
         ALLENLOGICINIT: function () {
             allenlogic();
@@ -1319,6 +2086,18 @@
         },
         WUXIWATANALYZE : function(){
             wuxiwatanalyze();
+        },
+        WUXIWATXY: function () {
+            wuxiwatxyfun();
+        },
+        WUXIWATCOUPON: function () {
+            wuxiwatcouponfun();
+        },
+        WUXIWATPVP: function () {
+            wuxiwatpvpfun();
+        },
+        WUXIWATSTATUS: function () {
+            wuxiwatstatusfun();
         }
     }
 }();

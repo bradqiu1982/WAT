@@ -260,8 +260,21 @@ namespace WAT.Controllers
         }
 
 
-        public ActionResult WUXIWATLogic()
-        { return View(); }
+        public ActionResult WUXIWATLogic(string wafer,string rp)
+        {
+            ViewBag.wafer = "";
+            ViewBag.jstepname = "";
+            if (!string.IsNullOrEmpty(wafer) && !string.IsNullOrEmpty(rp))
+            {
+                var jstepname = WATAnalyzeVM.ConvertRP2JudgementStep(rp);
+                if (!jstepname.Contains("PRE"))
+                {
+                    ViewBag.wafer = wafer;
+                    ViewBag.jstepname = jstepname;
+                }
+            }
+            return View();
+        }
 
         public JsonResult WUXIWATLogicData()
         {
@@ -269,6 +282,7 @@ namespace WAT.Controllers
             var jstepname = Request.Form["jstepname"];
 
             var wxlogic = new WXLogic.WXWATLogic();
+            wxlogic.AllowToMoveMapFile = false;
             var ret = wxlogic.WATPassFail(couponid, jstepname);
 
             var msglist = new List<object>();
@@ -335,8 +349,12 @@ namespace WAT.Controllers
             return ret;
         }
 
-        public ActionResult WUXIWATDataManage()
+        public ActionResult WUXIWATDataManage(string wafer)
         {
+            ViewBag.wafer = "";
+            if (!string.IsNullOrEmpty(wafer))
+            { ViewBag.wafer = wafer; }
+            
             return View();
         }
 
@@ -408,6 +426,8 @@ namespace WAT.Controllers
         private object GetWuxiWaferWATRest(string coupongroup, string step)
         {
             var wxlogic = new WXLogic.WXWATLogic();
+            wxlogic.AllowToMoveMapFile = false;
+
             var ret = wxlogic.WATPassFail(coupongroup, step);
 
             var stepdict = new Dictionary<string, string>();
@@ -680,7 +700,7 @@ namespace WAT.Controllers
             }
 
             var id = param.Replace(" ", "_") + "_id";
-            var title = param + " Distribution by Wafer";
+            var title = param +"_"+rp+ " Distribution by Wafer";
             var xAxis = new
             {
                 title = "Wafer#",
@@ -1044,6 +1064,7 @@ namespace WAT.Controllers
         public JsonResult WUXIWATAnalyzeData()
         {
             var param = Request.Form["param"].Trim();
+            param = WATAnalyzeVM.RealParam(param);
             var wafers = Request.Form["wafers"];
             var rp = Request.Form["rp"];
             var act = Request.Form["act"];
@@ -1094,6 +1115,752 @@ namespace WAT.Controllers
             }
         }
 
+        public ActionResult WUXIWATXY(string param,string wafer,string rp)
+        {
+            ViewBag.param = "";
+            if (!string.IsNullOrEmpty(param))
+            { ViewBag.param = param; }
+            ViewBag.wafer = "";
+            if (!string.IsNullOrEmpty(wafer))
+            { ViewBag.wafer = wafer; }
+            ViewBag.rp = "";
+            if (!string.IsNullOrEmpty(rp))
+            { ViewBag.rp = rp; }
+
+            return View();
+        }
+
+        private JsonResult WATDataXYChart(string param, List<string> wflist, string rp
+    , double lowlimit, double highlimit, double lowrange, double highrange, int rd, Dictionary<string, bool> vcselxy, bool raw)
+        {
+            Dictionary<string, List<XYVAL>> wuxiwatdatadict = new Dictionary<string, List<XYVAL>>();
+            if (raw)
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATRawData(param, wflist, rp, lowrange, highrange); }
+            else
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATLogicData(param, wflist, rp, lowrange, highrange); }
+
+            if (wuxiwatdatadict.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No data for paramter " + param
+                };
+                return ret1;
+            }
+
+            var wuxiwatdata = wuxiwatdatadict.Values.First();
+            var valdict = new Dictionary<string, double>();
+            foreach (var xyval in wuxiwatdata)
+            {
+                var k = xyval.X + ":::" + xyval.Y;
+                if (!valdict.ContainsKey(k))
+                { valdict.Add(k, xyval.Val); }
+            }
+
+            var vallist = new List<double>();
+            var data = new List<List<object>>();
+            var xlist = new List<int>();
+            var ylist = new List<int>();
+            var xlistdict = new Dictionary<int, bool>();
+            var ylistdict = new Dictionary<int, bool>();
+
+            foreach (var kv in vcselxy)
+            {
+                var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var X = Models.UT.O2I(xystr[0]);
+                var Y = Models.UT.O2I(xystr[1]);
+                if (valdict.ContainsKey(kv.Key))
+                {
+                    var templist = new List<object>();
+                    templist.Add(X);
+                    templist.Add(Y);
+                    templist.Add(valdict[kv.Key]);
+                    vallist.Add(valdict[kv.Key]);
+                    data.Add(templist);
+                }
+                else
+                {
+                    var templist = new List<object>();
+                    templist.Add(X);
+                    templist.Add(Y);
+                    templist.Add(null);
+                    data.Add(templist);
+                }
+
+                if (!xlistdict.ContainsKey(X))
+                { xlistdict.Add(X,true); }
+                if (!ylistdict.ContainsKey(Y))
+                { ylistdict.Add(Y, true); }
+
+            }
+
+            vallist.Sort();
+            xlist.AddRange(xlistdict.Keys);
+            ylist.AddRange(ylistdict.Keys);
+            xlist.Sort();
+            ylist.Sort();
+
+
+            var serial = new List<object>();
+            serial.Add(new
+            {
+                name = "Die Sort",
+                data = data,
+                boostThreshold = 100,
+                borderWidth = 0,
+                nullColor = "#acacac",//"#EFEFEF",
+                turboThreshold = 100
+            });
+
+
+            var id = param.Replace(" ", "_") + "_id";
+            var title = param + "_" + rp + " Distribution by Wafer";
+            var xydata = new
+            {
+                id = id,
+                title = title,
+                serial = serial,
+                xmax = xlist[xlist.Count - 1] + 10,
+                ymax = ylist[ylist.Count - 1] + 10,
+                datamin = vallist[0],
+                datamax = vallist[vallist.Count -1]
+            };
+
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                xydata = xydata
+            };
+            return ret;
+        }
+
+
+        private JsonResult WATRawXY(string param, List<string> wflist, string rp,Dictionary<string,bool> vcselxy)
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            if (!syscfg.ContainsKey(param))
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for RAW paramter " + param
+                };
+                return ret1;
+            }
+
+            var rawlimits = syscfg[param].Split(new string[] { ",", ";", ":" }, StringSplitOptions.RemoveEmptyEntries);
+            var lowlimit = Models.UT.O2D(rawlimits[0]);
+            var highlimit = Models.UT.O2D(rawlimits[1]);
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+
+            var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+            return WATDataXYChart(param, wflist, rp
+            , lowlimit, highlimit, lowrange, highrange, rd, vcselxy, true);
+        }
+
+        private JsonResult WATLogicXY(string param, List<string> wflist, string rp, Dictionary<string, bool> vcselxy)
+        {
+            var paramlimit = WATAnalyzeVM.GetWATSpecLimit(param, wflist);
+
+            if (paramlimit.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for LOGIC paramter " + param
+                };
+                return ret1;
+            }
+
+            var lowlimit = paramlimit[0];
+            var highlimit = paramlimit[1];
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+            var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+
+            return WATDataXYChart(param, wflist, rp
+            , lowlimit, highlimit, lowrange, highrange, rd, vcselxy, false);
+        }
+
+        public JsonResult WUXIWATXYDATA()
+        {
+            var param = Request.Form["param"].Trim();
+            param = WATAnalyzeVM.RealParam(param);
+            var wafernum = Request.Form["wafernum"].Trim();
+            var rp = Request.Form["rp"];
+
+            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum, this);
+            if (vcselxy.Count == 0)
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Wafer " + wafernum + "has no coordination information!"
+                };
+                return ret;
+            }
+
+            var rawlist = WATAnalyzeVM.GetWATRawParamList();
+            var logiclist = WATAnalyzeVM.GetWATLogicParamList();
+            var wflist = new List<string>();
+            wflist.Add(wafernum);
+
+            if (rawlist.Contains(param))
+            {
+                return WATRawXY(param, wflist, rp, vcselxy);
+            }
+            else if (logiclist.Contains(param))
+            {
+                return WATLogicXY(param.Replace("LOGIC", rp), wflist, rp, vcselxy);
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Parameter " + param + "is not supported!"
+                };
+                return ret;
+            }
+        }
+
+        public ActionResult WUXIWATCoupon(string param, string wafer, string rp)
+        {
+            ViewBag.param = "";
+            if (!string.IsNullOrEmpty(param))
+            { ViewBag.param = param; }
+            ViewBag.wafer = "";
+            if (!string.IsNullOrEmpty(wafer))
+            { ViewBag.wafer = wafer; }
+            ViewBag.rp = "";
+            if (!string.IsNullOrEmpty(rp))
+            { ViewBag.rp = rp; }
+
+            return View();
+        }
+
+
+        private JsonResult WATDataCouponChart(string param, List<string> wflist, string rp
+    , double lowlimit, double highlimit, double lowrange, double highrange, int rd , bool raw)
+        {
+            Dictionary<string, List<XYVAL>> wuxiwatdatadict = new Dictionary<string, List<XYVAL>>();
+            if (raw)
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATRawData(param, wflist, rp, lowrange, highrange); }
+            else
+            { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATLogicData(param, wflist, rp, lowrange, highrange); }
+
+            if (wuxiwatdatadict.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No data for paramter " + param
+                };
+                return ret1;
+            }
+
+            var waferunitdict = new Dictionary<string, bool>();
+
+            var wafercat = new List<object>();
+
+            var datalist = new List<double>();
+            foreach (var kv in wuxiwatdatadict)
+            {
+                var vallist = kv.Value;
+                vallist.Sort(delegate (XYVAL obj1, XYVAL obj2)
+                {
+                    return obj1.unit.CompareTo(obj2.unit);
+                });
+
+                var cplist = new List<string>();
+                var cpchdict = new Dictionary<string, List<string>>();
+
+                foreach (var val in vallist)
+                {
+                    var waferunit = kv.Key + ":" + val.unit;
+                    if (!waferunitdict.ContainsKey(waferunit))
+                    {
+                        waferunitdict.Add(waferunit, true);
+                        datalist.Add(val.Val);
+
+                        var cp = (val.unit / 10000).ToString();
+                        var ch = (val.unit % 10000).ToString();
+                        if (!cplist.Contains(cp))
+                        { cplist.Add(cp); }
+
+                        if (cpchdict.ContainsKey(cp))
+                        { cpchdict[cp].Add(ch); }
+                        else
+                        {
+                            var templist = new List<string>();
+                            templist.Add(ch);
+                            cpchdict.Add(cp, templist);
+                        }
+                    }
+                }
+
+                var cpcat = new List<object>();
+                foreach (var cpp in cplist)
+                {
+                    cpcat.Add(new
+                    {
+                        name = cpp,
+                        categories = cpchdict[cpp]
+                    });
+                }
+
+                wafercat.Add(new
+                {
+                    name = kv.Key,
+                    categories = cpcat
+                });
+            }
+
+            var id = param.Replace(" ", "_") + "_id";
+            var title = param + " Coupon Distribution";
+
+            var labels = new List<object>();
+            labels.Add(new
+            {
+                format = "<table><tr><td>LL:" + lowlimit + "</td></tr><tr><td>HL:" + highlimit + "</td></tr></table>",
+                useHTML = true,
+                point = new
+                {
+                    x = 0,
+                    y = 0
+                }
+            });
+
+            var coupondata = new
+            {
+                id = id,
+                title = title,
+                categories = wafercat,
+                lowlimit = lowlimit,
+                highlimit = highlimit,
+                labels = labels,
+                datalist = datalist
+            };
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                coupondata = coupondata
+            };
+            return ret;
+        }
+
+
+        private JsonResult WATRawCoupon(string param, List<string> wflist, string rp)
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            if (!syscfg.ContainsKey(param))
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for RAW paramter " + param
+                };
+                return ret1;
+            }
+
+            var rawlimits = syscfg[param].Split(new string[] { ",", ";", ":" }, StringSplitOptions.RemoveEmptyEntries);
+            var lowlimit = Models.UT.O2D(rawlimits[0]);
+            var highlimit = Models.UT.O2D(rawlimits[1]);
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+
+            var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+            return WATDataCouponChart(param, wflist, rp
+            , lowlimit, highlimit, lowrange, highrange, rd, true);
+        }
+
+        private JsonResult WATLogicCoupon(string param, List<string> wflist, string rp)
+        {
+            var paramlimit = WATAnalyzeVM.GetWATSpecLimit(param, wflist);
+
+            if (paramlimit.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No limit for LOGIC paramter " + param
+                };
+                return ret1;
+            }
+
+            var lowlimit = paramlimit[0];
+            var highlimit = paramlimit[1];
+
+            var rd = 5;
+            if (param.Contains("BVR_LD_A"))
+            { rd = 10; }
+
+            var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+            var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+
+
+            return WATDataCouponChart(param, wflist, rp
+            , lowlimit, highlimit, lowrange, highrange, rd, false);
+        }
+
+        public JsonResult WUXIWATCouponData()
+        {
+            var param = Request.Form["param"].Trim();
+            param = WATAnalyzeVM.RealParam(param);
+            var wafers = Request.Form["wafers"];
+            var rp = Request.Form["rp"];
+
+            var wfdict = new Dictionary<string, bool>();
+            var wfarray = wafers.Split(new string[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            foreach (var item in wfarray)
+            {
+                if (!wfdict.ContainsKey(item.Trim()))
+                {
+                    wfdict.Add(item.Trim(), true);
+                }
+            }
+            var wflist = wfdict.Keys.ToList();
+
+            var rawlist = WATAnalyzeVM.GetWATRawParamList();
+            var logiclist = WATAnalyzeVM.GetWATLogicParamList();
+
+            if (rawlist.Contains(param))
+            {
+                return WATRawCoupon(param, wflist, rp);
+            }
+            else if (logiclist.Contains(param))
+            {
+                return WATLogicCoupon(param.Replace("LOGIC", rp), wflist, rp);
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Parameter " + param + "is not supported!"
+                };
+                return ret;
+            }
+        }
+
+        public ActionResult WUXIWATPvsP(string xparam, string yparam, string wafer, string rp)
+        {
+            ViewBag.xparam = "";
+            if (!string.IsNullOrEmpty(xparam))
+            { ViewBag.xparam = xparam; }
+
+            ViewBag.yparam = "";
+            if (!string.IsNullOrEmpty(yparam))
+            { ViewBag.yparam = yparam; }
+
+            ViewBag.wafer = "";
+            if (!string.IsNullOrEmpty(wafer))
+            { ViewBag.wafer = wafer; }
+
+            ViewBag.rp = "";
+            if (!string.IsNullOrEmpty(rp))
+            { ViewBag.rp = rp; }
+
+            return View();
+        }
+
+        private List<object> GetWXWATTestData(string param,string rp,List<string> wflist,List<string> rawlist,List<string> logiclist)
+        {
+            var ret = new List<object>();
+            if (rawlist.Contains(param))
+            {
+                var syscfg = CfgUtility.GetSysConfig(this);
+                var rawlimits = syscfg[param].Split(new string[] { ",", ";", ":" }, StringSplitOptions.RemoveEmptyEntries);
+                var lowlimit = Models.UT.O2D(rawlimits[0]);
+                var highlimit = Models.UT.O2D(rawlimits[1]);
+                var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+                var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+                var wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATRawData(param, wflist, rp, lowrange, highrange);
+                if (wuxiwatdatadict.Count > 0)
+                {
+                    ret.Add(wuxiwatdatadict);
+                    ret.Add(lowlimit);
+                    ret.Add(highlimit);
+                }
+            }
+            else if (logiclist.Contains(param))
+            {
+                var newparam = param.Replace("LOGIC", rp);
+                var paramlimit = WATAnalyzeVM.GetWATSpecLimit(newparam, wflist);
+                var lowlimit = paramlimit[0];
+                var highlimit = paramlimit[1];
+                if (newparam.ToUpper().Contains("PO_LD_W_dB_".ToUpper()))
+                {
+                    lowlimit = -1.0; highlimit = 0.2;
+                }
+                if (newparam.ToUpper().Contains("THOLD_A_rd_".ToUpper()))
+                {
+                    lowlimit = 0; highlimit = 10;
+                }
+
+                var lowrange = lowlimit - 3.0 * Math.Abs(highlimit - lowlimit);
+                var highrange = highlimit + 3.0 * Math.Abs(highlimit - lowlimit);
+                var wuxiwatdatadict =  WATAnalyzeVM.GetWUXIWATLogicData(newparam, wflist, rp, lowrange, highrange);
+                if (wuxiwatdatadict.Count > 0)
+                {
+                    ret.Add(wuxiwatdatadict);
+                    ret.Add(lowlimit);
+                    ret.Add(highlimit);
+                }
+            }
+
+            return ret;
+        }
+
+        private JsonResult WUXIWATPvsPChart(string xparam,string yparam,List<string> wflist,List<object> xdatalist, List<object> ydatalist)
+        {
+            var xdatadict = (Dictionary<string, List<XYVAL>>)xdatalist[0];
+            var xlowlimit = (double)xdatalist[1];
+            var xhighlimit = (double)xdatalist[2];
+
+            var ydatadict = (Dictionary<string, List<XYVAL>>)ydatalist[0];
+            var ylowlimit = (double)ydatalist[1];
+            var yhighlimit = (double)ydatalist[2];
+
+            var series = new List<object>();
+            foreach (var wf in wflist)
+            {
+                if (xdatadict.ContainsKey(wf) && ydatadict.ContainsKey(wf))
+                {
+                    var xvaldict = new Dictionary<string, double>();
+                    foreach (var v in xdatadict[wf])
+                    {
+                        var key = wf + ":::" + v.unit;
+                        if (!xvaldict.ContainsKey(key))
+                        { xvaldict.Add(key, v.Val); }
+                    }
+
+                    var yvaldict = new Dictionary<string, double>();
+                    foreach (var v in ydatadict[wf])
+                    {
+                        var key = wf + ":::" + v.unit;
+                        if (!yvaldict.ContainsKey(key))
+                        { yvaldict.Add(key, v.Val); }
+                    }
+
+                    var rawdata = new List<object>();
+                    foreach (var xkv in xvaldict)
+                    {
+                        if (yvaldict.ContainsKey(xkv.Key))
+                        {
+                            var tmplist = new List<double>();
+                            tmplist.Add(xkv.Value);
+                            tmplist.Add(yvaldict[xkv.Key]);
+                            rawdata.Add(tmplist);
+                        }
+                    }
+
+                    series.Add(new{
+                        name = wf,
+                        type = "scatter",
+                        data = rawdata,
+                        marker = new {
+                        lineWidth = 1,
+                        radius = 2.5
+                        },
+                        tooltip = new {
+                            headerFormat= "",
+                            pointFormat = "{point.y}"
+                        },
+                        turboThreshold = 500000
+                    });
+                }//end if
+            }//end foreach
+
+
+            if (series.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "XParam,YParam have no common data on same wafer!"
+                };
+                return ret1;
+            }
+
+            var id = xparam.Replace(" ", "_") + "_id";
+            var title = xparam + " vs "+ yparam;
+
+            var labels = new List<object>();
+            labels.Add(new
+            {
+                format = "<table><tr><td>XLL:" + xlowlimit + "</td></tr><tr><td>XHL:" + xhighlimit 
+                + "</td></tr><tr><td>YLL:" + ylowlimit + "</td></tr><tr><td>YHL:" + yhighlimit + "</td></tr></table>",
+                useHTML = true,
+                point = new
+                {
+                    x = 0,
+                    y = 0
+                }
+            });
+
+            var pvpdata = new
+            {
+                id = id,
+                title = title,
+                xtitle = xparam,
+                xlowlimit = xlowlimit,
+                xhighlimit = xhighlimit,
+                ytitle = yparam,
+                ylowlimit = ylowlimit,
+                yhighlimit = yhighlimit,
+                labels = labels,
+                series = series
+            };
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                pvpdata = pvpdata
+            };
+            return ret;
+
+        }
+
+        public JsonResult WUXIWATPvsPData()
+        {
+            var xparam = Request.Form["xparam"].Trim();
+            xparam = WATAnalyzeVM.RealParam(xparam);
+            var yparam = Request.Form["yparam"].Trim();
+            yparam = WATAnalyzeVM.RealParam(yparam);
+
+            var wafers = Request.Form["wafers"];
+            var rp = Request.Form["rp"];
+
+            var wfdict = new Dictionary<string, bool>();
+            var wfarray = wafers.Split(new string[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            foreach (var item in wfarray)
+            {
+                if (!wfdict.ContainsKey(item.Trim()))
+                {
+                    wfdict.Add(item.Trim(), true);
+                }
+            }
+            var wflist = wfdict.Keys.ToList();
+
+            var rawlist = WATAnalyzeVM.GetWATRawParamList();
+            var logiclist = WATAnalyzeVM.GetWATLogicParamList();
+
+            if (!rawlist.Contains(xparam) && !logiclist.Contains(xparam))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Parameter " + xparam + "is not supported!"
+                };
+                return ret;
+            }
+
+            if (!rawlist.Contains(yparam) && !logiclist.Contains(yparam))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Parameter " + yparam + "is not supported!"
+                };
+                return ret;
+            }
+
+            var xdatalist = GetWXWATTestData(xparam,rp,wflist, rawlist, logiclist);
+            if (xdatalist.Count == 0)
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "No WAT Test Data For Param: " + xparam 
+                };
+                return ret;
+            }
+
+            var ydatalist = GetWXWATTestData(yparam, rp, wflist, rawlist, logiclist);
+            if (ydatalist.Count == 0)
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "No WAT Test Data For Param: " + yparam
+                };
+                return ret;
+            }
+
+            return WUXIWATPvsPChart(xparam,yparam,wflist, xdatalist, ydatalist);
+        }
+
+        public ActionResult WUXIWATStatus()
+        {
+            return View();
+        }
+
+        public JsonResult WUXIWATStatusData()
+        {
+            var wipdata = WuxiWATData4MG.GetWATStatus();
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wipdata = wipdata
+            };
+            return ret;
+        }
 
     }
 }

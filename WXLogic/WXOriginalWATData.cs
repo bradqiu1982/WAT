@@ -240,7 +240,15 @@ namespace WXLogic
             return ret;
         }
 
-
+        public static int GetCurrentRPTestedCoupon(string coupongroup,int rp)
+        {
+            var teststep = RP2TestName(rp);
+            var sql = @"select distinct Left(Containername,15) from insite.dbo.ProductionResult 
+                        where Containername like '<coupongroup>%' and TestStep = '<TestStep>' and Len(Containername) > 15 ";
+            sql = sql.Replace("<coupongroup>",coupongroup).Replace("<TestStep>",teststep);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            return dbret.Count;
+        }
 
         ////THIS FUNCTION NEED TO BE UPDATE
         //private static List<string> GetFakeXY(string containername, string channelinfo)

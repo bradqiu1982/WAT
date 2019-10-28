@@ -43,7 +43,7 @@ MOVETABLELIST:::[EngrData].[insite].[FinEvalJobStartInfo]
 
 OGPCONNSTR:::Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
 
-BVR_LD_A:::0:2e-6
+BVR_LD_A:::0:2e-8
 PO_LD_W:::0.001:0.005
 VF_LD_V:::1.5:2.7
 SLOPE_WperA:::0.2:0.65

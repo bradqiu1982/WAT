@@ -792,7 +792,7 @@ namespace WAT.Models
             return ret;
         }
 
-        private static XmlDocument StripNamespace(XmlDocument doc)
+        public static XmlDocument StripNamespace(XmlDocument doc)
         {
             if (doc.DocumentElement.NamespaceURI.Length > 0)
             {
