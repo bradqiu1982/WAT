@@ -1,0 +1,47 @@
+﻿
+@{
+    ViewBag.Title = "WUXIWATCouponOVEN";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<script type="text/javascript" src="~/Scripts/highcharts/annotations.js"></script>
+<script type="text/javascript" src="~/Scripts/highcharts/grouped-categories.js"></script>
+
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.WUXIWATCOUPONOVEN();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row">
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="font-size:100%!important;padding-top:5px!important;padding-bottom:12px!important;">WAFER</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="wafernum" name="wafernum" placeholder="Wafer Number" readonly="readonly">
+                    </div>
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="font-size:100%!important;padding-top:5px!important;padding-bottom:12px!important;">Index</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="cpidx" name="cpidx" placeholder="Coupon Index" readonly="readonly" />
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="Search">
+                    </div>
+                </div>
+                <input class="form-control hide" type="text" id="hwafernum" name="hwafernum" value="@ViewBag.couponid">
+            </div>
+            <div class="v-content" id="chartdiv" name="chartdiv">
+            </div>
+        </div>
+    </div>
+</div>
+
+

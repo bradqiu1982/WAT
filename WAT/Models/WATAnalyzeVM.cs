@@ -73,7 +73,8 @@ namespace WAT.Models
             retlist.Add("DIth");
             retlist.Add("DPO");
             retlist.Add("Dvf");
-
+            retlist.Add("Assembly");
+            retlist.Add("DPO_rd");
             return retlist;
         }
 
@@ -85,6 +86,10 @@ namespace WAT.Models
             { return "PO_LD_W_dB_ref0_LOGIC"; }
             if (string.Compare(param, "Dvf", true) == 0)
             { return "VF_LD_V_ad_ref1_LOGIC"; }
+            if (string.Compare(param, "Assembly", true) == 0)
+            { return "R_LD_ohm_c-p_LOGIC"; }
+            if (string.Compare(param, "DPO_rd", true) == 0)
+            { return "PO_LD_W_rd_ref1_LOGIC"; }
 
             return param;
         }

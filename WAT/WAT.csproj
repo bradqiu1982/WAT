@@ -281,6 +281,8 @@
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />
     <Compile Include="Models\WATAnalyzeVM.cs" />
+    <Compile Include="Models\WATGoldSample.cs" />
+    <Compile Include="Models\WATOven.cs" />
     <Compile Include="Models\WATSampleXY.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
@@ -860,6 +862,9 @@
     <Content Include="Views\WATLogic\WUXIWATCoupon.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATPvsP.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATStatus.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATGoldSample.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATOven.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATCouponOVEN.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

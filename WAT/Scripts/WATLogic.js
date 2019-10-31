@@ -827,6 +827,7 @@
                             '<th>Ith</th>' +
                             '<th>SlopEff</th>' +
                             '<th>SeriesR</th>' +
+                            '<th>TestTimeStamp</th>' +
                             '</tr>'
                         );
 
@@ -855,6 +856,7 @@
                             '<td>' + val.Ith + '</td>' +
                             '<td>' + val.SlopEff + '</td>' +
                             '<td>' + val.SeriesR + '</td>' +
+                            '<td>' + val.TestTime + '</td>' +
                             '</tr>';
 
                         $("#watdatacontent").append(tempstr);
@@ -1544,7 +1546,6 @@
 
         function coupondatas(param, wafers, rp) {
 
-
             var options = {
                 loadingTips: "loading data......",
                 backgroundColor: "#aaa",
@@ -1999,6 +2000,7 @@
                             '<th>RAWData</th>' +
                             '<th>WATLogic</th>' +
                             '<th>PowerOnCoupon</th>' +
+                            '<th>Assembly</th>' +
                             '<th>PowerOnWafer</th>' +
                             '<th>DITHvsDPO</th>' +
                             '</tr>'
@@ -2010,7 +2012,9 @@
                         var poweroncoupon = '<td></td>';
                         var poweronwafer = '<td></td>';
                         var powervsdith = '<td></td>';
-                        if (val.RPStr != '')
+                        var assemblylink = '<td><a href="/WATLogic/WUXIWATCoupon?param=Assembly&wafer=' + val.CouponID + '&rp=RP00" target="_blank" >Assembly</a></td>';
+
+                        if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1)
                         {
                             logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + 'E08&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
                             poweroncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PowerOnCoupon</a></td>';
@@ -2029,6 +2033,7 @@
                              rawdatalink +
                              logiclink +
                              poweroncoupon +
+                             assemblylink +
                              poweronwafer +
                              powervsdith +
                             '</tr>'
@@ -2063,6 +2068,435 @@
 
     }
 
+    var wuxiwatgoldenfun = function ()
+    {
+        $('.date').datepicker({ autoclose: true, viewMode: "days", minViewMode: "days" });
+
+        function golddata(tester, sdate, edate)
+        {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATGoldSampleData', {
+                tester: tester,
+                sdate: sdate,
+                edate: edate
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+
+                    $.each(output.chartlist, function (idx, val) {
+                        var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-12">' +
+                                   '<div class="v-box" id="' + val.id + '"></div>' +
+                                   '</div></div>';
+                        $('#chartdiv').append(appendstr);
+                        drawgoldplot(val);
+                    });
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var tester = $('#goldentesterlist').val();
+            var sdate = $('#sdate').val();
+            var edate = $('#edate').val();
+            if (tester == '')
+            {
+                alert('To review golden sample data,tester need to be selected!');
+                return false;
+            }
+            golddata(tester, sdate, edate);
+        });
+
+        $(function () {
+            var tester = $('#htester').val();
+            if (tester == '') {
+                return false;
+            }
+            golddata(tester, '', '');
+        });
+
+        var drawgoldplot = function (boxplot_data) {
+            var options = {
+                chart: {
+                    zoomType: 'xy',
+                    type: 'scatter'
+                },
+                title: {
+                    text: boxplot_data.title
+                },
+
+                legend: {
+                    enabled: false
+                },
+
+                xAxis: {
+                    categories: boxplot_data.categories
+                },
+
+                yAxis: {
+                    plotLines: [{
+                        value: boxplot_data.lowlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'LL',
+                            align: 'left'
+                        }
+                    }, {
+                        value: boxplot_data.highlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'UL',
+                            align: 'left'
+                        }
+                    }]
+                },
+                annotations: [{
+                    labels: boxplot_data.labels,
+                    color: '#d4d4d4',
+                    draggable: 'xy'
+                }],
+                series: [
+                {
+                    type: 'scatter',
+                    data: boxplot_data.datalist,
+                    marker: {
+                        lineWidth: 1,
+                        radius: 2.5
+                    },
+                    tooltip: {
+                        headerFormat: '',
+                        pointFormat: "{point.y}"
+                    },
+                    turboThreshold: 500000
+                }],
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + boxplot_data.id).parent().toggleClass('chart-modal');
+                                $('#' + boxplot_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(boxplot_data.id, options);
+        }
+    }
+
+    var wuxiwatovenfun = function () {
+        $('.date').datepicker({ autoclose: true, viewMode: "days", minViewMode: "days" });
+
+        function ovendata(tester, sdate, edate) {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATOvenData', {
+                tester: tester,
+                sdate: sdate,
+                edate: edate
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+
+                    $.each(output.chartlist, function (idx, val) {
+                        var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-12">' +
+                                   '<div class="v-box" id="' + val.id + '"></div>' +
+                                   '</div></div>';
+                        $('#chartdiv').append(appendstr);
+                        drawovenplot(val);
+                    });
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var tester = $('#goldentesterlist').val();
+            var sdate = $('#sdate').val();
+            var edate = $('#edate').val();
+            if (tester == '') {
+                alert('To review OVEN data,tester need to be selected!');
+                return false;
+            }
+            ovendata(tester, sdate, edate);
+        });
+
+        $(function () {
+            var tester = $('#htester').val();
+            if (tester == '') {
+                return false;
+            }
+            ovendata(tester, '', '');
+        });
+    }
+
+    var wuxiwatcoupon = function ()
+    {
+        $.post('/WATLogic/GetWXCouponID', {
+        }, function (output) {
+            $('#wafernum').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.couponidlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#wafernum').attr('readonly', false);
+        });
+
+        $.post('/WATLogic/GetWXCouponIndex', {
+        }, function (output) {
+            $('#cpidx').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.idxlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#cpidx').attr('readonly', false);
+        });
+
+        function covendata(couponid) {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATCouponOVENData', {
+                couponid: couponid
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+
+                    $.each(output.chartlist, function (idx, val) {
+                        var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-12">' +
+                                   '<div class="v-box" id="' + val.id + '"></div>' +
+                                   '</div></div>';
+                        $('#chartdiv').append(appendstr);
+                        drawovenplot(val);
+                    });
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var couponid = $('#wafernum').val() + $('#cpidx').val();
+            if (couponid.length < 11) {
+                alert('To review COUPON OVEN data,correct wafer number need to be input');
+                return false;
+            }
+            covendata(couponid);
+        });
+
+        $(function () {
+            var couponid = $('#hwafernum').val();
+            if (couponid == '') {
+                return false;
+            }
+            covendata(couponid);
+        });
+
+    }
+
+    var drawovenplot = function (boxplot_data) {
+        var options = {
+            chart: {
+                zoomType: 'xy',
+                type: 'scatter'
+            },
+            title: {
+                text: boxplot_data.title
+            },
+
+            legend: {
+                enabled: false
+            },
+
+            xAxis: {
+                categories: boxplot_data.categories
+            },
+
+            yAxis: {
+                plotLines: [{
+                    value: boxplot_data.lowlimit,
+                    color: 'green',
+                    dashStyle: 'Dash',
+                    width: 2,
+                    label: {
+                        text: 'LL',
+                        align: 'left'
+                    }
+                }, {
+                    value: boxplot_data.highlimit,
+                    color: 'green',
+                    dashStyle: 'Dash',
+                    width: 2,
+                    label: {
+                        text: 'UL',
+                        align: 'left'
+                    }
+                }]
+            },
+            annotations: [{
+                labels: boxplot_data.labels,
+                color: '#d4d4d4',
+                draggable: 'xy'
+            }],
+            series: [
+            {
+                type: 'scatter',
+                data: boxplot_data.datalist,
+                marker: {
+                    lineWidth: 1,
+                    radius: 2.5
+                },
+                tooltip: {
+                    headerFormat: '',
+                    pointFormat: "{point.y}"
+                },
+                turboThreshold: 800000
+            }],
+            exporting: {
+                menuItemDefinitions: {
+                    fullscreen: {
+                        onclick: function () {
+                            $('#' + boxplot_data.id).parent().toggleClass('chart-modal');
+                            $('#' + boxplot_data.id).highcharts().reflow();
+                        },
+                        text: 'Full Screen'
+                    },
+                    datalabel: {
+                        onclick: function () {
+                            var labelflag = !this.series[0].options.dataLabels.enabled;
+                            $.each(this.series, function (idx, val) {
+                                var opt = val.options;
+                                opt.dataLabels.enabled = labelflag;
+                                val.update(opt);
+                            })
+                        },
+                        text: 'Data Label'
+                    },
+                    copycharts: {
+                        onclick: function () {
+                            var svg = this.getSVG({
+                                chart: {
+                                    width: this.chartWidth,
+                                    height: this.chartHeight
+                                }
+                            });
+                            var c = document.createElement('canvas');
+                            c.width = this.chartWidth;
+                            c.height = this.chartHeight;
+                            canvg(c, svg);
+                            var dataURL = c.toDataURL("image/png");
+                            //var imgtag = '<img src="' + dataURL + '"/>';
+
+                            var img = new Image();
+                            img.src = dataURL;
+
+                            copyImgToClipboard(img);
+                        },
+                        text: 'copy 2 clipboard'
+                    }
+                },
+                buttons: {
+                    contextButton: {
+                        menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                    }
+                }
+            }
+        };
+        Highcharts.chart(boxplot_data.id, options);
+    }
     return {
         ALLENLOGICINIT: function () {
             allenlogic();
@@ -2098,6 +2532,18 @@
         },
         WUXIWATSTATUS: function () {
             wuxiwatstatusfun();
+        },
+        WUXIWATGOLDEN: function ()
+        {
+            wuxiwatgoldenfun();
+        },
+        WUXIWATOVEN: function () {
+            wuxiwatovenfun();
+        },
+        WUXIWATCOUPONOVEN: function ()
+        {
+            wuxiwatcoupon();
         }
+
     }
 }();

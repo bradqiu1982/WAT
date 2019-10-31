@@ -107,7 +107,7 @@ namespace WAT.Models
             else if (string.Compare(step, "PRLL_Post_HTOL2_Test", true) == 0)
             { return "RP03"; }
             else
-            { return ""; }
+            { return "RP00"; }
         }
 
         private static List<string> GetWATResultFromLogic(WuxiWATData4MG tempvm, string jdstep,bool allowmovemapfile = false)
@@ -265,16 +265,14 @@ namespace WAT.Models
             var ret = new List<WuxiWATData4MG>();
 
             var sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 20 and Containername not like '17%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
+                         where len(Containername) = 20 and Containername not like '17%' and Containername like '%E08%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
+
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            var wdict = new Dictionary<string, string>();
+            var dictdata = new Dictionary<string, List<WuxiWATData4MG>>();
+
             foreach (var line in dbret)
             {
                 var wafer = UT.O2S(line[0]);
-                if (wdict.ContainsKey(wafer))
-                { continue; }
-                wdict.Add(wafer, wafer);
-
                 var TestStep = UT.O2S(line[1]);
                 var TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
                 var tempvm = new WuxiWATData4MG();
@@ -282,6 +280,24 @@ namespace WAT.Models
                 tempvm.TestStep = TestStep;
                 tempvm.TestTime = TestTime;
                 tempvm.RPStr = GetRPFromTestStep(tempvm.TestStep);
+                if (dictdata.ContainsKey(wafer))
+                { dictdata[wafer].Add(tempvm); }
+                else
+                {
+                    var tmplist = new List<WuxiWATData4MG>();
+                    tmplist.Add(tempvm);
+                    dictdata.Add(wafer, tmplist);
+                }
+            }
+
+            foreach (var kv in dictdata)
+            {
+                var tmplist = kv.Value;
+                tmplist.Sort(delegate (WuxiWATData4MG obj1, WuxiWATData4MG obj2)
+                {
+                    return UT.O2I(obj2.RPStr.Replace("RP0", "")).CompareTo(UT.O2I(obj1.RPStr.Replace("RP0", "")));
+                });
+                var tempvm = tmplist[0];
                 GetWATTestResult(tempvm);
                 ret.Add(tempvm);
             }
@@ -376,7 +392,7 @@ namespace WAT.Models
                 Operator = "";
             }
 
-            TestTime = "";
+            TestTime = item.TestTimeStamp.ToString("yyyy-MM-dd HH:mm:ss");
             ReTest = "";
             FailureShortStr = "";
             FailureStr = "";

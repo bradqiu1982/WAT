@@ -1844,6 +1844,11 @@ namespace WAT.Controllers
             return WUXIWATPvsPChart(xparam,yparam,wflist, xdatalist, ydatalist);
         }
 
+        public ActionResult WATWIP()
+        {
+            return RedirectToAction("WUXIWATStatus", "WATLogic");
+        }
+
         public ActionResult WUXIWATStatus()
         {
             return View();
@@ -1858,6 +1863,475 @@ namespace WAT.Controllers
             ret.Data = new
             {
                 wipdata = wipdata
+            };
+            return ret;
+        }
+
+        private List<SelectListItem> CreateSelectList(List<string> valist, string defVal)
+        {
+            bool selected = false;
+            var pslist = new List<SelectListItem>();
+            foreach (var p in valist)
+            {
+                var pitem = new SelectListItem();
+                pitem.Text = p;
+                pitem.Value = p;
+                if (!string.IsNullOrEmpty(defVal) && string.Compare(defVal, p, true) == 0)
+                {
+                    pitem.Selected = true;
+                    selected = true;
+                }
+                pslist.Add(pitem);
+            }
+
+            if (!selected && pslist.Count > 0)
+            {
+                pslist[0].Selected = true;
+            }
+
+            return pslist;
+        }
+
+        public ActionResult WUXIWATGoldSample(string tester)
+        {
+
+            var goldentesters = WATGoldSample.GetWATTesterList();
+            ViewBag.goldentesterlist = CreateSelectList(goldentesters, "");
+
+            ViewBag.tester = "";
+            if (!string.IsNullOrEmpty(tester))
+            { ViewBag.tester = tester; }
+
+            return View();
+        }
+
+        public JsonResult WUXIWATGoldSampleData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            var tester = Request.Form["tester"];
+            var sdate = Request.Form["sdate"];
+            var edate = Request.Form["edate"];
+            var startdate = "";
+            var enddate = "";
+            if (string.IsNullOrEmpty(sdate) || string.IsNullOrEmpty(edate))
+            {
+                startdate = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
+                enddate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                var st = Models.UT.O2T(sdate);
+                var et = Models.UT.O2T(edate);
+                if (et > st)
+                {
+                    startdate = st.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = et.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else {
+                    startdate = et.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = st.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+            }
+
+            var paramlist = syscfg["GOLDSAMPLEPARAM"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            var rad = new System.Random(DateTime.Now.Second);
+            var chartlist = new List<object>();
+            foreach (var param in paramlist)
+            {
+                var datadict = WATGoldSample.GetGoldData(tester, param, startdate, enddate);
+                if (datadict.Count > 0)
+                {
+                    var limits = syscfg[param + "_GLD"].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                    var ll = Models.UT.O2D(limits[0]);
+                    var ul = Models.UT.O2D(limits[1]);
+
+                    var xlist = datadict.Keys.ToList();
+                    xlist.Sort(delegate(string obj1,string obj2) {
+                        var d1 = Models.UT.O2T(obj1 + " 00:00:00");
+                        var d2 = Models.UT.O2T(obj2 + " 00:00:00");
+                        return d1.CompareTo(d2);
+                    });
+
+                    var datalist = new List<object>();
+                    var xidx = 0;
+                    var cidx = 0;
+
+                    foreach (var x in xlist)
+                    {
+                        foreach (var v in datadict[x])
+                        {
+                            var tempdata = new List<double>();
+                            if (cidx % 2 == 0)
+                            { tempdata.Add(xidx + rad.NextDouble() / 5.0); }
+                            else
+                            { tempdata.Add(xidx - rad.NextDouble() / 5.0); }
+
+                            tempdata.Add(v);
+                            datalist.Add(tempdata);
+                            cidx++;
+                        }
+                        xidx++;
+                    }//end foreach
+
+                    var id = param.Replace(" ", "_") + "_id";
+                    var title = tester + " Golden Sample " + param + " Distribution";
+
+                    var labels = new List<object>();
+                    labels.Add(new
+                    {
+                        format = "<table><tr><td>LL:" + ll + "</td></tr><tr><td>HL:" + ul + "</td></tr></table>",
+                        useHTML = true,
+                        point = new
+                        {
+                            x = 0,
+                            y = 0
+                        }
+                    });
+
+                    chartlist.Add(new
+                    {
+                        id = id,
+                        title = title,
+                        categories = xlist,
+                        lowlimit = ll,
+                        highlimit = ul,
+                        labels = labels,
+                        datalist = datalist
+                    });
+                }//end if
+            }
+
+            if (chartlist.Count > 0)
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = true,
+                    chartlist = chartlist
+                };
+                return ret;
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Fail to get any gold sample data for tester:" + tester
+                };
+                return ret;
+            }
+
+        }
+
+
+        public ActionResult WUXIWATOven(string tester)
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var goldentesters =syscfg["WATOVEN"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            ViewBag.goldentesterlist = CreateSelectList(goldentesters, "");
+
+            ViewBag.tester = "";
+            if (!string.IsNullOrEmpty(tester))
+            { ViewBag.tester = tester; }
+
+            return View();
+        }
+
+        public JsonResult WUXIWATOvenData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            var tester = Request.Form["tester"];
+            var sdate = Request.Form["sdate"];
+            var edate = Request.Form["edate"];
+            var startdate = "";
+            var enddate = "";
+            if (string.IsNullOrEmpty(sdate) || string.IsNullOrEmpty(edate))
+            {
+                startdate = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
+                enddate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                var st = Models.UT.O2T(sdate);
+                var et = Models.UT.O2T(edate);
+                if (et > st)
+                {
+                    startdate = st.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = et.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else
+                {
+                    startdate = et.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = st.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+            }
+
+            var paramlist = new List<string>();
+            paramlist.Add("OVEN_TEMPERATURE");
+            paramlist.Add("OVEN_CURRENT");
+            
+            var chartlist = new List<object>();
+            var overdata = WATOven.GetOvenData(tester, startdate, enddate, Models.UT.O2I(syscfg["OVENSAMPPICKFREQ"]));
+            if (overdata.Count != 2)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "Fail to get any WAT OVEN data for tester:" + tester
+                };
+                return ret1;
+            }
+
+            var rad = new System.Random(DateTime.Now.Second);
+            var idx = 0;
+            foreach (var param in paramlist)
+            {
+                var datadict = (Dictionary<string, List<double>>)overdata[idx];
+                idx += 1;
+
+                if (datadict.Count > 0)
+                {
+                    var limits = syscfg[param].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                    var ll = Models.UT.O2D(limits[0]);
+                    var ul = Models.UT.O2D(limits[1]);
+
+                    var xlist = datadict.Keys.ToList();
+                    xlist.Sort(delegate (string obj1, string obj2) {
+                        var d1 = Models.UT.O2T(obj1 + " 00:00:00");
+                        var d2 = Models.UT.O2T(obj2 + " 00:00:00");
+                        return d1.CompareTo(d2);
+                    });
+
+                    var datalist = new List<object>();
+                    var xidx = 0;
+                    var cidx = 0;
+
+                    foreach (var x in xlist)
+                    {
+                        foreach (var v in datadict[x])
+                        {
+                            var tempdata = new List<double>();
+                            if (cidx % 2 == 0)
+                            { tempdata.Add(xidx + rad.NextDouble() / 5.0); }
+                            else
+                            { tempdata.Add(xidx - rad.NextDouble() / 5.0); }
+
+                            tempdata.Add(v);
+                            datalist.Add(tempdata);
+                            cidx++;
+                        }
+                        xidx++;
+                    }//end foreach
+
+                    var id = param.Replace(" ", "_") + "_id";
+                    var title = tester+ " " + param.Replace("_", " ") + " Distribution";
+
+                    var labels = new List<object>();
+                    labels.Add(new
+                    {
+                        format = "<table><tr><td>LL:" + ll + "</td></tr><tr><td>HL:" + ul + "</td></tr></table>",
+                        useHTML = true,
+                        point = new
+                        {
+                            x = 0,
+                            y = 0
+                        }
+                    });
+
+                    chartlist.Add(new
+                    {
+                        id = id,
+                        title = title,
+                        categories = xlist,
+                        lowlimit = ll,
+                        highlimit = ul,
+                        labels = labels,
+                        datalist = datalist
+                    });
+                }//end if
+            }
+
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                chartlist = chartlist
+            };
+            return ret;
+
+        }
+
+        public JsonResult GetWXCouponIndex()
+        {
+            var idxlist = new List<string>();
+            for (var idx = 100; idx < 141; idx++)
+            {
+                idxlist.Add(idx.ToString().Substring(1));
+            }
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                idxlist = idxlist
+            };
+            return ret;
+        }
+
+        public ActionResult WUXIWATCouponOVEN(string couponid)
+        {
+            ViewBag.couponid = "";
+            if (!string.IsNullOrEmpty(couponid))
+            { ViewBag.couponid = couponid; }
+
+            return View();
+        }
+
+        public JsonResult WUXIWATCouponOVENData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            var couponid = Request.Form["couponid"];
+            var ovenmachines = syscfg["WATOVEN"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            var tempdict = new Dictionary<string, List<double>>();
+            var currentdict = new Dictionary<string, List<double>>();
+
+            foreach (var tester in ovenmachines)
+            {
+                var oneovendata = WATOven.GetOvenData(tester, "", "", Models.UT.O2I(syscfg["OVENSAMPPICKFREQ"]),couponid);
+                if (oneovendata.Count == 2)
+                {
+                    var tdict = (Dictionary<string, List<double>>)oneovendata[0];
+                    var cdict = (Dictionary<string, List<double>>)oneovendata[1];
+                    foreach (var kv in tdict)
+                    {
+                        if (tempdict.ContainsKey(kv.Key))
+                        { tempdict[kv.Key].AddRange(kv.Value); }
+                        else
+                        {
+                            var tlist = new List<double>();
+                            tlist.AddRange(kv.Value);
+                            tempdict.Add(kv.Key, tlist);
+                        }
+                    }
+
+                    foreach (var kv in cdict)
+                    {
+                        if (currentdict.ContainsKey(kv.Key))
+                        {  currentdict[kv.Key].AddRange(kv.Value); }
+                        else
+                        {
+                            var tlist = new List<double>();
+                            tlist.AddRange(kv.Value);
+                            currentdict.Add(kv.Key, tlist);
+                        }
+                    }
+                }
+            }//end foreach
+
+            if (tempdict.Count == 0 && currentdict.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "Fail to get any WAT OVEN data for coupon:" + couponid
+                };
+                return ret1;
+            }
+
+            var overdata = new List<object>();
+            overdata.Add(tempdict);
+            overdata.Add(currentdict);
+
+            var paramlist = new List<string>();
+            paramlist.Add("OVEN_TEMPERATURE");
+            paramlist.Add("OVEN_CURRENT");
+            var chartlist = new List<object>();
+            var rad = new System.Random(DateTime.Now.Second);
+            var idx = 0;
+            foreach (var param in paramlist)
+            {
+                var datadict = (Dictionary<string, List<double>>)overdata[idx];
+                idx += 1;
+
+                if (datadict.Count > 0)
+                {
+                    var limits = syscfg[param].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                    var ll = Models.UT.O2D(limits[0]);
+                    var ul = Models.UT.O2D(limits[1]);
+
+                    var xlist = datadict.Keys.ToList();
+                    xlist.Sort(delegate (string obj1, string obj2) {
+                        var d1 = Models.UT.O2T(obj1 + " 00:00:00");
+                        var d2 = Models.UT.O2T(obj2 + " 00:00:00");
+                        return d1.CompareTo(d2);
+                    });
+
+                    var datalist = new List<object>();
+                    var xidx = 0;
+                    var cidx = 0;
+
+                    foreach (var x in xlist)
+                    {
+                        foreach (var v in datadict[x])
+                        {
+                            var tempdata = new List<double>();
+                            if (cidx % 2 == 0)
+                            { tempdata.Add(xidx + rad.NextDouble() / 5.0); }
+                            else
+                            { tempdata.Add(xidx - rad.NextDouble() / 5.0); }
+
+                            tempdata.Add(v);
+                            datalist.Add(tempdata);
+                            cidx++;
+                        }
+                        xidx++;
+                    }//end foreach
+
+                    var id = param.Replace(" ", "_") + "_id";
+                    var title = couponid + " " + param.Replace("_", " ") + " Distribution";
+
+                    var labels = new List<object>();
+                    labels.Add(new
+                    {
+                        format = "<table><tr><td>LL:" + ll + "</td></tr><tr><td>HL:" + ul + "</td></tr></table>",
+                        useHTML = true,
+                        point = new
+                        {
+                            x = 0,
+                            y = 0
+                        }
+                    });
+
+                    chartlist.Add(new
+                    {
+                        id = id,
+                        title = title,
+                        categories = xlist,
+                        lowlimit = ll,
+                        highlimit = ul,
+                        labels = labels,
+                        datalist = datalist
+                    });
+                }//end if
+            }
+
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                chartlist = chartlist
             };
             return ret;
         }

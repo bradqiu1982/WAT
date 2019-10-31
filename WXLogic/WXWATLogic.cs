@@ -91,7 +91,7 @@ namespace WXLogic
 
             
             var waferarray = WXEvalPN.GetWaferArrayInfo(containerinfo.wafer);
-            if (!string.IsNullOrEmpty(waferarray) && CouponGroup.Contains("E08"))
+            if (!string.IsNullOrEmpty(waferarray) && CouponGroup.Contains("E08") && string.IsNullOrEmpty(AnalyzeParam))
             {
                 var couponcount = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
 

@@ -1,0 +1,68 @@
+﻿
+@{
+    ViewBag.Title = "WUXIWATGoldSample";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .v-filter {
+        margin-top:20px;    
+    }
+
+</style>
+<script type="text/javascript" src="~/Scripts/highcharts/annotations.js"></script>
+<script type="text/javascript" src="~/Scripts/highcharts/grouped-categories.js"></script>
+
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.WUXIWATGOLDEN();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="height:2em">Tester</label>
+                    </div>
+                    <div class="col-xs-2">
+                        @Html.DropDownList("goldentesterlist", null, new { @id = "goldentesterlist", @class = "form-control" })
+                    </div>
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="height:2em">Period</label>
+                    </div>
+                    <div class="col-xs-2">
+                        <div class="input-group date" data-date=""
+                             data-date-format="yyyy-mm-dd">
+                            <input type="text" class="form-control"
+                                   id="sdate" name="sdate" value="" readonly>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-xs-1">~</div>
+                    <div class="col-xs-2">
+                        <div class="input-group date" data-date=""
+                             data-date-format="yyyy-mm-dd">
+                            <input type="text" class="form-control"
+                                   id="edate" name="edate" value="" readonly>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-th"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" style="margin-left:40px;" data-toggle="tooltip" title="Show Gold Sample Data" value="Search Data">
+                    </div>
+                </div>
+                <input class="form-control hide" type="text" id="htester" name="htester" value="@ViewBag.tester">
+            </div>
+            <div class="v-content" id="chartdiv" name="chartdiv">
+            </div>
+        </div>
+    </div>
+</div>
