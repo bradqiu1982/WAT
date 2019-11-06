@@ -49,10 +49,10 @@ namespace WXLogic
         public static string GetProductFamilyFromSherman(string wafernum)
         {
             var sql = @"SELECT distinct LEFT(pf.[ProductFamilyName],4) AS PRODUCT_FAMILY
-                    FROM [SHM-CSSQL]. [Insite].[insite].[Container] c with(nolock)
+                    FROM [SHM-CSSQL].[Insite].[insite].[Container] c with(nolock)
                     INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductBase] pb with(nolock) ON pb.[RevOfRcdId] = c.[ProductId] 
-                    INNER JOIN [SHM-CSSQL]. [Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId] 
-                    INNER JOIN [SHM-CSSQL]. [Insite].[insite].[ProductFamily] pf with(nolock) ON pf.[ProductFamilyId] = p.[ProductFamilyId]
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId] 
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductFamily] pf with(nolock) ON pf.[ProductFamilyId] = p.[ProductFamilyId]
                     WHERE c.[ContainerName] like '%<wafernum>%'";
 
             sql = sql.Replace("<wafernum>", wafernum);
@@ -66,7 +66,7 @@ namespace WXLogic
 
         public static void UpdateLotTypeFromSherman(string wafernum)
         {
-            var sql = @"SELECT ContainerType FROM [SHM-CSSQL]. [Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
+            var sql = @"SELECT ContainerType FROM [SHM-CSSQL].[Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
             sql = sql.Replace("<wafernum>", wafernum);
 
             var dbret = DBUtility.ExeShermanSqlWithRes(sql);
@@ -170,11 +170,11 @@ namespace WXLogic
         public static bool PrepareEvalPN(string wafernum)
         {
             var allenret = PrepareAllenEvalPN(wafernum);
-            //UpdateLotTypeFromAllen(wafernum);
+
             if (!allenret)
             {
                 var shermanret = PrepareShermanEvalPN(wafernum);
-                //UpdateLotTypeFromSherman(wafernum);
+
                 if (!shermanret)
                 { return false; }
             }
@@ -241,7 +241,12 @@ namespace WXLogic
                 var sql = @"select na.Array_Length from  [EngrData].[dbo].[NeoMAP_MWR_Arrays] na with (nolock) where na.product_out = @productfm";
                 var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
                 foreach (var line in dbret)
-                { return UT.O2S(line[0]); }
+                {
+                    if (line[0] != System.DBNull.Value)
+                    {
+                        return UT.O2S(line[0]);
+                    }
+                }
                 return "1";
             }
             else
@@ -249,7 +254,12 @@ namespace WXLogic
                 var sql = @"SELECT ARRAY_COUNT_X FROM [ShermanData].[dbo].[PRODUCT_VIEW] WITH (NOLOCK) WHERE PRODUCT_FAMILY = @productfm";
                 var dbret = DBUtility.ExeShermanSqlWithRes(sql, dict);
                 foreach (var line in dbret)
-                { return UT.O2S(line[0]); }
+                {
+                    if (line[0] != System.DBNull.Value)
+                    {
+                        return UT.O2S(line[0]);
+                    }
+                }
                 return "1";
             }
         }

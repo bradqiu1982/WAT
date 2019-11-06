@@ -217,6 +217,87 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult DownLoadPDMapFile()
+        {
+            return View();
+        }
+
+        public JsonResult DownLoadPDMapFileData()
+        {
+            var syscfgdict = CfgUtility.GetSysConfig(this);
+            var wf = Request.Form["wf"].Trim();
+
+            var productfm = WXEvalPN.GetProductFamilyFromAllen(wf);
+            if (string.IsNullOrEmpty(productfm))
+            {
+                productfm = WXEvalPN.GetProductFamilyFromSherman(wf);
+            }
+
+            var allfilelist = new List<string>();
+            if (string.IsNullOrEmpty(productfm))
+            {
+                allfilelist = DieSortVM.GetAllWaferFile(this);
+            }
+            else
+            {
+
+                var srcfolder = syscfgdict["DIESORTFOLDER"]+"\\"+productfm;
+                allfilelist = ExternalDataCollector.DirectoryEnumerateAllFiles(this, srcfolder);
+            }
+
+            var fs = "";
+            foreach (var f in allfilelist)
+            {
+                if (f.Contains(wf))
+                {
+                    fs = f;
+                }
+            }
+
+            if (string.IsNullOrEmpty(fs))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    MSG = "Fail to get map file for PD wafer: "+wf
+                };
+                return ret;
+            }
+            else
+            {
+                var desf = syscfgdict["PDSHAREFOLDER"] + "\\" + System.IO.Path.GetFileName(fs);
+                ExternalDataCollector.FileCopy(this, fs, desf, true);
+                if (ExternalDataCollector.FileExist(this, desf))
+                {
+                    var pddatalist = DieSortVM.RetrievePDData(desf);
+                    var chartdata = DieSortVM.RetrieveDieChartData(pddatalist, "pd_wafer_id", "PD " + wf + " Distribution");
+                    var ret = new JsonResult();
+                    ret.MaxJsonLength = Int32.MaxValue;
+                    ret.Data = new
+                    {
+                        sucess = true,
+                        chartdata = chartdata
+                    };
+                    return ret;
+                }
+                else
+                {
+                    var ret = new JsonResult();
+                    ret.MaxJsonLength = Int32.MaxValue;
+                    ret.Data = new
+                    {
+                        sucess = false,
+                        MSG = "Fail to download PD map file of wafer: " + wf
+                    };
+                    return ret;
+                }//end else
+            }//end else
+        }
+
+
+
     }
 
 }

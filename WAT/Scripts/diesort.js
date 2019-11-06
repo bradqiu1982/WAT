@@ -486,6 +486,49 @@
 
     }
 
+    var pddownloadfun = function () {
+
+        function downloadpd(wf)
+        {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DieSort/DownLoadPDMapFileData', {
+                wf: wf
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    
+                    $('.v-content').empty();
+                    var appendstr = '<div class="col-xs-12">' +
+                    '<div class="v-box" id="' + output.chartdata.id + '"></div>' +
+                    '</div>';
+
+                    $('.v-content').append(appendstr);
+                    drawdiesortmap(output.chartdata);
+                }
+                else {
+                    alert(output.MSG);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var wf = $('#mapfile').val();
+            if (wf == '')
+            { alert('please input the PD map file!'); }
+            downloadpd(wf);
+        });
+    }
+
     return {
         REVIEWINIT: function () {
             reviewdiesort();
@@ -495,6 +538,9 @@
         },
         WAFER4PLAN: function () {
             wafer4planning();
+        },
+        PDINIT: function () {
+            pddownloadfun();
         }
     }
 }();

@@ -49,10 +49,10 @@ namespace WAT.Models
         public static string GetProductFamilyFromSherman(string wafernum)
         {
             var sql = @"SELECT distinct LEFT(pf.[ProductFamilyName],4) AS PRODUCT_FAMILY
-                    FROM [SHM-CSSQL]. [Insite].[insite].[Container] c with(nolock)
+                    FROM [SHM-CSSQL].[Insite].[insite].[Container] c with(nolock)
                     INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductBase] pb with(nolock) ON pb.[RevOfRcdId] = c.[ProductId] 
-                    INNER JOIN [SHM-CSSQL]. [Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId] 
-                    INNER JOIN [SHM-CSSQL]. [Insite].[insite].[ProductFamily] pf with(nolock) ON pf.[ProductFamilyId] = p.[ProductFamilyId]
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId] 
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductFamily] pf with(nolock) ON pf.[ProductFamilyId] = p.[ProductFamilyId]
                     WHERE c.[ContainerName] like '%<wafernum>%'";
 
             sql = sql.Replace("<wafernum>", wafernum);
@@ -66,7 +66,7 @@ namespace WAT.Models
 
         public static void UpdateLotTypeFromSherman(string wafernum)
         {
-            var sql = @"SELECT ContainerType FROM [SHM-CSSQL]. [Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
+            var sql = @"SELECT ContainerType FROM [SHM-CSSQL].[Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
             sql = sql.Replace("<wafernum>", wafernum);
 
             var dbret = DBUtility.ExeShermanSqlWithRes(sql);

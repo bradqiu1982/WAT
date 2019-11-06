@@ -1,0 +1,63 @@
+﻿
+@{
+    ViewBag.Title = "DownLoadPDMapFile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .highcharts-container {
+        height: 920px !important;
+    }
+
+    .v-box {
+        height: 920px !important;
+    }
+
+    th.dt-center, td.dt-center {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/diesort.js"></script>
+<script type="text/javascript">
+        $(function(){
+            DIESORT.PDINIT();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="form-control">PD Wafer</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="mapfile" name="mapfile" placeholder="PD WAFER NUMBER">
+                    </div>
+                    <div class="col-xs-1 box-search" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="DownLoad">
+                    </div>
+                </div>
+                <div class="row row-margin hide">
+                    <div class="col-xs-2">
+                        <label class="form-control">VCSEL INFO</label>
+                    </div>
+                    <div class="col-xs-2">
+                        <input class="form-control" type="text" id="bompn" name="bompn" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2">
+                        <input class="form-control" type="text" id="bomarray" name="bomarray" readonly="readonly">
+                    </div>
+                    <div class="col-xs-3">
+                        <input class="form-control" type="text" id="bomdesc" name="bomdesc" readonly="readonly">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content">
+            </div>
+        </div>
+    </div>
+</div>
+

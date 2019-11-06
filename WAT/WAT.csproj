@@ -865,6 +865,7 @@
     <Content Include="Views\WATLogic\WUXIWATGoldSample.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATOven.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATCouponOVEN.cshtml" />
+    <Content Include="Views\DieSort\DownLoadPDMapFile.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

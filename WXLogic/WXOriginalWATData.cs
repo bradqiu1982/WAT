@@ -198,12 +198,17 @@ namespace WXLogic
 
             foreach (var line in dbret)
             {
-                if (uniqdict.ContainsKey(UT.O2S(line[1])+"-"+UT.O2S(line[13]) + "-" + UT.O2T(line[0]).ToString("yyyy-MM-dd HH:mm:ss")))
-                { continue; }
+                var ukey = UT.O2S(line[1]).Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0] + "-" + UT.O2S(line[13]) + "-" + UT.O2S(line[4]).ToUpper();
+                //var ukey = UT.O2S(line[1]) + "-" + UT.O2S(line[13]) + "-" +  UT.O2T(line[0]).ToString("yyyy-MM-dd HH:mm:ss");
+                if (uniqdict.ContainsKey(ukey))
+                {
+                    continue;
+                }
+                uniqdict.Add(ukey, true);
 
                 var tempvm = new WXOriginalWATData();
                 tempvm.TestTimeStamp = UT.O2T(line[0]);
-                tempvm.Containername = UT.O2S(line[1]).Substring(0,14);
+                tempvm.Containername = UT.O2S(line[1]).Split(new string[] { "_"},StringSplitOptions.RemoveEmptyEntries)[0];
                 tempvm.Product = UT.O2S(line[2]);
                 tempvm.TestStation = UT.O2S(line[3]);
                 tempvm.TestStep = UT.O2S(line[4]);
@@ -232,7 +237,7 @@ namespace WXLogic
                     tempvm.X = samplexydict[xykey].X;
                     tempvm.Y = samplexydict[xykey].Y;
                     tempvm.UnitNum = (UT.O2I(tempvm.Containername.Substring(12,2))*10000+UT.O2I(tempvm.ChannelInfo)).ToString();
-                    uniqdict.Add(tempvm.Containername +"-"+tempvm.ChannelInfo + "-" + tempvm.TestTimeStamp.ToString("yyyy-MM-dd HH:mm:ss"), true);
+                    
                     ret.Add(tempvm);
                 }
             }

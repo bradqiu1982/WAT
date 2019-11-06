@@ -2336,5 +2336,23 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public JsonResult RefreshWATWIP()
+        {
+            try
+            {
+                WuxiWATData4MG.RefreshWATStatusDaily();
+            }
+            catch (Exception ex) { }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true
+            };
+            return ret;
+        }
+
+
     }
 }

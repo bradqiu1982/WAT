@@ -310,7 +310,7 @@ namespace WAT.Models
             var ret = new List<WuxiWATData4MG>();
 
             var sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 20 and Containername not like '17%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
+                         where len(Containername) >= 20 and Containername not like '17%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             var wdict = new Dictionary<string, string>();
             foreach (var line in dbret)

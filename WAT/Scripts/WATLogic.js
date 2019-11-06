@@ -1966,6 +1966,29 @@
 
     var wuxiwatstatusfun = function () {
         var logictable = null;
+
+        $.fn.dataTable.ext.buttons.refreshstatus = {
+            text: 'Refresh',
+            action: function (e, dt, node, config) {
+                var options = {
+                    loadingTips: "loading data......",
+                    backgroundColor: "#aaa",
+                    borderColor: "#fff",
+                    opacity: 0.8,
+                    borderColor: "#fff",
+                    TipsColor: "#000",
+                }
+                $.bootstrapLoading.start(options);
+
+                $.post('/WATLogic/RefreshWATWIP',
+                    {}, function (output) {
+                        $.bootstrapLoading.end();
+
+                        window.location.reload(true);
+                    });
+            }
+        };
+
         var wuxistat = function () {
 
             var options = {
@@ -2000,6 +2023,7 @@
                             '<th>RAWData</th>' +
                             '<th>WATLogic</th>' +
                             '<th>PowerOnCoupon</th>' +
+                            '<th>DVFOnCoupon</th>' +
                             '<th>Assembly</th>' +
                             '<th>PowerOnWafer</th>' +
                             '<th>DITHvsDPO</th>' +
@@ -2010,16 +2034,21 @@
                         var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + 'E08" target="_blank" >RAWDATA</a></td>';
                         var logiclink = '<td></td>';
                         var poweroncoupon = '<td></td>';
+                        var dvfoncoupon = '<td></td>';
                         var poweronwafer = '<td></td>';
                         var powervsdith = '<td></td>';
                         var assemblylink = '<td><a href="/WATLogic/WUXIWATCoupon?param=Assembly&wafer=' + val.CouponID + '&rp=RP00" target="_blank" >Assembly</a></td>';
 
-                        if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1)
+                        if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1 && val.ReTest.indexOf('coupon count') == -1 && val.ReTest.indexOf('Fail to') == -1)
                         {
-                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + 'E08&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
                             poweroncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PowerOnCoupon</a></td>';
+                            dvfoncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=Dvf&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >DVFOnCoupon</a></td>';
                             poweronwafer = '<td><a href="/WATLogic/WUXIWATXY?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PowerOnWafer</a></td>';
                             powervsdith = '<td><a href="/WATLogic/WUXIWATPvsP?xparam=DIth&yparam=DPO&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >DITHvsDPO</a></td>';
+                        }
+
+                        if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1) {
+                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + 'E08&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
                         }
 
                         $("#logiccontent").append(
@@ -2033,6 +2062,7 @@
                              rawdatalink +
                              logiclink +
                              poweroncoupon +
+                             dvfoncoupon +
                              assemblylink +
                              poweronwafer +
                              powervsdith +
@@ -2050,7 +2080,7 @@
                         "aaSorting": [],
                         "order": [],
                         dom: 'lBfrtip',
-                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5', 'refreshstatus']
                     });
                 });
         }

@@ -175,12 +175,20 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+
+        public ActionResult ScanNewVCSEL()
+        {
+            DieSortVM.ScanNewWafer(this);
+            return View("HeartBeat");
+        }
+
         public ActionResult PrepareData4WAT()
         {
             var wlist = new List<string>();
-            wlist.Add("172015-30");
-            //wlist.Add("190333-20");
-            //wlist.Add("190601-10");
+            wlist.Add("191106-70");
+            wlist.Add("191531-10");
+            wlist.Add("191007-70");
+
             //wlist.Add("190601-20");
             //wlist.Add("190628-30");
             //wlist.Add("190717-30");

@@ -47,7 +47,12 @@ namespace WAT.Models
                 var sql = @"select na.Array_Length from  [EngrData].[dbo].[NeoMAP_MWR_Arrays] na with (nolock) where na.product_out = @productfm";
                 var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
                 foreach (var line in dbret)
-                { return UT.O2S(line[0]); }
+                {
+                    if (line[0] != System.DBNull.Value)
+                    {
+                        return UT.O2S(line[0]);
+                    }
+                }
                 return "1";
             }
             else
@@ -55,7 +60,12 @@ namespace WAT.Models
                 var sql = @"SELECT ARRAY_COUNT_X FROM [ShermanData].[dbo].[PRODUCT_VIEW] WITH (NOLOCK) WHERE PRODUCT_FAMILY = @productfm";
                 var dbret = DBUtility.ExeShermanSqlWithRes(sql, dict);
                 foreach (var line in dbret)
-                { return UT.O2S(line[0]); }
+                {
+                    if (line[0] != System.DBNull.Value)
+                    {
+                        return UT.O2S(line[0]);
+                    }
+                }
                 return "1";
             }
         }

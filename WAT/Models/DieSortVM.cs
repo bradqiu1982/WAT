@@ -36,18 +36,29 @@ namespace WAT.Models
 
             var latestdate = DateTime.Now.AddDays(-5).ToString("yyyy-MM-dd HH:mm:ss");
 
-            var sql = @"SELECT distinct left([ParamValueString],9)
+            var sql = @"SELECT distinct [ParamValueString]
                           FROM [InsiteDB].[insite].[dc_IQC_InspectionResult] irs  with (nolock) 
                           left join InsiteDB.insite.DataCollectionHistory dch with (nolock) on irs.DataCollectionHistoryID = dch.DataCollectionHistoryId
                           left join InsiteDB.insite.Product pd with (nolock) on pd.ProductId = dch.ProductId 
-                            where ParameterName = 'VendorLotNumber' and ParamValueString like '%-%' and right(left(ParamValueString,7),1) = '-' 
-	                        and len(ParameterName) > 8 and dch.TxnDate > '<latestdate>' and pd.Description like '%VCSEL%'";
+                            where ParameterName = 'VendorLotNumber' and ParamValueString like '%-%' and ( right(left(ParamValueString,7),1) = '-' or right(left(ParamValueString,6),1) = '-' )
+	                        and len(ParamValueString) > 8 and dch.TxnDate > '<latestdate>' and pd.Description like '%VCSEL%'";
             sql = sql.Replace("<latestdate>", latestdate);
 
             var dbret = DBUtility.ExeRealMESSqlWithRes(sql);
             foreach (var line in dbret)
             {
-                var wf = Convert.ToString(line[0]);
+                var wf = UT.O2S(line[0]);
+                if (wf.Length == 12)
+                {
+                    wf = wf.Substring(0, 9);
+                }
+                else if (wf.Length > 12)
+                {
+                    wf = wf.Substring(0, 13);
+                }
+                else
+                { continue; }
+
                 if (!ret.ContainsKey(wf))
                 { ret.Add(wf, true); }
             }
@@ -91,7 +102,11 @@ namespace WAT.Models
                     && !nofmwafer.ContainsKey(wf) 
                     && !noprobewafer.ContainsKey(wf))
                 {
-                    if (SolveANewWafer(wf,allwffiles,ctrl,"",false))
+                    if (SolveANewWafer(wf, allwffiles, ctrl, "", false))
+                    {
+                        solvedwafer.Add(wf, true);
+                    }
+                    else
                     {
                         solvedwafer.Add(wf, true);
                     }
@@ -467,7 +482,12 @@ namespace WAT.Models
                 var sql = @"select na.Array_Length from  [EngrData].[dbo].[NeoMAP_MWR_Arrays] na with (nolock) where na.product_out = @productfm";
                 var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
                 foreach (var line in dbret)
-                { return O2S(line[0]); }
+                {
+                    if (line[0] != System.DBNull.Value)
+                    {
+                        return O2S(line[0]);
+                    }
+                }
                 return "1";
             }
             else
@@ -475,7 +495,12 @@ namespace WAT.Models
                 var sql = @"SELECT ARRAY_COUNT_X FROM [ShermanData].[dbo].[PRODUCT_VIEW] WITH (NOLOCK) WHERE PRODUCT_FAMILY = @productfm";
                 var dbret = DBUtility.ExeShermanSqlWithRes(sql, dict);
                 foreach (var line in dbret)
-                { return O2S(line[0]); }
+                {
+                    if (line[0] != System.DBNull.Value)
+                    {
+                        return O2S(line[0]);
+                    }
+                }
                 return "1";
             }
 
@@ -811,44 +836,44 @@ namespace WAT.Models
         private static Dictionary<string, string> GetBin57Dict(XmlElement root, int samplecount)
         {
             var ret = new Dictionary<string, string>();
-            var goodbin57 = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode='57' and @Pick='true']");
-            if (goodbin57.Count > 0)
-            {
-                var all57list = new List<string>();
-                var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
-                foreach (XmlElement nd in bincodelist)
-                {
-                    if (string.Compare(nd.InnerText, "57", true) == 0)
-                    {
-                        all57list.Add(nd.GetAttribute("X") + ":::" + nd.GetAttribute("Y"));
-                    }
-                }
+            //var goodbin57 = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode='57' and @Pick='true']");
+            //if (goodbin57.Count > 0)
+            //{
+            //    var all57list = new List<string>();
+            //    var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+            //    foreach (XmlElement nd in bincodelist)
+            //    {
+            //        if (string.Compare(nd.InnerText, "57", true) == 0)
+            //        {
+            //            all57list.Add(nd.GetAttribute("X") + ":::" + nd.GetAttribute("Y"));
+            //        }
+            //    }
 
-                if (samplecount < all57list.Count)
-                {
-                    var sectionlist = new List<int>();
-                    sectionlist.Add(0);
-                    sectionlist.Add(all57list.Count / 4);
-                    sectionlist.Add(all57list.Count / 2);
-                    sectionlist.Add(all57list.Count * 3 / 4);
-                    var maxsection = all57list.Count / 4;
-                    var rad = new Random(DateTime.Now.Millisecond);
+            //    if (samplecount < all57list.Count)
+            //    {
+            //        var sectionlist = new List<int>();
+            //        sectionlist.Add(0);
+            //        sectionlist.Add(all57list.Count / 4);
+            //        sectionlist.Add(all57list.Count / 2);
+            //        sectionlist.Add(all57list.Count * 3 / 4);
+            //        var maxsection = all57list.Count / 4;
+            //        var rad = new Random(DateTime.Now.Millisecond);
 
-                    while (ret.Count < samplecount)
-                    {
-                        foreach (var s in sectionlist)
-                        {
-                            var sidx = s + rad.Next(maxsection);
-                            if (sidx < all57list.Count && !ret.ContainsKey(all57list[sidx]))
-                            {
-                                ret.Add(all57list[sidx], "57");
-                                if (ret.Count == samplecount)
-                                { return ret; }
-                            }
-                        }//end foreach
-                    }//end while
-                }//end if
-            }
+            //        while (ret.Count < samplecount)
+            //        {
+            //            foreach (var s in sectionlist)
+            //            {
+            //                var sidx = s + rad.Next(maxsection);
+            //                if (sidx < all57list.Count && !ret.ContainsKey(all57list[sidx]))
+            //                {
+            //                    ret.Add(all57list[sidx], "57");
+            //                    if (ret.Count == samplecount)
+            //                    { return ret; }
+            //                }
+            //            }//end foreach
+            //        }//end while
+            //    }//end if
+            //}
             return ret;
         }
 
@@ -1165,6 +1190,47 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<DieSortVM> RetrievePDData(string diefile)
+        {
+            var valdict = new Dictionary<string, int>();
+
+            var doc = new XmlDocument();
+            doc.Load(diefile);
+            var namesp = doc.DocumentElement.GetAttribute("xmlns");
+            doc = StripNamespace(doc);
+            XmlElement root = doc.DocumentElement;
+
+            var goodbindict = new Dictionary<string, bool>();
+            var goodbins = root.SelectNodes("//BinDefinition[@BinDescription='GOOD']");
+            foreach (XmlElement nd in goodbins)
+            {
+                try
+                {
+                    var bc = nd.GetAttribute("BinCode");
+                    if (!goodbindict.ContainsKey(bc))
+                    { goodbindict.Add(bc, true); }
+                }
+                catch (Exception ex) { }
+            }
+
+            var ret = new List<DieSortVM>();
+            var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+            foreach (XmlElement nd in bincodelist)
+            {
+                try
+                {
+                    var x = nd.GetAttribute("X");
+                    var y = nd.GetAttribute("Y");
+                    if (goodbindict.ContainsKey(nd.InnerText.Trim()))
+                    { ret.Add(new DieSortVM(UT.O2I(x), UT.O2I(y),5)); }
+                    else
+                    { ret.Add(new DieSortVM(UT.O2I(x), UT.O2I(y), 0)); }
+                }
+                catch (Exception ex) { }
+            }
+
+            return ret;
+        }
 
         public static List<DieSortVM> RetrieveCMPData(string diefile)
         {
@@ -1206,8 +1272,9 @@ namespace WAT.Models
         public static object RetrieveDieChartData(List<DieSortVM> datalist,string id = "die_sort_id",string title="Die Sort Pick Map")
         {
             var data = new List<List<object>>();
-            var xlist = new List<int>();
-            var ylist = new List<int>();
+            var xdict = new Dictionary<int,bool>();
+            var ydict = new Dictionary<int, bool>();
+
             foreach (var v in datalist)
             {
                 var templist = new List<object>();
@@ -1216,9 +1283,12 @@ namespace WAT.Models
                 templist.Add(v.DieValue);
                 data.Add(templist);
 
-                xlist.Add(v.X);
-                ylist.Add(v.Y);
+                if (!xdict.ContainsKey(v.X))
+                { xdict.Add(v.X, true); }
+                if (!ydict.ContainsKey(v.Y))
+                { ydict.Add(v.Y, true); }
             }
+
             var serial = new List<object>();
             serial.Add(new
             {
@@ -1230,6 +1300,10 @@ namespace WAT.Models
                turboThreshold = 100
             });
 
+            var xlist = new List<int>();
+            var ylist = new List<int>();
+            xlist.AddRange(xdict.Keys);
+            ylist.AddRange(ydict.Keys);
             xlist.Sort();
             ylist.Sort();
             return new
