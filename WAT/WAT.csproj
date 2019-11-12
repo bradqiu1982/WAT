@@ -265,6 +265,7 @@
     <Compile Include="Models\AllenLogic\WATTTFUnit.cs" />
     <Compile Include="Models\AllenLogic\WATTTFuse.cs" />
     <Compile Include="Models\AllenVcselPNs.cs" />
+    <Compile Include="Models\BinSubstitute.cs" />
     <Compile Include="Models\CBOXData.cs" />
     <Compile Include="Models\CfgUtility.cs" />
     <Compile Include="Models\CookieUtility.cs" />
@@ -282,6 +283,7 @@
     <Compile Include="Models\WaferReport.cs" />
     <Compile Include="Models\WATAnalyzeVM.cs" />
     <Compile Include="Models\WATGoldSample.cs" />
+    <Compile Include="Models\WATOGPVM.cs" />
     <Compile Include="Models\WATOven.cs" />
     <Compile Include="Models\WATSampleXY.cs" />
     <Compile Include="Models\WebLog.cs" />
@@ -866,6 +868,7 @@
     <Content Include="Views\WATLogic\WUXIWATOven.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATCouponOVEN.cshtml" />
     <Content Include="Views\DieSort\DownLoadPDMapFile.cshtml" />
+    <Content Include="Views\DieSort\WaferBinSubstitute.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -72,13 +72,21 @@ namespace WAT.Models
 
         public static List<string> GetAllCouponID()
         {
-            var ret = new List<string>();
-
-            var sql = "select distinct Left(Containername,12) from Insite.dbo.ProductionResult where len(Containername) > 12 and (Containername like '%E%' or Containername like '%R%')";
+            var retdict = new Dictionary<string,bool>();
+            var sql = "select distinct Containername from Insite.dbo.ProductionResult where len(Containername) > 14 and (Containername like '%E%' or Containername like '%R%')";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
-            { ret.Add(UT.O2S(line[0])); }
-            return ret;
+            {
+                var couponid = UT.O2S(line[0]).Split(new string[] { "_" },StringSplitOptions.RemoveEmptyEntries)[0];
+                if (couponid.Length >= 14)
+                {
+                    couponid = couponid.Substring(0, couponid.Length - 2);
+                    if (!retdict.ContainsKey(couponid))
+                    { retdict.Add(couponid, true); }
+                }
+            }
+
+            return retdict.Keys.ToList();
         }
 
         public static string RP2TestName(int rp)

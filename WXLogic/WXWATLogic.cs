@@ -12,6 +12,32 @@ namespace WXLogic
     // NOTE: You can use the "Rename" command on the "Refactor" menu to change the class name "Service1" in both code and config file together.
     public class WXWATLogic : IWXWATLogic
     {
+
+        private string GetCouponGroup(string coupongroup1)
+        {
+            var CouponGroup = "";
+            try
+            {
+                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") &&!coupongroup1.Contains("R")))
+                { return string.Empty; }
+                else
+                {
+                    var len = 0;
+                    if (coupongroup1.Contains("E"))
+                    { len = coupongroup1.IndexOf("E") + 3; }
+                    else
+                    { len = coupongroup1.IndexOf("R") + 3; }
+
+                    if (coupongroup1.Length < len)
+                    { return string.Empty; }
+                    else
+                    { CouponGroup = coupongroup1.Substring(0, len); }
+                }
+            }
+            catch (Exception ex) { return string.Empty; }
+            return CouponGroup;
+        }
+
         public  WXWATLogic WATPassFail(string coupongroup1, string CurrentStepName)
         {
             var ret = new WXWATLogic();
@@ -24,19 +50,15 @@ namespace WXLogic
             if (!string.IsNullOrEmpty(AnalyzeParam))
             { sharedatatoallen = false; }
 
-            var CouponGroup = "";
-            if (coupongroup1.Length < 12)
+            var CouponGroup = GetCouponGroup(coupongroup1.ToUpper());
+            if (string.IsNullOrEmpty(CouponGroup))
             {
                 ret.AppErrorMsg = "Get an illege couponid: " + coupongroup1;
                 return ret;
             }
-            else
-            {
-                CouponGroup = coupongroup1.Substring(0, 12).ToUpper();
-            }
 
             var bitemp = 100;
-            if (CouponGroup.Contains("E06"))
+            if (CouponGroup.Contains("E06") && CouponGroup.Contains("R06"))
             { bitemp = 25; }
 
             var shippable = 1;
@@ -90,7 +112,8 @@ namespace WXLogic
             }
 
             
-            var waferarray = WXEvalPN.GetWaferArrayInfo(containerinfo.wafer);
+            var waferarray = WATSampleXY.GetArrayFromAllenSherman(containerinfo.wafer);
+
             if (!string.IsNullOrEmpty(waferarray) && CouponGroup.Contains("E08") && string.IsNullOrEmpty(AnalyzeParam))
             {
                 var couponcount = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
@@ -544,7 +567,7 @@ namespace WXLogic
             }
 
 
-            if (rp > 0 && readcount > 1 && failcount > 0 && bitemp >= 0
+            if (rp > 0  && failcount > 0 && bitemp >= 0
                 && (string.Compare(containerinfo.lottype, "n", true) == 0
                 || string.Compare(containerinfo.lottype, "q", true) == 0
                 || string.Compare(containerinfo.lottype, "w", true) == 0

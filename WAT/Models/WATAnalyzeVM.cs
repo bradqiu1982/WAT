@@ -186,7 +186,7 @@ namespace WAT.Models
                     var val = UT.O2D(line[0]);
                     if (val > lowrange && val < highrange)
                     {
-                        var Containername = UT.O2S(line[1]).Substring(0, 14);
+                        var Containername = UT.O2S(line[1]).Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0];
                         var ChannelInfo = UT.O2S(line[2]);
                         var xykey = Containername + "-" + ChannelInfo;
                         if (containerdict.ContainsKey(xykey))
@@ -196,7 +196,7 @@ namespace WAT.Models
 
                         if (samplexydict.ContainsKey(xykey))
                         {
-                            var UnitNum = (UT.O2I(Containername.Substring(12, 2)) * 10000 + UT.O2I(ChannelInfo)).ToString();
+                            var UnitNum = (UT.O2I(Containername.Substring(Containername.Length-2, 2)) * 10000 + UT.O2I(ChannelInfo)).ToString();
                             var X = samplexydict[xykey].X;
                             var Y = samplexydict[xykey].Y;
                             ret.Add(new XYVAL(X,Y,UnitNum,val));
@@ -524,7 +524,7 @@ namespace WAT.Models
             var ret = new Dictionary<string, bool>();
             var array = WXLogic.WATSampleXY.GetArrayFromDieSort(wafer);
             if (string.IsNullOrEmpty(array))
-            { array = WXLogic.WATSampleXY.GetArrayFromAllen(wafer); }
+            { array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer); }
             if (string.IsNullOrEmpty(array))
             { return ret; }
             var arraysize = UT.O2I(array);

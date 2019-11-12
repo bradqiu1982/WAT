@@ -529,6 +529,110 @@
         });
     }
 
+    var binsubstitutefun = function () {
+        var wafertable = null;
+
+        function loadbininfo() {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+            $.post('/DieSort/LoadBinSubstituteData', {
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (wafertable) {
+                    wafertable.destroy();
+                    wafertable = null;
+                }
+
+                $("#waferhead").empty();
+                $("#wafercontent").empty();
+
+                $("#waferhead").append(
+                        '<tr>' +
+                            '<th>Wafer</th>' +
+                            '<th>WAT_Result</th>' +
+                            '<th>From_Bin</th>' +
+                            '<th>Bin_Count</th>' +
+                            '<th>To_Bin</th>' +
+                            '<th>From_PN</th>' +
+                            '<th>To_PN</th>' +
+                            '<th>Action</th>' +
+                         '</tr>'
+                    );
+
+                $.each(output.binsubdata, function (i, val) {
+                    $("#wafercontent").append(
+                        '<tr>' +
+                            '<td>' + val.wafer + '</td>' +
+                            '<td>' + val.result + '</td>' +
+                            '<td>' + val.frombin + '</td>' +
+                            '<td>' + val.bincount + '</td>' +
+                            '<td>' + val.tobin + '</td>' +
+                            '<td>' + val.fpn + '</td>' +
+                            '<td>' + val.tpn + '</td>' +
+                            '<td><Button class="btn btn-success convertbin" wf = "' + val.wafer + '" fbin = "' + val.frombin + '" tbin = "' + val.tobin + '">To ' + val.tobin + '</Button></td>' +
+                        '</tr>'
+                        );
+                });
+
+                wafertable = $('#wafertable').DataTable({
+                    'iDisplayLength': 20,
+                    'aLengthMenu': [[20, 50, 100, -1],
+                    [20, 50, 100, "All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
+            });
+        }
+
+        $(function(){
+            loadbininfo();
+        });
+
+
+        function convertbin(wf, fbin, tbin)
+        {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DieSort/ConvertBinMapFileData', {
+                wf: wf,
+                fbin: fbin,
+                tbin: tbin
+            }, function (output) {
+                $.bootstrapLoading.end();
+                alert(output.MSG);
+                window.location.reload(true);
+            });
+        }
+
+        $('body').on('click', '.convertbin', function () {
+            var wf = $(this).attr('wf');
+            var fbin = $(this).attr('fbin');
+            var tbin = $(this).attr('tbin');
+            convertbin(wf, fbin, tbin);
+        });
+    }
+
     return {
         REVIEWINIT: function () {
             reviewdiesort();
@@ -541,6 +645,10 @@
         },
         PDINIT: function () {
             pddownloadfun();
+        },
+        BINSUBSTITUTE: function ()
+        {
+            binsubstitutefun();
         }
     }
 }();

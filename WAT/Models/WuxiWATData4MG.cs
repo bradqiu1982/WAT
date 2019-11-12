@@ -8,6 +8,7 @@ namespace WAT.Models
 {
     public class WuxiWATData4MG
     {
+
         public static List<WuxiWATData4MG> GetData(string coupongroup1,Controller ctrl)
         {
             var syscfg = CfgUtility.GetSysConfig(ctrl);
@@ -15,18 +16,15 @@ namespace WAT.Models
 
             var ret = new List<WuxiWATData4MG>();
 
-            var CouponGroup = "";
-            if (coupongroup1.Length < 12)
+            var CouponGroup = GetCouponGroup(coupongroup1.ToUpper().Trim());
+
+            if (string.IsNullOrEmpty(CouponGroup))
             {
                 return ret;
             }
-            else
-            {
-                CouponGroup = coupongroup1.Substring(0, 12).ToUpper();
-            }
 
             var oringaldata = WXLogic.WXOriginalWATData.GetData(CouponGroup);
-            var wafernum = CouponGroup.Split(new string[] { "E", "e" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            var wafernum = CouponGroup.Split(new string[] { "E", "R" }, StringSplitOptions.RemoveEmptyEntries)[0];
             var probedata = WXLogic.WXProbeData.GetData(wafernum);
 
             var probedict = new Dictionary<string, WXLogic.WXProbeData>();
@@ -67,6 +65,31 @@ namespace WAT.Models
             });
 
             return ret;
+        }
+
+        private static string GetCouponGroup(string coupongroup1)
+        {
+            var CouponGroup = "";
+            try
+            {
+                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") && !coupongroup1.Contains("R")))
+                { return string.Empty; }
+                else
+                {
+                    var len = 0;
+                    if (coupongroup1.Contains("E"))
+                    { len = coupongroup1.IndexOf("E") + 3; }
+                    else
+                    { len = coupongroup1.IndexOf("R") + 3; }
+
+                    if (coupongroup1.Length < len)
+                    { return string.Empty; }
+                    else
+                    { CouponGroup = coupongroup1.Substring(0, len); }
+                }
+            }
+            catch (Exception ex) { return string.Empty; }
+            return CouponGroup;
         }
 
         private string ValueCheck(string name, string val, Dictionary<string, string> specdict)
@@ -260,16 +283,25 @@ namespace WAT.Models
             }
         }
 
+
+        private static List<List<object>> GetWUXIWATWaferStepData()
+        {
+            var sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
+                         where len(Containername) = 20 and Containername not like '17%' and Containername like '%E08%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            sql = @"select distinct left(Containername,13),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
+                         where len(Containername) = 24 and Containername like '%E08%' group by left(Containername,13),TestStep order by latesttime desc,left(Containername,13)";
+            var dbret1 = DBUtility.ExeLocalSqlWithRes(sql);
+            dbret.AddRange(dbret1);
+            return dbret;
+        }
+
         public static List<WuxiWATData4MG> GetWATStatus()
         {
             var ret = new List<WuxiWATData4MG>();
-
-            var sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 20 and Containername not like '17%' and Containername like '%E08%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
-
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             var dictdata = new Dictionary<string, List<WuxiWATData4MG>>();
 
+            var dbret = GetWUXIWATWaferStepData();
             foreach (var line in dbret)
             {
                 var wafer = UT.O2S(line[0]);
@@ -308,11 +340,10 @@ namespace WAT.Models
         public static List<WuxiWATData4MG> RefreshWATStatusDaily()
         {
             var ret = new List<WuxiWATData4MG>();
-
-            var sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) >= 20 and Containername not like '17%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             var wdict = new Dictionary<string, string>();
+
+            var dbret = GetWUXIWATWaferStepData();
+
             foreach (var line in dbret)
             {
                 var wafer = UT.O2S(line[0]);

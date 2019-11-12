@@ -236,8 +236,7 @@ namespace WXLogic
                 {
                     tempvm.X = samplexydict[xykey].X;
                     tempvm.Y = samplexydict[xykey].Y;
-                    tempvm.UnitNum = (UT.O2I(tempvm.Containername.Substring(12,2))*10000+UT.O2I(tempvm.ChannelInfo)).ToString();
-                    
+                    tempvm.UnitNum = (UT.O2I(tempvm.Containername.Substring(tempvm.Containername.Length-2, 2))*10000+UT.O2I(tempvm.ChannelInfo)).ToString();
                     ret.Add(tempvm);
                 }
             }
@@ -248,11 +247,19 @@ namespace WXLogic
         public static int GetCurrentRPTestedCoupon(string coupongroup,int rp)
         {
             var teststep = RP2TestName(rp);
-            var sql = @"select distinct Left(Containername,15) from insite.dbo.ProductionResult 
+            var retdict = new Dictionary<string, bool>();
+            var sql = @"select distinct Containername from insite.dbo.ProductionResult 
                         where Containername like '<coupongroup>%' and TestStep = '<TestStep>' and Len(Containername) > 15 ";
             sql = sql.Replace("<coupongroup>",coupongroup).Replace("<TestStep>",teststep);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            return dbret.Count;
+            foreach (var line in dbret)
+            {
+                var couponid = UT.O2S(line[0]).Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0];
+                if (!retdict.ContainsKey(couponid))
+                { retdict.Add(couponid, true); }
+            }
+
+            return retdict.Count;
         }
 
         ////THIS FUNCTION NEED TO BE UPDATE

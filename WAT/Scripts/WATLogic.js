@@ -2170,7 +2170,7 @@
                 },
 
                 legend: {
-                    enabled: false
+                    enabled: true
                 },
 
                 xAxis: {
@@ -2203,20 +2203,7 @@
                     color: '#d4d4d4',
                     draggable: 'xy'
                 }],
-                series: [
-                {
-                    type: 'scatter',
-                    data: boxplot_data.datalist,
-                    marker: {
-                        lineWidth: 1,
-                        radius: 2.5
-                    },
-                    tooltip: {
-                        headerFormat: '',
-                        pointFormat: "{point.y}"
-                    },
-                    turboThreshold: 500000
-                }],
+                series: boxplot_data.seriallist,
                 exporting: {
                     menuItemDefinitions: {
                         fullscreen: {

@@ -296,6 +296,44 @@ namespace WAT.Controllers
             }//end else
         }
 
+        public ActionResult WaferBinSubstitute()
+        {
+            return View();
+        }
+
+        public JsonResult LoadBinSubstituteData()
+        {
+            var binsubdata = BinSubstitute.GetBinSubstituteWafers();
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                binsubdata = binsubdata
+            };
+            return ret;
+        }
+
+        public JsonResult ConvertBinMapFileData()
+        {
+            var MSG = "the map file is converted!";
+            var wf = Request.Form["wf"];
+            var fbin = Request.Form["fbin"];
+            var tbin = Request.Form["tbin"];
+
+            var msg = DieSortVM.ConvertBinMapFileData(wf,fbin,tbin,this);
+            if (!string.IsNullOrEmpty(msg))
+            { MSG = msg; }
+            else
+            { BinSubstitute.AddSolvedBinSubstitute(wf, fbin); }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                MSG = MSG
+            };
+            return ret;
+        }
 
 
     }

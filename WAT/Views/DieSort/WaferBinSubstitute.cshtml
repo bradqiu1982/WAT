@@ -1,0 +1,48 @@
+﻿
+@{
+    ViewBag.Title = "WaferBinSubstitute";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<style type="text/css">
+    .highcharts-container {
+        height: 920px !important;
+    }
+
+    .v-box {
+        height: 920px !important;
+    }
+
+    th.dt-center, td.dt-center {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/diesort.js"></script>
+<script type="text/javascript">
+        $(function(){
+            DIESORT.BINSUBSTITUTE();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                </div>
+            </div>
+            <div class="v-content">
+                <div style="margin-top:20px">
+                    <table class="table table-hover  table-condensed table-striped" id="wafertable" style="margin-top:1%">
+                        <caption class="tb-caption">BIN SUBSTITUTE</caption>
+                        <thead id="waferhead"></thead>
+                        <tbody id="wafercontent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

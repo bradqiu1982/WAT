@@ -18,7 +18,7 @@ namespace WAT.Controllers
             if (string.IsNullOrEmpty(WAFER) || string.IsNullOrEmpty(WAFER.Trim()))
             { return string.Empty; }
 
-            return WATSampleXY.GetArrayFromAllen(WAFER.Trim());
+            return WXLogic.WATSampleXY.GetArrayFromAllenSherman(WAFER.Trim());
         }
 
         //http://wuxinpi.china.ads.finisar.com:9090/api/allenwafer/GetWaferCoordinate?wafernum=191418-20

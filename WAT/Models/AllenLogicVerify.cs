@@ -34,7 +34,7 @@ namespace WAT.Models
                     continue;
                 }
 
-                var wafer = line[0].Substring(0,9);
+                var wafer = line[0];
                 var dcdname = line[1];
                 foreach (var c in clist)
                 {

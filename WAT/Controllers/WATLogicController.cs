@@ -397,7 +397,7 @@ namespace WAT.Controllers
 
         public JsonResult LoadOGPWafer()
         {
-            var waferlist = DieSortVM.GetAllOGPWafers(this);
+            var waferlist = WATOGPVM.GetAllOGPWafers(this);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
@@ -410,7 +410,7 @@ namespace WAT.Controllers
         public JsonResult LoadOGPData()
         {
             var wafer = Request.Form["wafer"];
-            var ogpdatalist = DieSortVM.GetOGPData(wafer, this);
+            var ogpdatalist = WATOGPVM.GetOGPData(wafer, this);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
@@ -1933,73 +1933,121 @@ namespace WAT.Controllers
                 }
             }
 
+            var colors = new string[] { "#2f7ed8", "#0d233a", "#8bbc21", "#910000", "#1aadce",
+                    "#492970", "#f28f43", "#77a1e5", "#c42525", "#a6c96a" };
+
             var paramlist = syscfg["GOLDSAMPLEPARAM"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
             var rad = new System.Random(DateTime.Now.Second);
             var chartlist = new List<object>();
             foreach (var param in paramlist)
             {
-                var datadict = WATGoldSample.GetGoldData(tester, param, startdate, enddate);
-                if (datadict.Count > 0)
+                var limits = syscfg[param + "_GLD"].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                var ll = Models.UT.O2D(limits[0]);
+                var ul = Models.UT.O2D(limits[1]);
+
+                var gsdict = WATGoldSample.GetGoldData(tester, param, startdate, enddate);
+                if (gsdict.Count == 0)
+                { continue; }
+
+                //get date idx dict
+                var datelist = new List<string>();
+                foreach (var gskv in gsdict)
                 {
-                    var limits = syscfg[param + "_GLD"].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
-                    var ll = Models.UT.O2D(limits[0]);
-                    var ul = Models.UT.O2D(limits[1]);
+                    foreach (var dkv in gskv.Value)
+                    {
+                        if (!datelist.Contains(dkv.Key))
+                        { datelist.Add(dkv.Key); }
+                    }
+                }
+                datelist.Sort(delegate (string obj1, string obj2) {
+                    var d1 = Models.UT.O2T(obj1 + " 00:00:00");
+                    var d2 = Models.UT.O2T(obj2 + " 00:00:00");
+                    return d1.CompareTo(d2);
+                });
 
-                    var xlist = datadict.Keys.ToList();
-                    xlist.Sort(delegate(string obj1,string obj2) {
-                        var d1 = Models.UT.O2T(obj1 + " 00:00:00");
-                        var d2 = Models.UT.O2T(obj2 + " 00:00:00");
-                        return d1.CompareTo(d2);
-                    });
+                var datedict = new Dictionary<string, int>();
+                var didx = 0;
+                foreach (var d in datelist)
+                {
+                    datedict.Add(d, didx);
+                    didx++;
+                }
 
+                var seriallist = new List<object>();
+                var xidx = 0;
+                var gidx = 0;
+                foreach (var gskv in gsdict)
+                {
                     var datalist = new List<object>();
-                    var xidx = 0;
-                    var cidx = 0;
+                    var color = colors[gidx%colors.Length];
+                    gidx++;
 
-                    foreach (var x in xlist)
+                    var datadict = gskv.Value;
+                    if (datadict.Count > 0)
                     {
-                        foreach (var v in datadict[x])
+                        foreach (var kv in datadict)
                         {
-                            var tempdata = new List<double>();
-                            if (cidx % 2 == 0)
-                            { tempdata.Add(xidx + rad.NextDouble() / 5.0); }
+                            var x = 0.0;
+                            if (xidx % 2 == 0)
+                            { x = datedict[kv.Key] + rad.NextDouble() / 5.0; }
                             else
-                            { tempdata.Add(xidx - rad.NextDouble() / 5.0); }
+                            { x = datedict[kv.Key] - rad.NextDouble() / 5.0; }
 
-                            tempdata.Add(v);
-                            datalist.Add(tempdata);
-                            cidx++;
+                            foreach (var val in kv.Value)
+                            {
+                                datalist.Add(new
+                                {
+                                    x = x,
+                                    y = val
+                                });
+                            }
+                            xidx++;
                         }
-                        xidx++;
-                    }//end foreach
 
-                    var id = param.Replace(" ", "_") + "_id";
-                    var title = tester + " Golden Sample " + param + " Distribution";
-
-                    var labels = new List<object>();
-                    labels.Add(new
-                    {
-                        format = "<table><tr><td>LL:" + ll + "</td></tr><tr><td>HL:" + ul + "</td></tr></table>",
-                        useHTML = true,
-                        point = new
+                        seriallist.Add(new
                         {
-                            x = 0,
-                            y = 0
-                        }
-                    });
+                            name = gskv.Key,
+                            color = color,
+                            data = datalist,
+                            marker = new {
+                                lineWidth = 1,
+                                radius = 3
+                            },
+                            tooltip = new
+                            {
+                                headerFormat = "{series.name}<br>",
+                                pointFormat = "{point.y}"
+                            },
+                            turboThreshold = 800000
+                        });
 
-                    chartlist.Add(new
+                    }//end if
+                }//end foreach
+
+                var id = param.Replace(" ", "_") + "_id";
+                var title = tester + " Golden Sample " + param + " Distribution";
+                var labels = new List<object>();
+                labels.Add(new
+                {
+                    format = "<table><tr><td>LL:" + ll + "</td></tr><tr><td>HL:" + ul + "</td></tr></table>",
+                    useHTML = true,
+                    point = new
                     {
-                        id = id,
-                        title = title,
-                        categories = xlist,
-                        lowlimit = ll,
-                        highlimit = ul,
-                        labels = labels,
-                        datalist = datalist
-                    });
-                }//end if
-            }
+                        x = 0,
+                        y = 0
+                    }
+                });
+                chartlist.Add(new
+                {
+                    id = id,
+                    title = title,
+                    categories = datelist,
+                    lowlimit = ll,
+                    highlimit = ul,
+                    labels = labels,
+                    seriallist = seriallist
+                });
+            }//end foreach
 
             if (chartlist.Count > 0)
             {
@@ -2172,7 +2220,7 @@ namespace WAT.Controllers
         public JsonResult GetWXCouponIndex()
         {
             var idxlist = new List<string>();
-            for (var idx = 100; idx < 141; idx++)
+            for (var idx = 100; idx < 161; idx++)
             {
                 idxlist.Add(idx.ToString().Substring(1));
             }

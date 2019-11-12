@@ -65,9 +65,17 @@ namespace WAT.Controllers
                     }
                     catch (Exception ex) { }
 
+                    heartbeatlog("WuxiWATData4MG.RefreshWATStatusDaily");
                     try
                     {
                         WuxiWATData4MG.RefreshWATStatusDaily();
+                    }
+                    catch (Exception ex) { }
+
+                    heartbeatlog("BinSubstitute.RefreshBinSubstituteFromAllen");
+                    try
+                    {
+                        BinSubstitute.RefreshBinSubstituteFromAllen();
                     }
                     catch (Exception ex) { }
                 }
@@ -99,12 +107,12 @@ namespace WAT.Controllers
             return View();
         }
 
-        public ActionResult LoadWaferQUAL()
-        {
-            WaferQUALVM.LoadNewWaferFromMES();
-            WaferQUALVM.LoadWUXIWaferQUAL();
-            return View("HeartBeat");
-        }
+        //public ActionResult LoadWaferQUAL()
+        //{
+        //    WaferQUALVM.LoadNewWaferFromMES();
+        //    WaferQUALVM.LoadWUXIWaferQUAL();
+        //    return View("HeartBeat");
+        //}
 
         public ActionResult LoadAllenData()
         {
@@ -218,5 +226,10 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult RefreshBinSubstituteFromAllen() {
+            BinSubstitute.RefreshBinSubstituteFromAllen();
+            return View("HeartBeat");
+        }
+        
     }
 }

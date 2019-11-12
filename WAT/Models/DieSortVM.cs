@@ -472,6 +472,78 @@ namespace WAT.Models
             return true;
         }
 
+        public static string ConvertBinMapFileData(string wf, string fbin, string tbin, Controller ctrl)
+        {
+            var syscfg = CfgUtility.GetSysConfig(ctrl);
+            var fs = "";
+
+            var pct100fs = ExternalDataCollector.DirectoryEnumerateFiles(ctrl, syscfg["DIESORT100PCT"]);
+            foreach (var f in pct100fs)
+            {
+                if (f.Contains(wf))
+                {
+                    fs = f;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(fs))
+            {
+                var productfm = WXEvalPN.GetProductFamilyFromAllen(wf);
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromSherman(wf);
+                }
+
+                var allfilelist = new List<string>();
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    allfilelist = DieSortVM.GetAllWaferFile(ctrl);
+                }
+                else
+                {
+
+                    var srcfolder = syscfg["DIESORTFOLDER"] + "\\" + productfm;
+                    allfilelist = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, srcfolder);
+                }
+
+                foreach (var f in allfilelist)
+                {
+                    if (f.Contains(wf))
+                    {
+                        fs = f;
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(fs))
+            { return "Fail to find original map from all system!"; }
+
+            var doc = new XmlDocument();
+            doc.Load(fs);
+            var namesp = doc.DocumentElement.GetAttribute("xmlns");
+            doc = StripNamespace(doc);
+            var root = doc.DocumentElement;
+            var allbincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+            foreach (XmlElement nd in allbincodelist)
+            {
+                if (string.Compare(nd.InnerText, fbin, true) == 0)
+                {
+                    nd.InnerText = tbin;
+                    nd.SetAttribute("ORG", fbin);
+                }
+            }
+
+            doc.DocumentElement.SetAttribute("xmlns", namesp);
+            var savename = Path.Combine(syscfg["DIESORT100PCT"], Path.GetFileName(fs));
+            if (ExternalDataCollector.FileExist(ctrl, savename))
+            { ExternalDataCollector.FileDelete(ctrl, savename); }
+            doc.Save(savename);
+
+            return string.Empty;
+        }
+
         public static string GetWaferArrayInfo(string productfm, bool sixinch)
         {
             var dict = new Dictionary<string, string>();
@@ -701,47 +773,7 @@ namespace WAT.Models
             }
         }
 
-        public static List<string> GetAllOGPWafers(Controller ctrl)
-        {
-            var ret = new List<string>();
-            var syscfg = CfgUtility.GetSysConfig(ctrl);
-            var ogpconn = DBUtility.GetConnector(syscfg["OGPCONNSTR"]);
-            var sql = "  select distinct left(SN,9) from [AIProjects].[dbo].[CouponData] where len(SN) > 9";
-            var dbret = DBUtility.ExeSqlWithRes(ogpconn, sql);
-            DBUtility.CloseConnector(ogpconn);
 
-            foreach (var line in dbret)
-            {
-                ret.Add(UT.O2S(line[0]));
-            }
-
-            return ret;
-        }
-
-        public static List<object> GetOGPData(string wafer, Controller ctrl)
-        {
-            var ret = new List<object>();
-            var syscfg = CfgUtility.GetSysConfig(ctrl);
-            var ogpconn = DBUtility.GetConnector(syscfg["OGPCONNSTR"]);
-            var sql = "select SN,[Index],X,Y from [AIProjects].[dbo].[CouponData] where SN like '<wafer>%'";
-            sql = sql.Replace("<wafer>", wafer);
-
-            var dbret = DBUtility.ExeSqlWithRes(ogpconn, sql);
-            DBUtility.CloseConnector(ogpconn);
-
-            foreach (var line in dbret)
-            {
-                ret.Add(new
-                {
-                    CouponID = UT.O2S(line[0]),
-                    ChannelInfo = UT.O2S(line[1]),
-                    X = UT.O2S(line[2]),
-                    Y = UT.O2S(line[3])
-                });
-            }
-
-            return ret;
-        }
 
         private static void StoreWaferPassBinData(string mapfile, string wafer, Dictionary<string, string> selectxy, Dictionary<string, string> passxy, string array, string mpn, string fpn,string pdesc,string product)
         {

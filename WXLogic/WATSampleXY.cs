@@ -20,7 +20,7 @@ namespace WXLogic
             return string.Empty;
         }
 
-        public static string GetArrayFromAllen(string wafer)
+        public static string GetArrayFromAllenSherman(string wafer)
         {
             var sixinch = false;
             var productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
@@ -277,7 +277,7 @@ namespace WXLogic
             var wafer = coupongroup.ToUpper().Split(new string[] { "E","R" }, StringSplitOptions.RemoveEmptyEntries)[0];
             var array = GetArrayFromDieSort(wafer);
             if (string.IsNullOrEmpty(array))
-            { array = GetArrayFromAllen(wafer); }
+            { array = GetArrayFromAllenSherman(wafer); }
             if (string.IsNullOrEmpty(array))
             { return ret; }
 
@@ -327,18 +327,6 @@ namespace WXLogic
             if (string.Compare(array, "1") == 0)
             {
                 return ret;
-                //var coupon01 = coupongroup + "01";
-                //var diecount = 0;
-                //foreach (var item in ret)
-                //{
-                //    if (string.Compare(coupon01, item.CouponID, true) == 0)
-                //    { diecount += 1; }
-                //}
-
-                //if (diecount == 32)
-                //{ return ret; }
-                //else
-                //{ return new List<WATSampleXY>(); }
             }
             else
             {
