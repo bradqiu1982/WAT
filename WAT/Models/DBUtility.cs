@@ -548,6 +548,66 @@ namespace WAT.Models
             }
         }
 
+        public static bool ExeAllenSqlNoRes(string sql, Dictionary<string, string> parameters = null)
+        {
+
+            var conn = GetAllenConnector();
+            if (conn == null)
+                return false;
+            SqlCommand command = null;
+
+            try
+            {
+                command = conn.CreateCommand();
+                command.CommandText = sql;
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        SqlParameter parameter = new SqlParameter();
+                        parameter.ParameterName = param.Key;
+                        parameter.SqlDbType = SqlDbType.NVarChar;
+                        parameter.Value = param.Value;
+                        command.Parameters.Add(parameter);
+                    }
+                }
+                command.ExecuteNonQuery();
+                CloseConnector(conn);
+
+                return true;
+            }
+            catch (SqlException ex)
+            {
+                logthdinfo("execute exception: " + sql + "\r\n" + ex.Message + "\r\n");
+                try
+                {
+                    if (command != null)
+                    {
+                        command.Dispose();
+                    }
+                }
+                catch (Exception e) { }
+                CloseConnector(conn);
+                //System.Windows.MessageBox.Show(ex.ToString());
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logthdinfo("execute exception: " + sql + "\r\n" + ex.Message + "\r\n");
+                try
+                {
+                    if (command != null)
+                    {
+                        command.Dispose();
+                    }
+                }
+                catch (Exception e) { }
+                CloseConnector(conn);
+                //System.Windows.MessageBox.Show(ex.ToString());
+                return false;
+            }
+        }
+
         public static List<List<object>> ExeAllenSqlWithRes(string sql, Dictionary<string, string> parameters = null)
         {
             var ret = new List<List<object>>();

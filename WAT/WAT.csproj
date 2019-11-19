@@ -768,6 +768,7 @@
     <Content Include="Scripts\highcharts\annotations.js" />
     <Content Include="Scripts\highcharts\groupcategories_styles.css" />
     <Content Include="Scripts\highcharts\grouped-categories.js" />
+    <Content Include="Scripts\WATDataPrepare.js" />
     <Content Include="WXCfg.txt" />
     <None Include="Properties\PublishProfiles\watpublish.pubxml" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker.css.map" />
@@ -869,6 +870,8 @@
     <Content Include="Views\WATLogic\WUXIWATCouponOVEN.cshtml" />
     <Content Include="Views\DieSort\DownLoadPDMapFile.cshtml" />
     <Content Include="Views\DieSort\WaferBinSubstitute.cshtml" />
+    <Content Include="Views\Main\NeomapToAllen.cshtml" />
+    <Content Include="Views\Main\Prepare4WAT.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

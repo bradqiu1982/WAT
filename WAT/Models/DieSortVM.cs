@@ -1502,6 +1502,25 @@ namespace WAT.Models
             return ret;
         }
 
+        public static void ModifyMapFileAsExpect(Controller ctrl)
+        {
+            var doc = new XmlDocument();
+            doc.Load(@"\\wux-engsys01\HPU\192321-30.xml");
+            var namesp = doc.DocumentElement.GetAttribute("xmlns");
+            doc = StripNamespace(doc);
+            var root = doc.DocumentElement;
+
+            var allbincodelist = root.SelectNodes("//BinCode[@X='229' and @Y and @Q='pass']");
+            foreach (XmlElement nd in allbincodelist)
+            { nd.InnerText = "1"; }
+
+            doc.DocumentElement.SetAttribute("xmlns", namesp);
+            var savename = @"\\wux-engsys01\HPU\192321-30_new.xml";
+            if (ExternalDataCollector.FileExist(ctrl, savename))
+            { ExternalDataCollector.FileDelete(ctrl, savename); }
+            doc.Save(savename);
+        }
+
         private static string O2S(object obj)
         {
             if (obj == null)

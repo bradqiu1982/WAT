@@ -31,6 +31,28 @@ namespace WAT.Models
             return ret;
         }
 
+        public static bool AllenHasData(string WaferNum)
+        {
+            var sql = @"select top 1 [Xcoord],[Ycoord],[Ith],[SeriesR],[SlopEff] from [EngrData].[dbo].[Wuxi_WAT_VR_Report] 
+                        where [WaferID] = @WaferID and [Ith] is not null and [SeriesR] is not null and [SlopEff] is not null";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferID", WaferNum);
+            var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+            if (dbret.Count > 0)
+            { return true; }
+            else
+            { return false; }
+        }
+
+        public static bool AddProbeTrigge2Allen(string WaferNum)
+        {
+            var sql = @"insert into [EngrData].[dbo].[NeoMAP_Triggers] ([Wafer_ID],[Trigger_Type],[Source]) 
+                    values(@WaferNum,'wuxiwat','Neo-Expert:david.mathes')";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", WaferNum);
+            return DBUtility.ExeAllenSqlNoRes(sql, dict);
+        }
+
         private static List<WXProbeData> GetShermanData(string WaferNum)
         {
             var ret = new List<WXProbeData>();

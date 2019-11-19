@@ -2251,38 +2251,12 @@ namespace WAT.Controllers
             var tempdict = new Dictionary<string, List<double>>();
             var currentdict = new Dictionary<string, List<double>>();
 
-            foreach (var tester in ovenmachines)
+            var oneovendata = WATOven.GetOvenData("", "", "", Models.UT.O2I(syscfg["OVENSAMPPICKFREQ"]),couponid);
+            if (oneovendata.Count == 2)
             {
-                var oneovendata = WATOven.GetOvenData(tester, "", "", Models.UT.O2I(syscfg["OVENSAMPPICKFREQ"]),couponid);
-                if (oneovendata.Count == 2)
-                {
-                    var tdict = (Dictionary<string, List<double>>)oneovendata[0];
-                    var cdict = (Dictionary<string, List<double>>)oneovendata[1];
-                    foreach (var kv in tdict)
-                    {
-                        if (tempdict.ContainsKey(kv.Key))
-                        { tempdict[kv.Key].AddRange(kv.Value); }
-                        else
-                        {
-                            var tlist = new List<double>();
-                            tlist.AddRange(kv.Value);
-                            tempdict.Add(kv.Key, tlist);
-                        }
-                    }
-
-                    foreach (var kv in cdict)
-                    {
-                        if (currentdict.ContainsKey(kv.Key))
-                        {  currentdict[kv.Key].AddRange(kv.Value); }
-                        else
-                        {
-                            var tlist = new List<double>();
-                            tlist.AddRange(kv.Value);
-                            currentdict.Add(kv.Key, tlist);
-                        }
-                    }
-                }
-            }//end foreach
+                tempdict = (Dictionary<string, List<double>>)oneovendata[0];
+                currentdict = (Dictionary<string, List<double>>)oneovendata[1];
+            }
 
             if (tempdict.Count == 0 && currentdict.Count == 0)
             {

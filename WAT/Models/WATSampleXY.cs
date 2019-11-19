@@ -20,6 +20,70 @@ namespace WAT.Models
             return string.Empty;
         }
 
+        public static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
+        {
+            var new_x = ((arrayx - DIE_ONE_X
+                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
+                + DIE_ONE_FIELD_MIN_X;
+            if (Array_Count != 1)
+            { return (int)Math.Round(new_x, 0) - 1; }
+            else
+            { return (int)Math.Round(new_x, 0); }
+        }
+
+
+        public static string GetWATSampleSingletCoordination(string wafer)
+        {
+            var dieonex = WXLogic.AdminFileOperations.GetDieOneOfWafer(wafer);
+
+            var array = WXLogic.WATSampleXY.GetArrayFromDieSort(wafer);
+            if (string.IsNullOrEmpty(array))
+            { array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer); }
+            if (string.IsNullOrEmpty(array))
+            { return string.Empty; }
+            var arraysize = UT.O2I(array);
+
+            if (dieonex.Count > 0)
+            {
+                var ret = new List<object>();
+                var sql = "select distinct X,Y from [WAT].[dbo].[WaferSampleData] where wafer like '<wafer>%'";
+                sql = sql.Replace("<wafer>", wafer);
+                var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    var ax = UT.O2S(line[0]);
+                    var y = UT.O2S(line[1]);
+                    var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString();
+                    ret.Add(new
+                    {
+                        x = x,
+                        y = y
+                    });
+
+                    for (var idx = 1; idx < arraysize; idx++)
+                    {
+                        ret.Add(new
+                        {
+                            x = (UT.O2I(x)+idx).ToString(),
+                            y = y
+                        });
+                    }
+                }
+
+                if (dbret.Count > 0)
+                {
+                    return Newtonsoft.Json.JsonConvert.SerializeObject(ret);
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }//end if
+
+            return string.Empty;
+        }
+
+
         //public static string GetArrayFromAllen(string wafer)
         //{
         //    var sixinch = false;

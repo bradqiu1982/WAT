@@ -80,6 +80,12 @@ namespace WAT.Controllers
                     catch (Exception ex) { }
                 }
 
+                try
+                {
+                    WATOven.RefreshDailyOvenData(this);
+                }
+                catch (Exception ex) { }
+
                 //heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
                 //try
                 //{
@@ -190,23 +196,23 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
-        public ActionResult PrepareData4WAT()
-        {
-            var wlist = new List<string>();
-            wlist.Add("191106-70");
-            wlist.Add("191531-10");
-            wlist.Add("191007-70");
+        //public ActionResult PrepareData4WAT()
+        //{
+        //    var wlist = new List<string>();
+        //    wlist.Add("191106-70");
+        //    wlist.Add("191531-10");
+        //    wlist.Add("191007-70");
 
-            //wlist.Add("190601-20");
-            //wlist.Add("190628-30");
-            //wlist.Add("190717-30");
-            foreach (var w in wlist)
-            {
-                DieSortVM.PrepareData4WAT(w);
-            }
+        //    //wlist.Add("190601-20");
+        //    //wlist.Add("190628-30");
+        //    //wlist.Add("190717-30");
+        //    foreach (var w in wlist)
+        //    {
+        //        DieSortVM.PrepareData4WAT(w);
+        //    }
 
-            return View("HeartBeat");
-        }
+        //    return View("HeartBeat");
+        //}
 
         public ActionResult LoadOGPData()
         {
@@ -230,6 +236,126 @@ namespace WAT.Controllers
             BinSubstitute.RefreshBinSubstituteFromAllen();
             return View("HeartBeat");
         }
-        
+
+        public ActionResult NeomapToAllen()
+        { return View(); }
+
+        public JsonResult NeomapToAllenData()
+        {
+            var marks = Request.Form["marks"];
+            List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var wfdatalist = new List<object>();
+            foreach (var wf in wflist)
+            {
+                if (Models.WXProbeData.AllenHasData(wf))
+                {
+                    wfdatalist.Add(new {
+                        wf = wf,
+                        stat = "OK"
+                    });
+                }
+                else
+                {
+                    if (Models.WXProbeData.AddProbeTrigge2Allen(wf))
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wf,
+                            stat = "OK"
+                        });
+                    }
+                    else
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wf,
+                            stat = "NG"
+                        });
+                    }
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist
+            };
+            return ret;
+        }
+
+
+        public ActionResult Prepare4WAT()
+        { return View(); }
+
+        public JsonResult Prepare4WATData()
+        {
+            var marks = Request.Form["marks"];
+            List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var wfdatalist = new List<object>();
+            foreach (var wf in wflist)
+            {
+                if (DieSortVM.PrepareData4WAT(wf))
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = "OK"
+                    });
+                }
+                else
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = "NG"
+                    });
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist
+            };
+            return ret;
+        }
+
+        public ActionResult ModifyMapFile()
+        {
+            DieSortVM.ModifyMapFileAsExpect(this);
+            return View("HeartBeat");
+
+        }
+
+
+        //public ActionResult LoadOvenData()
+        //{
+        //    var syscfg = CfgUtility.GetSysConfig(this);
+        //    var oventesters = syscfg["WATOVEN"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+        //    var startdate = DateTime.Parse("2019-11-03 00:00:00");
+        //    var enddate = DateTime.Parse("2019-11-19 00:00:00");
+
+        //    while (startdate <= enddate)
+        //    {
+        //        foreach (var tester in oventesters)
+        //        {
+        //            WATOven.LoadOvenData(startdate.ToString("yyyy-MM-dd HH:mm:ss")
+        //                , startdate.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss"), tester.ToUpper());
+        //        }
+        //        startdate = startdate.AddDays(1);
+        //    }
+
+        //    return View("HeartBeat");
+        //}
+
+        public ActionResult RefreshDailyOvenData()
+        {
+            WATOven.RefreshDailyOvenData(this);
+            return View("HeartBeat");
+        }
+
     }
 }

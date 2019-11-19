@@ -10,7 +10,7 @@ namespace WAT.Controllers
 {
     public class AllenWaferController : ApiController
     {
-        ////http://wuxinpi.china.ads.finisar.com:9090/api/allenwafer?wafer=172015-30
+        ////http://wuxinpi.china.ads.finisar.com:9090/api/allenwafer/GetWaferArray?wafer=172015-30
 
         [HttpGet]
         public string GetWaferArray(string WAFER)
@@ -25,8 +25,7 @@ namespace WAT.Controllers
         [HttpGet]
         public string GetWaferCoordinate(string WAFERNUM)
         {
-            var colist = DieSortVM.GetSampleXY(WAFERNUM);
-            return Newtonsoft.Json.JsonConvert.SerializeObject(colist);
+            return WATSampleXY.GetWATSampleSingletCoordination(WAFERNUM);
         }
     }
 }
