@@ -2317,7 +2317,7 @@
         });
     }
 
-    var wuxiwatcoupon = function ()
+    var wuxiwatcouponovenfun = function ()
     {
         $.post('/WATLogic/GetWXCouponID', {
         }, function (output) {
@@ -2393,6 +2393,35 @@
             }
             covendata(couponid);
         });
+
+        function downloadoven(couponid) {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATCouponOVENDownload', {
+                couponid: couponid
+            }, function (output) {
+                $.bootstrapLoading.end();
+                window.location.href = output.url;
+            });
+        }
+
+        $('body').on('click', '#btn-download', function () {
+            var couponid = $('#wafernum').val() + $('#cpidx').val();
+            if (couponid.length < 11) {
+                alert('To download COUPON OVEN data,correct wafer number need to be input');
+                return false;
+            }
+            downloadoven(couponid);
+        });
+        
 
         $(function () {
             var couponid = $('#hwafernum').val();
@@ -2559,7 +2588,7 @@
         },
         WUXIWATCOUPONOVEN: function ()
         {
-            wuxiwatcoupon();
+            wuxiwatcouponovenfun();
         }
 
     }

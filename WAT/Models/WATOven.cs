@@ -22,6 +22,9 @@ namespace WAT.Models
 
             if (!string.IsNullOrEmpty(coupongroupid))
             {
+                if (coupongroupid.Length < 9)
+                { return ret; }
+
                 sql = @"select d.OVENTEMPERATURE,d.ImA,d.CreateTime from WAT.dbo.OvenData (nolock) d 
                         left join WAT.dbo.OvenStart (nolock) s on d.DataSet_ID = s.DataSet_ID
                         where s.SN like '%" + coupongroupid + "%' and len(s.SN) > 9 order by d.CreateTime asc";
@@ -85,6 +88,28 @@ namespace WAT.Models
                 ret.Add(currentdict);
             }
 
+            return ret;
+        }
+
+        public static List<List<string>> GetOvenDataByWafer(string coupongroupid)
+        {
+            var ret = new List<List<string>>();
+            if (coupongroupid.Length < 9)
+            { return ret; }
+
+            var sql = @"select d.rid,s.SN,s.[Plan],s.Board,s.Seat,d.[LEVEL],d.SLOT,d.TARGETC,d.WATER_SETC
+                ,d.TARGET_IC,d.OVENTEMPERATURE,d.ImA,d.CreateTime from WAT.dbo.OvenData (nolock) d 
+                left join WAT.dbo.OvenStart (nolock) s on d.DataSet_ID = s.DataSet_ID
+                where  Len(s.SN) > 9 and s.SN like '%"+ coupongroupid + "%' order by CreateTime asc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var tmpline = new List<string>();
+                for (var idx = 0; idx <= 11; idx++)
+                { tmpline.Add(UT.O2S(line[idx])); }
+                tmpline.Add(UT.O2T(line[12]).ToString("yyyy-MM-dd HH:mm:ss"));
+                ret.Add(tmpline);
+            }
             return ret;
         }
 
@@ -245,13 +270,13 @@ namespace WAT.Models
             }
         }
 
-        public static void LoadOvenData(string startdate, string enddate, string tester)
+        private static void LoadOvenData(string startdate, string enddate, string tester)
         {
             LoadOvenStartData( startdate,  enddate,  tester);
             LoadOvenDataData( startdate,  enddate,  tester);
         }
 
-        public static string GetOvenLatestTime(string tester, bool ovenstart)
+        private static string GetOvenLatestTime(string tester, bool ovenstart)
         {
             var sql = "";
             if (ovenstart)

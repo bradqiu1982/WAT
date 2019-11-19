@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using WAT.Models;
@@ -2246,7 +2248,7 @@ namespace WAT.Controllers
         {
             var syscfg = CfgUtility.GetSysConfig(this);
             var couponid = Request.Form["couponid"];
-            var ovenmachines = syscfg["WATOVEN"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            //var ovenmachines = syscfg["WATOVEN"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             var tempdict = new Dictionary<string, List<double>>();
             var currentdict = new Dictionary<string, List<double>>();
@@ -2375,6 +2377,57 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public JsonResult WUXIWATCouponOVENDownload()
+        {
+            var couponid = Request.Form["couponid"];
+            var now = DateTime.Now;
+            string imgdir = Server.MapPath("~/userfiles") + "\\docs\\" + now.ToString("yyyy-MM-dd") + "\\";
+            if (!Directory.Exists(imgdir))
+            { Directory.CreateDirectory(imgdir); }
+            var fn = couponid + "_" + now.ToString("yyyyMMddHHmmss") + ".csv";
+            var srcfile = imgdir + fn;
+            var url = "/userfiles/docs/"+ now.ToString("yyyy-MM-dd")+"/"+ fn;
+
+            var ovendata = WATOven.GetOvenDataByWafer(couponid);
+            if (ovendata.Count == 0)
+            {
+                System.IO.File.WriteAllText(srcfile, "Fail to get OVEN data from coupuon information:" + couponid);
+            }
+            else
+            {
+                var sb = new StringBuilder();
+                sb.Append("rid,Coupon,Plan,Board,Seat,Level,Slot,TargetC,WaterSetC,TargetIC,OvenTemperature,ImA,CreateTime\r\n");
+                foreach (var line in ovendata)
+                {
+                    var tmpsb = new StringBuilder();
+                    foreach (var item in line)
+                    {
+                        tmpsb.Append("\"" + item + "\",");
+                    }
+                    sb.Append(tmpsb.ToString() + "\r\n");
+                }
+                System.IO.File.WriteAllText(srcfile, sb.ToString());
+
+                try
+                {
+                    var fzip = new ICSharpCode.SharpZipLib.Zip.FastZip();
+                    fzip.CreateZip(imgdir + fn.Replace(".csv", ".zip"), imgdir, false, fn);
+                    try { System.IO.File.Delete(srcfile); } catch (Exception ex) { }
+                    url = url.Replace(".csv", ".zip");
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                url = url
+            };
+            return ret;
+        }
 
     }
 }
