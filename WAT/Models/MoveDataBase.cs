@@ -8,7 +8,7 @@ namespace WAT.Models
 {
     public class MoveDataBase
     {
-        public static bool MoveDB(string tab,string sourcedb,string targetdb)
+        public static bool MoveDB(string tab,string sourcedb,string targetdb,string destab=null)
         {
             SqlConnection sourcecon = null;
             SqlConnection targetcon = null;
@@ -38,6 +38,9 @@ namespace WAT.Models
                         using (SqlBulkCopy bulkCopy = new SqlBulkCopy(targetcon))
                         {
                             bulkCopy.DestinationTableName = tab;
+                            if (!string.IsNullOrEmpty(destab))
+                            { bulkCopy.DestinationTableName = destab; }
+
                             bulkCopy.BulkCopyTimeout = 120;
 
                             try

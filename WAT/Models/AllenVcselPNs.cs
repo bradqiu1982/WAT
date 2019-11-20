@@ -14,7 +14,7 @@ namespace WAT.Models
 
             var dict = new Dictionary<string, string>();
             dict.Add("@wafer", wafer);
-            var sql = "SELECT distinct [Product] FROM [EngrData].[dbo].[WXEvalPN] where WaferNum = @wafer";
+            var sql = "SELECT distinct [Product] FROM WAT.dbo.WXEvalPN where WaferNum = @wafer";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             if (dbret.Count > 0)
             {

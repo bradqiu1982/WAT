@@ -140,22 +140,22 @@ namespace WAT.Controllers
 
         public ActionResult MoveDB()
         {
-            var cfg = CfgUtility.GetSysConfig(this);
-            var FromConnect = cfg["FromConnect"];
-            var ToConnect = cfg["ToConnect"];
-            var MOVETABLELIST = cfg["MOVETABLELIST"].Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            foreach (var tab in MOVETABLELIST)
-            {
-                var ret = MoveDataBase.MoveDB(tab,FromConnect,ToConnect);
-                if (ret)
-                {
-                    System.Windows.MessageBox.Show("Sucess to moved table: " + tab);
-                }
-                else
-                {
-                    System.Windows.MessageBox.Show("Fail to moved table: " + tab);
-                }
-            }
+            //var cfg = CfgUtility.GetSysConfig(this);
+            //var FromConnect = cfg["FromConnect"];
+            //var ToConnect = cfg["ToConnect"];
+            ////var MOVETABLELIST = cfg["MOVETABLELIST"].Split(new[] { ":" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            ////foreach (var tab in MOVETABLELIST)
+            ////{
+            //    var ret = MoveDataBase.MoveDB("[EngrData].[insite].[Eval_Specs_Bin_PassFail]", FromConnect,ToConnect, "[WAT].[dbo].[Eval_Specs_Bin_PassFail]");
+            //    if (ret)
+            //    {
+            //        System.Windows.MessageBox.Show("Sucess to moved table: " + "");
+            //    }
+            //    else
+            //    {
+            //        System.Windows.MessageBox.Show("Fail to moved table: " + "");
+            //    }
+            ////}
 
             return View("HeartBeat");
         }

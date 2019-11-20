@@ -204,16 +204,20 @@ CREATE TABLE [WATSampleXY] (
 	[Y]   NVARCHAR (200) DEFAULT ('') NOT NULL
 )
 
----//alter table EngrData.dbo.WXEvalPN add LotType NVARCHAR (200)  DEFAULT ('') NOT NULL
----//alter table EngrData.dbo.WXEvalPN add Product NVARCHAR (200)  DEFAULT ('') NOT NULL
 
 CREATE TABLE [WXEvalPN] (
 	[WaferNum]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[EvalPN]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[DCDName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[LotType]   NVARCHAR (200) DEFAULT ('') NOT NULL,
-	[Product]   NVARCHAR (200) DEFAULT ('') NOT NULL
+	[Product]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[EvalBinName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
 )
+
+
 
 CREATE TABLE VR_Eval_Pts_Data_Basic(
 	[EntryTime] DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL,
@@ -342,3 +346,39 @@ CREATE TABLE WAT.dbo.OvenData(
 	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
 );
 
+CREATE TABLE [insite].[Eval_Specs_Bin_PassFail](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Eval_ProductName] [nvarchar](30) NULL,
+	[Bin_Product] [nvarchar](30) NULL,
+	[DCDefName] [nvarchar](30) NULL,
+	[ParameterName] [nvarchar](50) NULL,
+	[Wafer_LL] [float] NULL,
+	[Wafer_UL] [float] NULL,
+	[DUT_LL] [float] NULL,
+	[DUT_UL] [float] NULL,
+	[Reference_value] [float] NULL,
+	[Eval_Parametric_bin] [int] NULL,
+	[min_DUT_Count] [int] NULL,
+	[Reference_value_2] [float] NULL,
+	[Reference_value_3] [float] NULL,
+	[Reference_value_4] [float] NULL
+) ON [PRIMARY]
+
+update [WAT].[dbo].[Eval_Specs_Bin_PassFail] set [ParameterName] = 'PO_LD_W'+right([ParameterName],len([ParameterName])-6) where DCDefName like 'Eval_COB_rp%' and [ParameterName] like '%Power1%'
+update [WAT].[dbo].[Eval_Specs_Bin_PassFail] set [ParameterName] = 'VF_LD_V'+right([ParameterName],len([ParameterName])-2) where DCDefName like 'Eval_COB_rp%' and [ParameterName] like '%VF%'
+update [WAT].[dbo].[Eval_Specs_Bin_PassFail] set Wafer_LL = CONVERT(float,Wafer_LL)*0.001,Wafer_UL = CONVERT(float,Wafer_UL)*0.001 where DCDefName like 'Eval_COB_rp%' and [ParameterName] like 'PO_LD_W_rp%'
+
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E06_BI2_25C_15mA_120H' where [Plan] = '120h15ma30c'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E06_BI3_25C_15mA_168H' where [Plan] = '168h15ma30c'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E06_BI1_25C_15mA_8H' where [Plan] = '8h15ma25c'
+
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan] = '120h13ma100c'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI3_100C_12mA_172H' where [Plan] = '172h13ma100c'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI1_100C_12mA_8H' where [Plan] = '8h13ma100c'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI1_100C_12mA_8H' where [Plan] = 'TEST_100C_12MA'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI3_100C_12mA_172H' where [Plan] = 'TEST_100C_13mA204H'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan] = 'TEST_100C_13mA84H'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan] = 'TEST_100C_84h13mA'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan] = 'TEST_84h_100C_13mA'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan] = 'TEST_84h100C_13mA'
+update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI1_100C_12mA_8H' where [Plan] = 'TEST_8h_100C_12MA'

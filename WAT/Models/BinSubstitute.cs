@@ -264,7 +264,7 @@ namespace WAT.Models
 
             var sql = @"select distinct r.wafer,r.result,p.BIN,p.BINCount,bs.ToBin,bs.FromBinPN,bs.ToBinPN from WAT.dbo.WATResult  (nolock) r
                         left join [WAT].[dbo].[WaferPassBinData] (nolock) p on r.wafer = p.WAFER
-                        left join [EngrData].[dbo].[WXEvalPN] (nolock) ep on ep.WaferNum = r.wafer
+                        left join WAT.dbo.WXEvalPN (nolock) ep on ep.WaferNum = r.wafer
                         left join WAT.dbo.WATBINSubstitute (nolock) bs on ep.Product = bs.FromDevice and p.BIN = bs.FromBin
                         left join WAT.dbo.SlovedBinSubstitute (nolock) s on s.Wafer = r.wafer and s.FromBin = p.BIN
                         where r.teststep = 'POSTHTOL2JUDGEMENT' and r.result not like 'fail to%' 

@@ -26,7 +26,7 @@ namespace WAT.Models
             return string.Empty;
         }
 
-        public static void UpdateLotTypeFromAllen(string wafernum)
+        private static void UpdateLotTypeFromAllen(string wafernum)
         {
             var sql = @"select containertype from insite.insite.container  where containername = @wafernum";
 
@@ -36,7 +36,7 @@ namespace WAT.Models
             var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
-                sql = "update EngrData.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
+                sql = "update WAT.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
                 dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum", wafernum);
                 dict.Add("@LotType", UT.O2S(line[0]));
@@ -64,7 +64,7 @@ namespace WAT.Models
             return string.Empty;
         }
 
-        public static void UpdateLotTypeFromSherman(string wafernum)
+        private static void UpdateLotTypeFromSherman(string wafernum)
         {
             var sql = @"SELECT ContainerType FROM [SHM-CSSQL].[Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
             sql = sql.Replace("<wafernum>", wafernum);
@@ -72,7 +72,7 @@ namespace WAT.Models
             var dbret = DBUtility.ExeShermanSqlWithRes(sql);
             foreach (var line in dbret)
             {
-                sql = "update EngrData.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
+                sql = "update WAT.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
                 var dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum", wafernum);
                 dict.Add("@LotType", UT.O2S(line[0]));
@@ -85,52 +85,45 @@ namespace WAT.Models
 
         private static bool PrepareAllenEvalPN(string wafernum)
         {
-
             var pdfm = GetProductFamilyFromAllen(wafernum);
             if (string.IsNullOrEmpty(pdfm))
             { return false; }
 
-            var sql = @"select distinct Left(fj.EvalPartNumber,7),left(spec.DCDefName,len(spec.DCDefName)-2) from [EngrData].[insite].[FinEvalJobStartInfo] fj with (nolock)  
+            var sql = @"select distinct fj.EvalPartNumber,left(spec.DCDefName,len(spec.DCDefName)-2),EvalBinName,fj.[Date] from [EngrData].[insite].[FinEvalJobStartInfo] fj with (nolock)  
                         left join [EngrData].[insite].[Eval_Specs_Bin_PassFail] spec with (nolock) on spec.Eval_ProductName = fj.EvalPartNumber
-                        where fj.Device= @pdfm and fj.EvalPartNumber is not null and spec.DCDefName is not null";
+                        where fj.Device= @pdfm and fj.EvalPartNumber is not null and spec.DCDefName is not null and [Date] in 
+						(select Max([Date]) from [EngrData].[insite].[FinEvalJobStartInfo] where device = @pdfm group by EvalBinName) order by fj.[Date] desc";
+
             var dict = new Dictionary<string, string>();
             dict.Add("@pdfm", pdfm);
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
             if (dbret.Count > 0)
             {
-                sql = "delete from EngrData.dbo.WXEvalPN where WaferNum=@WaferNum";
+                sql = "delete from WAT.dbo.WXEvalPN where WaferNum=@WaferNum";
                 dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum", wafernum);
                 DBUtility.ExeLocalSqlNoRes(sql, dict);
             }
+            else
+            { return false; }
 
             foreach (var line in dbret)
             {
                 var evalpn = UT.O2S(line[0]);
                 var dcdname = UT.O2S(line[1]);
+                var evalbin = UT.O2S(line[2]);
 
-                sql = @"insert into EngrData.dbo.WXEvalPN(WaferNum,EvalPN,DCDName) values(@WaferNum,@EvalPN,@DCDName)";
+                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@EvalBinName,@Product)";
                 dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum",wafernum);
                 dict.Add("@EvalPN", evalpn);
                 dict.Add("@DCDName", dcdname);
+                dict.Add("@EvalBinName", evalbin);
+                dict.Add("@Product", pdfm);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
 
-            if (dbret.Count == 0)
-            {
-                return false;
-            }
-            else
-            {
-                sql = "update [EngrData].[dbo].[WXEvalPN] set Product =@Product   where WaferNum = @WaferNum";
-                dict = new Dictionary<string, string>();
-                dict.Add("@WaferNum", wafernum);
-                dict.Add("@Product", pdfm);
-                DBUtility.ExeLocalSqlNoRes(sql, dict);
-
-                return true;
-            }
+            return true;
         }
 
         private static bool PrepareShermanEvalPN(string wafernum)
@@ -140,7 +133,7 @@ namespace WAT.Models
             { return false; }
 
 
-            var sql = "delete from EngrData.dbo.WXEvalPN where WaferNum=@WaferNum";
+            var sql = "delete from WAT.dbo.WXEvalPN where WaferNum=@WaferNum";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", wafernum);
             DBUtility.ExeLocalSqlNoRes(sql, dict);
@@ -159,19 +152,15 @@ namespace WAT.Models
 
             foreach (var item in templist)
             {
-                sql = @"insert into EngrData.dbo.WXEvalPN(WaferNum,EvalPN,DCDName) values(@WaferNum,@EvalPN,@DCDName)";
+                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@EvalBinName,@Product)";
                 dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum", wafernum);
                 dict.Add("@EvalPN", tempvm.EvalPN);
                 dict.Add("@DCDName", tempvm.DCDName);
+                dict.Add("@EvalBinName", "E08");
+                dict.Add("@Product", pdfm);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
-
-            sql = "update [EngrData].[dbo].[WXEvalPN] set Product =@Product   where WaferNum = @WaferNum";
-            dict = new Dictionary<string, string>();
-            dict.Add("@WaferNum", wafernum);
-            dict.Add("@Product", pdfm);
-            DBUtility.ExeLocalSqlNoRes(sql, dict);
 
             return true;
         }
@@ -189,42 +178,7 @@ namespace WAT.Models
             }
             return true;
         }
-
-        public static string GetEvalPNByWaferNum(string containername, string wafernum)
-        {
-            var FilterStr = "";
-
-            if (containername.Contains("E08")
-                || containername.Contains("E01")
-                || containername.Contains("E06"))
-            { FilterStr = "50UP"; }
-            else if (containername.Contains("E07")
-                || containername.Contains("E10")
-                || containername.Contains("E09")
-                || containername.Contains("E03"))
-            { FilterStr = "COB"; }
-
-
-            var sql = "select EvalPN from EngrData.dbo.WXEvalPN where WaferNum = '<WaferNum>' and DCDName like '%<DCDName>%'";
-            sql = sql.Replace("<WaferNum>", wafernum).Replace("<DCDName>", FilterStr);
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            foreach (var line in dbret)
-            { return UT.O2S(line[0]); }
-
-            return string.Empty;
-        }
-
-        public static string GetLotTypeByWaferNum(string wafernum)
-        {
-            var sql = "select LotType from EngrData.dbo.WXEvalPN where WaferNum = '<WaferNum>'";
-            sql = sql.Replace("<WaferNum>", wafernum);
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            foreach (var line in dbret)
-            { return UT.O2S(line[0]); }
-
-            return "W";
-        }
-
+        
         public string WaferNum { set; get; }
         public string EvalPN { set; get; }
         public string DCDName { set; get; }

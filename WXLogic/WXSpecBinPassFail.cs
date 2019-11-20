@@ -12,7 +12,7 @@ namespace WXLogic
             var ret = new List<WXSpecBinPassFail>();
 
             var sql = @"select [Eval_ProductName],[Bin_Product],[DCDefName],[ParameterName],[Wafer_LL],[Wafer_UL]
-                        ,[DUT_LL],[DUT_UL],[min_DUT_Count],[Reference_value],[Reference_value_2],[Reference_value_3],[Reference_value_4] from [EngrData].[insite].[Eval_Specs_Bin_PassFail]";
+                        ,[DUT_LL],[DUT_UL],[min_DUT_Count],[Reference_value],[Reference_value_2],[Reference_value_3],[Reference_value_4] from [WAT].[dbo].[Eval_Specs_Bin_PassFail]";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
 
             foreach (var line in dbret)
