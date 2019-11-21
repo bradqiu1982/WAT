@@ -1718,7 +1718,7 @@ namespace WAT.Controllers
                         },
                         tooltip = new {
                             headerFormat= "",
-                            pointFormat = "{point.y}"
+                            pointFormat = "x:{point.x}<br>y:{point.y}"
                         },
                         turboThreshold = 500000
                     });
