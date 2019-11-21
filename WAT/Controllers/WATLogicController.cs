@@ -282,10 +282,20 @@ namespace WAT.Controllers
         {
             var couponid = Request.Form["couponid"];
             var jstepname = Request.Form["jstepname"];
+            var r100 = Request.Form["r100"];
 
             var wxlogic = new WXLogic.WXWATLogic();
             wxlogic.AllowToMoveMapFile = false;
-            var ret = wxlogic.WATPassFail(couponid, jstepname);
+            var ret = new WXLogic.WXWATLogic();
+            if(r100.Contains("FALSE"))
+            {
+                ret = wxlogic.WATPassFail(couponid, jstepname);
+            }
+            else
+            {
+                ret = wxlogic.WATPassFail100(couponid, jstepname);
+            }
+
 
             var msglist = new List<object>();
             if (!string.IsNullOrEmpty(ret.AppErrorMsg))
@@ -1858,7 +1868,7 @@ namespace WAT.Controllers
 
         public JsonResult WUXIWATStatusData()
         {
-            var wipdata = WuxiWATData4MG.GetWATStatus();
+            var wipdata = WuxiWATData4MG.GetWATStatus(this);
 
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;

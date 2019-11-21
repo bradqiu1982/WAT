@@ -526,7 +526,7 @@
             $('#jstepname').attr('readonly', false);
         });
 
-        var wuxirest = function (couponid, jstepname) {
+        var wuxirest = function (couponid, jstepname,r100) {
 
             var options = {
                 loadingTips: "loading data......",
@@ -541,7 +541,8 @@
             $.post('/WATLogic/WUXIWATLogicData',
                 {
                     couponid: couponid,
-                    jstepname: jstepname
+                    jstepname: jstepname,
+                    r100:r100
                 },
                 function (output) {
                     $.bootstrapLoading.end();
@@ -703,7 +704,18 @@
                 return false;
             }
 
-            wuxirest(couponid, jstepname);
+            wuxirest(couponid, jstepname,'FALSE');
+        });
+
+        $('body').on('click', '#btn-r100', function () {
+            var couponid = $('#couponid').val();
+            var jstepname = $('#jstepname').val();
+            if (couponid == '' || jstepname == '') {
+                alert('Please into correct coupon id and judgement step name!')
+                return false;
+            }
+
+            wuxirest(couponid, jstepname, 'TRUE');
         });
 
         $(function () {
@@ -713,7 +725,7 @@
                 return false;
             }
 
-            wuxirest(couponid, jstepname);
+            wuxirest(couponid, jstepname,'FALSE');
         });
 
     }
@@ -2016,6 +2028,8 @@
                     $("#logichead").append(
                             '<tr>' +
                             '<th>CouponID</th>' +
+                            '<th>VType</th>' +
+                            '<th>Array</th>' +
                             '<th>TestTime</th>' +
                             '<th>TestStep</th>' +
                             '<th>Result</th>' +
@@ -2054,6 +2068,8 @@
                         $("#logiccontent").append(
                             '<tr>' +
                             '<td>' + val.CouponID + '</td>' +
+                            '<td>' + val.VType + '</td>' +
+                            '<td>' + val.VArray + '</td>' +
                             '<td>' + val.TestTime + '</td>' +
                             '<td>' + val.TestStep + '</td>' +
                              '<td>' + val.ReTest + '</td>' +

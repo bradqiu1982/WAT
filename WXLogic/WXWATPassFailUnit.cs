@@ -245,7 +245,10 @@ namespace WXLogic
                 //}
                 //else
                 //{
-                    ret += fu.ContainerNum + ":" + fu.UnitNum + ":" + fu.FailType + ",";
+                var fs = fu.ContainerNum + ":" + fu.UnitNum + ":" + fu.FailType + ",";
+                if (!ret.Contains(fs))
+                { ret += fs; }
+                    
                 //}
             }
 

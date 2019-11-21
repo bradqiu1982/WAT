@@ -694,6 +694,288 @@ namespace WXLogic
             return "Congratulate! You have linked to the dll sucessfully!";
         }
 
+        public WXWATLogic WATPassFail100(string coupongroup1, string CurrentStepName)
+        {
+            var ret = new WXWATLogic();
+
+            var cfg = WXCfg.GetSysCfg();
+            var sharedatatoallen = true;
+            if (cfg.ContainsKey("SHARETOALLEN") && cfg["SHARETOALLEN"].Contains("FALSE"))
+            { sharedatatoallen = false; }
+
+            if (!string.IsNullOrEmpty(AnalyzeParam))
+            { sharedatatoallen = false; }
+
+            var CouponGroup = GetCouponGroup(coupongroup1.ToUpper());
+            if (string.IsNullOrEmpty(CouponGroup))
+            {
+                ret.AppErrorMsg = "Get an illege couponid: " + coupongroup1;
+                return ret;
+            }
+
+            var bitemp = 100;
+            if (CouponGroup.Contains("E06") && CouponGroup.Contains("R06"))
+            { bitemp = 25; }
+
+            var shippable = 1;
+
+            var testname = GetTestNameFromCurrentStep(CurrentStepName);
+            if (string.IsNullOrEmpty(testname))
+            {
+                ret.AppErrorMsg = "Fail to get test name for current step: " + CurrentStepName;
+                return ret;
+            }
+
+            var RP = WXOriginalWATData.TestName2RP(testname);
+            if (string.IsNullOrEmpty(RP))
+            {
+                ret.AppErrorMsg = "Fail to get read point for test: " + testname;
+                return ret;
+            }
+
+
+            var DCDName = GetDCDName(CouponGroup, RP);
+            if (string.IsNullOrEmpty(DCDName))
+            {
+                ret.AppErrorMsg = "Fail to get dcdname from coupon group: " + CouponGroup;
+                return ret;
+            }
+
+            //Container Info
+            var containerinfo = WXContainerInfo.GetInfo(CouponGroup);
+            if (string.IsNullOrEmpty(containerinfo.ProductName))
+            {
+                ret.AppErrorMsg = "Fail to get eval productname from : " + CouponGroup;
+                return ret;
+            }
+
+            //SPEC
+            var allspec = WXSpecBinPassFail.GetAllSpec();
+            var dutminitem = WXSpecBinPassFail.GetMinDUT(containerinfo.ProductName, DCDName, allspec);
+            if (dutminitem.Count == 0)
+            {
+                //System.Windows.MessageBox.Show("Fail to get min DUT count.....");
+                ret.AppErrorMsg = "Fail to get min DUT count.....";
+                return ret;
+            }
+
+            //WAT PROB
+            var watprobeval = WXWATProbeTestData.GetData(CouponGroup, containerinfo.wafer, sharedatatoallen);
+            if (watprobeval.Count == 0)
+            {
+                ret.AppErrorMsg = "Fail to get WAT test data by : " + CouponGroup;
+                return ret;
+            }
+
+            if (watprobeval.Count > 100)
+            {
+                var unitdict = new Dictionary<string, bool>();
+                foreach (var item in watprobeval)
+                {
+                    if (!unitdict.ContainsKey(item.UnitNum))
+                    { unitdict.Add(item.UnitNum, true); }
+                }
+
+                var allunitlist = unitdict.Keys.ToList();
+                if (allunitlist.Count > 100)
+                {
+                    var wantedunitdict = new Dictionary<string, bool>();
+                    var max = allunitlist.Count-1;
+                    var ridxdict = new Dictionary<int, bool>();
+                    var rad = new Random(DateTime.Now.Millisecond);
+                    while (ridxdict.Count < 100)
+                    {
+                        var r = rad.Next(max);
+                        if (r >= 0 && !ridxdict.ContainsKey(r))
+                        { ridxdict.Add(r, true); }
+                    }
+
+                    foreach (var kv in ridxdict)
+                    { wantedunitdict.Add(allunitlist[kv.Key], true); }
+
+                    var newwatprobeval = new List<WXWATProbeTestData>();
+                    foreach (var item in watprobeval)
+                    {
+                        if (wantedunitdict.ContainsKey(item.UnitNum))
+                        {
+                            newwatprobeval.Add(item);
+                        }
+                    }
+                    watprobeval = newwatprobeval;
+                }
+            }
+
+
+            //var waferarray = WATSampleXY.GetArrayFromAllenSherman(containerinfo.wafer);
+            //if (!string.IsNullOrEmpty(waferarray) && CouponGroup.Contains("E08") && string.IsNullOrEmpty(AnalyzeParam))
+            //{
+            //    var couponcount = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
+
+            //    var necessarynum = 0;
+            //    var arraynum = UT.O2I(waferarray);
+            //    if (arraynum == 1)
+            //    { necessarynum = 4; }
+            //    else if (arraynum == 4)
+            //    { necessarynum = 10; }
+            //    else if (arraynum == 12)
+            //    { necessarynum = 30; }
+
+            //    if (couponcount < necessarynum)
+            //    {
+            //        ret.AppErrorMsg = "For 1x" + waferarray + " wafer, the necessary coupon count of E08 WAT logic check should be great than " + necessarynum.ToString();
+            //        return ret;
+            //    }
+            //}
+
+
+            var probecount = watprobeval[0].ProbeCount;
+            var readcount = WXWATProbeTestData.GetReadCount(watprobeval, RP);
+
+            //WAT PROB FILTER
+            var watprobevalfiltered = WXWATProbeTestDataFiltered.GetFilteredData(watprobeval, RP);
+            if (watprobevalfiltered.Count == 0)
+            {
+                //System.Windows.MessageBox.Show("Fail to get wat prob filtered data.....");
+                ret.AppErrorMsg = "Fail to get wat prob filtered data.....";
+                return ret;
+            }
+
+            //FAIL MODE
+            var spec4fmode = WXSpecBinPassFail.GetParam4FailMode(containerinfo.ProductName, RP, allspec);
+            var failmodes = WXWATProbeTestDataFiltered.GetWATFailureModes(watprobevalfiltered, spec4fmode, bitemp);
+            var failmodestr = WXWATFailureMode.GetFailModeString(failmodes);
+
+            if ((AnalyzeParam.Contains("_AD_")
+                || AnalyzeParam.Contains("_DB_")
+                || AnalyzeParam.Contains("_RD_"))
+                && !AnalyzeParam.Contains("_CPK_"))
+            {
+                CollectAnalyzeDeltaValue(watprobevalfiltered);
+                return ret;
+            }
+
+            //Coupon Stat Data
+            var binpndict = WXSpecBinPassFail.RetrieveBinDict(containerinfo.ProductName, allspec);
+            var couponstatdata = WXWATCouponStats.GetCouponData(watprobevalfiltered, binpndict);
+
+            if ((AnalyzeParam.Contains("_MDD_")
+                || AnalyzeParam.Contains("_MXDP_")))
+            {
+                CollectAnalyzePOLDSummary(couponstatdata);
+                return ret;
+            }
+
+            //CPK
+            var cpkspec = WXSpecBinPassFail.GetCPKSpec(containerinfo.ProductName, DCDName, allspec);
+            var cpktab = WXWATCPK.GetCPK(RP, couponstatdata, watprobevalfiltered, cpkspec);
+
+            if (AnalyzeParam.Contains("_CPK_"))
+            {
+                CollectAnalyzeCPKValue(cpktab);
+                return ret;
+            }
+
+            //TTF
+            var fitspec = WXSpecBinPassFail.GetFitSpec(containerinfo.ProductName, DCDName, allspec);
+            var ttfdata = WXWATTTF.GetTTFData(containerinfo.ProductName, UT.O2I(RP), fitspec, watprobevalfiltered, failmodes);
+
+            //TTFSorted
+            var ttfdatasorted = WXWATTTFSorted.GetSortedTTFData(ttfdata);
+
+            //TTFTerms
+            var ttftermdata = WXWATTTFTerms.GetTTRTermsData(ttfdatasorted);
+
+            //TTFfit
+            var ttffit = WXWATTTFfit.GetFitData(ttftermdata);
+
+            //TTFuse
+            var ttpspec = WXSpecBinPassFail.GetFitTTPSpec(containerinfo.ProductName, allspec);
+            var ttfuse = WXWATTTFuse.GetTTFuseData(ttpspec, ttffit);
+
+            //TTFUnit
+            var ttfunitspec = WXSpecBinPassFail.GetTTFUnitSpec(containerinfo.ProductName, allspec);
+            var ttfunitdata = WXWATTTFUnit.GetUnitData(watprobevalfiltered, RP, ttfuse, ttfdatasorted, ttfunitspec);
+
+            var ttfmu = WXWATTTFmu.GetmuData(fitspec, RP, watprobevalfiltered, ttfuse, ttffit);
+
+
+            //Pass Fail Unit
+            var passfailunitspec = WXSpecBinPassFail.GetPassFailUnitSpec(containerinfo.ProductName, DCDName, allspec);
+            var passfailunitdata = WXWATPassFailUnit.GetPFUnitData(RP, DCDName, passfailunitspec
+                , watprobevalfiltered, couponstatdata, cpktab, ttfmu, ttfunitdata);
+
+            if (AnalyzeParam.Contains("_C-P"))
+            {
+                CollectAnalyzeC_PValue(passfailunitdata);
+                return ret;
+            }
+
+            var failcount = WXWATPassFailUnit.GetFailCount(passfailunitdata);
+            var failunitinfo = WXWATPassFailUnit.GetFailUnitWithInfo(passfailunitdata);
+
+            //Pass Fail Coupon
+            var watpassfailcoupondata = WXWATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
+
+            var failstring = WXWATPassFailCoupon.GetFailString(watpassfailcoupondata);
+            var couponDutCount = WXWATPassFailCoupon.GetDutCount(watpassfailcoupondata);
+            var couponSumFails = WXWATPassFailCoupon.GetSumFails(watpassfailcoupondata);
+
+
+            var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
+               , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails);
+
+            if (!string.IsNullOrEmpty(AnalyzeParam))
+            { logicresult.AnalyzeParamData.AddRange(AnalyzeParamData); }
+
+            var scrapspec = WXSpecBinPassFail.GetScrapSpec(containerinfo.ProductName, DCDName, allspec);
+            logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, UT.O2I(RP), readcount, failcount, bitemp, failmodes);
+            if (logicresult.ScrapIt)
+            {
+                logicresult.ResultReason = failmodestr;
+                logicresult.ValueCollect.Add("Scrap ?", "YES");
+            }
+            else
+            {
+                logicresult.ValueCollect.Add("Scrap ?", "NO");
+                if (logicresult.NeedRetest)
+                {
+                    logicresult.ValueCollect.Add("ReTest ?", "YES");
+                }
+                else
+                {
+                    logicresult.ValueCollect.Add("ReTest ?", "NO");
+                }
+            }
+
+            logicresult.ValueCollect.Add("fail unit info", failunitinfo);
+            logicresult.ValueCollect.Add("failcount", failcount.ToString());
+            logicresult.ValueCollect.Add("fail coupon string", failstring);
+            logicresult.ValueCollect.Add("fail mode", failmodestr);
+            logicresult.ValueCollect.Add("ProbeCount", probecount.ToString());
+            logicresult.ValueCollect.Add("readcount", readcount.ToString());
+
+            logicresult.DataTables.Add(watpassfailcoupondata);
+            logicresult.DataTables.Add(failmodes);
+
+            if (string.IsNullOrEmpty(logicresult.AppErrorMsg)
+                && logicresult.TestPass
+                && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01"))
+                && string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL2JUDGEMENT") == 0
+                && string.IsNullOrEmpty(AnalyzeParam)
+                && AllowToMoveMapFile)
+            {
+                try
+                {
+                    using (NativeMethods cv = new NativeMethods("brad.qiu", "china", cfg["SHAREFOLDERPWD"]))
+                    {
+                        MoveOriginalMapFile(containerinfo.wafer, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
+                    }
+                }
+                catch (Exception ex) { }
+            }
+            return logicresult;
+        }
+
         public WXWATLogic()
         {
             TestPass = false;
