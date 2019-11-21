@@ -67,8 +67,9 @@ namespace WXLogic
             else if(containername.Contains("R"))
             {
                 var idx = containername.IndexOf("R");
-                evalbin = containername.Substring(idx, 3);
+                evalbin = "E"+containername.Substring(idx+1, 2);
             }
+
             var sql = "";
             if (!string.IsNullOrEmpty(evalbin))
             {
@@ -82,6 +83,15 @@ namespace WXLogic
             }
             
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            { return UT.O2S(line[0]); }
+
+            if (evalbin.Contains("E08"))
+            {
+                sql = "select EvalPN from WAT.dbo.WXEvalPN where WaferNum = '<WaferNum>' and EvalBinName = '<evalbin>'";
+                sql = sql.Replace("<WaferNum>", wafernum).Replace("<evalbin>", "E01");
+            }
+            dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             { return UT.O2S(line[0]); }
 
