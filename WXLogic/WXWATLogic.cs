@@ -777,6 +777,10 @@ namespace WXLogic
                 }
 
                 var allunitlist = unitdict.Keys.ToList();
+                allunitlist.Sort(delegate(string obj1,string obj2) {
+                    return UT.O2I(obj1).CompareTo(UT.O2I(obj2));
+                });
+
                 if (allunitlist.Count > 100)
                 {
                     var wantedunitdict = new Dictionary<string, bool>();
