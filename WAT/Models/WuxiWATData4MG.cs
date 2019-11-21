@@ -296,7 +296,46 @@ namespace WAT.Models
             return dbret;
         }
 
-        public static List<WuxiWATData4MG> GetWATStatus()
+        public static void GetVcselType(List<WuxiWATData4MG> datalist,Controller ctrl)
+        {
+            var syscfg = CfgUtility.GetSysConfig(ctrl);
+            var koyopns = syscfg["KOYOPNS"];
+
+            var wflist = new List<string>();
+            foreach (var d in datalist)
+            {
+                wflist.Add(d.CouponID);
+            }
+            var wfcond = "('" + string.Join("','", wflist)+"')";
+
+            var koyodict = new Dictionary<string, bool>();
+
+            var sql = @"select c.containername,pb.ProductName from insite.insite.container c with (nolock)
+                inner join insite.insite.Product p with (nolock) on c.ProductID = P.ProductID
+                inner join insite.insite.ProductBase pb with (nolock) on p.ProductID = pb.RevOfRcdID
+                where c.containername in <wfcond>";
+            sql = sql.Replace("<wfcond>", wfcond);
+            var dbret = DBUtility.ExeAllenSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]).ToUpper();
+                var pn = UT.O2S(line[1]).ToUpper();
+                if (koyopns.Contains(pn))
+                {
+                    if (!koyodict.ContainsKey(wf))
+                    { koyodict.Add(wf, true); }
+                }
+            }
+
+            foreach (var d in datalist)
+            {
+                if (koyodict.ContainsKey(d.CouponID.ToUpper()))
+                { d.VType = "KOYO"; }
+            }
+
+        }
+
+        public static List<WuxiWATData4MG> GetWATStatus(Controller ctrl)
         {
             var ret = new List<WuxiWATData4MG>();
             var dictdata = new Dictionary<string, List<WuxiWATData4MG>>();
@@ -331,8 +370,11 @@ namespace WAT.Models
                 });
                 var tempvm = tmplist[0];
                 GetWATTestResult(tempvm);
+                tempvm.VArray = WXLogic.WATSampleXY.GetArrayFromAllenSherman(tempvm.CouponID);
                 ret.Add(tempvm);
             }
+
+            GetVcselType(ret,ctrl);
 
             return ret;
         }
@@ -428,6 +470,8 @@ namespace WAT.Models
             FailureShortStr = "";
             FailureStr = "";
             RPStr = "";
+            VType = "";
+            VArray = "";
         }
 
 
@@ -466,6 +510,8 @@ namespace WAT.Models
             FailureShortStr = "";
             FailureStr = "";
             RPStr = "";
+            VType = "";
+            VArray = "";
         }
 
         public string CouponID { set; get; }
@@ -504,5 +550,7 @@ namespace WAT.Models
         public string FailureShortStr { set; get; }
         public string FailureStr { set; get; }
         public string RPStr { set; get; }
+        public string VType { set; get; }
+        public string VArray { set; get; }
     }
 }
