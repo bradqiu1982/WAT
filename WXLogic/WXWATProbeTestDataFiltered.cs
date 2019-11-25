@@ -305,6 +305,8 @@ namespace WXLogic
                         var tempvm = new WXWATFailureMode();
                         tempvm.ContainerName = fitem.ContainerNum;
                         tempvm.UnitNum = fitem.UnitNum;
+                        tempvm.X = fitem.X;
+                        tempvm.Y = fitem.Y;
                         tempvm.RP = fitem.RP;
                         tempvm.DPO_LL = DPOLL;
                         tempvm.DVF_UL = DVFUL;

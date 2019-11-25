@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Http;
+using System.Web.Mvc;
+using System.Xml;
 
 namespace WAT.Models
 {
@@ -34,53 +37,146 @@ namespace WAT.Models
 
         public static string GetWATSampleSingletCoordination(string wafer)
         {
-            var dieonex = WXLogic.AdminFileOperations.GetDieOneOfWafer(wafer);
-
-            var array = WXLogic.WATSampleXY.GetArrayFromDieSort(wafer);
-            if (string.IsNullOrEmpty(array))
-            { array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer); }
+            var array =  WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer);
             if (string.IsNullOrEmpty(array))
             { return string.Empty; }
             var arraysize = UT.O2I(array);
 
-            if (dieonex.Count > 0)
+            var sql = "select distinct X,Y from [WAT].[dbo].[WaferSampleData] where wafer like '<wafer>%'";
+            sql = sql.Replace("<wafer>", wafer);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            if (dbret.Count > 0)
             {
-                var ret = new List<object>();
-                var sql = "select distinct X,Y from [WAT].[dbo].[WaferSampleData] where wafer like '<wafer>%'";
-                sql = sql.Replace("<wafer>", wafer);
-                var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-                foreach (var line in dbret)
+                var dieonex = WXLogic.AdminFileOperations.GetDieOneByWafer(wafer);
+                if (dieonex.Count > 0)
                 {
-                    var ax = UT.O2S(line[0]);
-                    var y = UT.O2S(line[1]);
-                    var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString();
-                    ret.Add(new
+                    var ret = new List<object>();
+                    foreach (var line in dbret)
                     {
-                        x = x,
-                        y = y
-                    });
-
-                    for (var idx = 1; idx < arraysize; idx++)
-                    {
+                        var ax = UT.O2S(line[0]);
+                        var y = UT.O2S(line[1]);
+                        var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString();
                         ret.Add(new
                         {
-                            x = (UT.O2I(x)+idx).ToString(),
+                            x = x,
                             y = y
                         });
-                    }
-                }
 
-                if (dbret.Count > 0)
-                {
+                        for (var idx = 1; idx < arraysize; idx++)
+                        {
+                            ret.Add(new
+                            {
+                                x = (UT.O2I(x)+idx).ToString(),
+                                y = y
+                            });
+                        }
+                    }
                     return Newtonsoft.Json.JsonConvert.SerializeObject(ret);
                 }
                 else
                 {
                     return string.Empty;
                 }
-            }//end if
+            }
+            else
+            {
+                var productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                }
 
-            return string.Empty;
+                var syscfgdict = CfgUtility.GetSysConfig(null);
+                var reviewfolder = syscfgdict["DIESORTREVIEW"];
+                var allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(null, reviewfolder);
+                var fs = "";
+                foreach (var f in allfiles)
+                {
+                    if (f.Contains(wafer))
+                    { fs = f; break; }
+                }
+
+                if (string.IsNullOrEmpty(fs))
+                {
+                    allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(null, syscfgdict["DIESORTFOLDER"]+"\\"+productfm);
+                    foreach (var f in allfiles)
+                    {
+                        if (f.Contains(wafer))
+                        { fs = f; break; }
+                    }
+                }
+                if (string.IsNullOrEmpty(fs))
+                {
+                    allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(null, syscfgdict["DIESORTFOLDER"]);
+                    foreach (var f in allfiles)
+                    {
+                        if (f.Contains(wafer))
+                        { fs = f; break; }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(fs))
+                { return string.Empty; }
+
+                var dieonex = WXLogic.AdminFileOperations.GetDieOneByFile(fs);
+                if (dieonex.Count == 0)
+                { return string.Empty; }
+
+                var ret = new List<object>();
+                var folderuser = syscfgdict["SHAREFOLDERUSER"];
+                var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
+                var folderpwd = syscfgdict["SHAREFOLDERPWD"];
+                using (NativeMethods cv = new NativeMethods(folderuser, folderdomin, folderpwd))
+                {
+                    var doc = new XmlDocument();
+                    doc.Load(fs);
+                    var namesp = doc.DocumentElement.GetAttribute("xmlns");
+                    doc = DieSortVM.StripNamespace(doc);
+                    XmlElement root = doc.DocumentElement;
+
+                    var passbinnodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode and @Pick='true']");
+                    if (passbinnodes.Count == 0)
+                    { return string.Empty; }
+
+                    var passbinlist = new List<string>();
+                    foreach (XmlElement nd in passbinnodes)
+                    { passbinlist.Add(nd.GetAttribute("BinCode")); }
+
+                    var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                    foreach (XmlElement nd in bincodelist)
+                    {
+                        try
+                        {
+                            if (passbinlist.Contains(nd.InnerText))
+                            {
+                                var ax = nd.GetAttribute("X");
+                                var y = nd.GetAttribute("Y");
+                                var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString();
+                                ret.Add(new
+                                {
+                                    x = x,
+                                    y = y
+                                });
+
+                                for (var idx = 1; idx < arraysize; idx++)
+                                {
+                                    ret.Add(new
+                                    {
+                                        x = (UT.O2I(x) + idx).ToString(),
+                                        y = y
+                                    });
+                                }
+                            }
+                        }
+                        catch (Exception ex) { }
+                    }
+                }
+
+                if (ret.Count > 0)
+                { return Newtonsoft.Json.JsonConvert.SerializeObject(ret); }
+                else
+                { return string.Empty; }
+            }
         }
 
 

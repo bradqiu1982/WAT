@@ -648,6 +648,8 @@
                             '<tr>' +
                             '<th>RP</th>' +
                             '<th>Unit</th>' +
+                            '<th>X</th>' +
+                            '<th>Y</th>' +
                             '<th>DPO</th>' +
                             '<th>DPO_rd</th>' +
                             '<th>DIth</th>' +
@@ -666,6 +668,8 @@
                             '<tr>' +
                             '<td>' + val.RP + '</td>' +
                             '<td>' + val.UnitNum + '</td>' +
+                            '<td>' + val.X + '</td>' +
+                            '<td>' + val.Y + '</td>' +
                             '<td>' + val.DPO + '</td>' +
                             '<td>' + val.DPO_rd + '</td>' +
                             '<td>' + val.DIth + '</td>' +
@@ -2114,6 +2118,77 @@
 
     }
 
+        var wuxiwatwipfun = function () {
+        var logictable = null;
+        var wuxistat = function () {
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WATWIPDATA',
+                { },
+                function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (logictable) {
+                        logictable.destroy();
+                        logictable = null;
+                    }
+                    $("#logichead").empty();
+                    $("#logiccontent").empty();
+
+                    $("#logichead").append(
+                            '<tr>' +
+                            '<th class="dt-center">WAFER</th>' +
+                            '<th class="dt-center">Type</th>' +
+                            '<th class="dt-center">Array</th>' +
+                            '<th class="dt-center">STEP</th>' +
+                            '<th class="dt-center">TestTime</th>' +
+                            '</tr>'
+                        );
+                    
+                    $.each(output.wipdata, function (i, val) {
+
+                        $("#logiccontent").append(
+                            '<tr>' +
+                            '<td class="dt-center">' + val.WAFER + '</td>' +
+                            '<td class="dt-center">' + val.VType + '</td>' +
+                            '<td class="dt-center">' + val.VArray + '</td>' +
+                            '<td class="dt-center">' + val.STEP + '</td>' +
+                            '<td class="dt-center">' + val.TESTTIMESTAMP + '</td>' +
+                            '</tr>'
+                        );
+                    });
+
+                    logictable = $('#logictable').DataTable({
+                        'iDisplayLength': -1,
+                        'aLengthMenu': [[30, 60, 100, -1],
+                        [30, 60, 100, "All"]],
+                        "columnDefs": [
+                            { "className": "dt-center", "targets": "_all" }
+                        ],
+                        "aaSorting": [],
+                        "order": [],
+                        dom: 'lBfrtip',
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    });
+                });
+        }
+
+
+        $(function(){
+            wuxistat();
+        });
+
+    }
+
     var wuxiwatgoldenfun = function ()
     {
         $('.date').datepicker({ autoclose: true, viewMode: "days", minViewMode: "days" });
@@ -2594,6 +2669,9 @@
         },
         WUXIWATSTATUS: function () {
             wuxiwatstatusfun();
+        },
+        WUXIWATWIP: function () {
+            wuxiwatwipfun();
         },
         WUXIWATGOLDEN: function ()
         {

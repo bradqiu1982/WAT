@@ -289,6 +289,7 @@
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
     <Compile Include="Models\WuxiWATData4MG.cs" />
+    <Compile Include="Models\WUXIWATWIP.cs" />
     <Compile Include="Models\WXCfg.cs" />
     <Compile Include="Models\WXEvalPN.cs" />
     <Compile Include="Models\WXProbeData.cs" />
@@ -872,6 +873,7 @@
     <Content Include="Views\DieSort\WaferBinSubstitute.cshtml" />
     <Content Include="Views\Main\NeomapToAllen.cshtml" />
     <Content Include="Views\Main\Prepare4WAT.cshtml" />
+    <Content Include="Views\WATLogic\WATWIP.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -317,7 +317,7 @@ namespace WXLogic
                 } catch (Exception ex) { }
             }
 
-            var dieonex = AdminFileOperations.GetDieOneOfWafer(wafer);
+            var dieonex = AdminFileOperations.GetDieOneByWafer(wafer);
             if (dieonex.Count > 0)
             {
                 ret = CorrectXYBySamplePick(wafer,dieonex,arraysize,ret);

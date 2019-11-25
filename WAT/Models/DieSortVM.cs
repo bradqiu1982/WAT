@@ -15,18 +15,26 @@ namespace WAT.Models
     {
         public static List<string> GetAllWaferFile(Controller ctrl)
         {
-            var cachelist = (List<string>)ctrl.HttpContext.Cache.Get("allwafermapfiles");
-            if (cachelist != null)
-            { return cachelist; }
+            if (ctrl != null)
+            {
+                var cachelist = (List<string>)ctrl.HttpContext.Cache.Get("allwafermapfiles");
+                if (cachelist != null)
+                { return cachelist; }
+            }
+
 
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
             var srcfolder = syscfgdict["DIESORTFOLDER"];
             var allwafermapfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, srcfolder);
 
-            if (ctrl.HttpContext.Cache != null)
+            if (ctrl != null)
             {
-                ctrl.HttpContext.Cache.Insert("allwafermapfiles", allwafermapfiles, null, DateTime.Now.AddHours(2), Cache.NoSlidingExpiration);
+                if (ctrl.HttpContext.Cache != null)
+                {
+                    ctrl.HttpContext.Cache.Insert("allwafermapfiles", allwafermapfiles, null, DateTime.Now.AddHours(2), Cache.NoSlidingExpiration);
+                }
             }
+
             return allwafermapfiles;
         }
 

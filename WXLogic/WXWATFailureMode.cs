@@ -115,5 +115,7 @@ namespace WXLogic
             }
         }
         public string Temp { set; get; }
+        public string X { set; get; }
+        public string Y { set; get; }
     }
 }

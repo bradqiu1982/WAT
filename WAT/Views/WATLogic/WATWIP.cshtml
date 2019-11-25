@@ -1,26 +1,22 @@
 ﻿
 @{
-    ViewBag.Title = "WUXIWATStatus";
+    ViewBag.Title = "WATWIP";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style type="text/css">
-    .FAILUREDETIAL {
-        cursor:pointer;
-    }
+
     th.dt-center, td.dt-center {
         text-align: center;
-        font-size:10px!important;
+        font-size: 15px !important;
     }
-    #logictable_wrapper .logictable_wrapper {
-        margin-left:-100px;
-    }
+
 </style>
 
 <script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
 <script type="text/javascript">
         $(function(){
-            WATLOGIC.WUXIWATSTATUS();
+            WATLOGIC.WUXIWATWIP();
         })
 </script>
 
@@ -31,20 +27,20 @@
             <div class="v-filter">
                 <div class="row">
                     @*<div class="col-xs-1">
-                        <label class="label label-default" style="font-size:100%!important;padding-top:5px!important;padding-bottom:12px!important;">WAFER</label>
-                    </div>
-                    <div class="col-xs-2">
-                        <input class="form-control" type="text" id="wafernum" name="wafernum" placeholder="Wafer Number" readonly="readonly">
-                    </div>
-                    <div class="col-xs-2" style="padding-left:0">
-                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="Search">
-                    </div>*@
+                            <label class="label label-default" style="font-size:100%!important;padding-top:5px!important;padding-bottom:12px!important;">WAFER</label>
+                        </div>
+                        <div class="col-xs-2">
+                            <input class="form-control" type="text" id="wafernum" name="wafernum" placeholder="Wafer Number" readonly="readonly">
+                        </div>
+                        <div class="col-xs-2" style="padding-left:0">
+                            <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="Search">
+                        </div>*@
                 </div>
             </div>
             <div class="v-content">
                 <div style="margin-top:20px">
                     <table class="table table-hover  table-condensed table-striped" id="logictable" name="logictable" style="margin-top:1%">
-                        <caption class="tb-caption">WUXI WAT TEST STATUS</caption>
+                        <caption class="tb-caption">WUXI WAT WIP</caption>
                         <thead id="logichead"></thead>
                         <tbody id="logiccontent"></tbody>
                     </table>

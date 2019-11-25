@@ -10,7 +10,15 @@ namespace WAT.Models
     {
         public static Dictionary<string, string> GetSysConfig(Controller ctrl)
         {
-            var lines = System.IO.File.ReadAllLines(ctrl.Server.MapPath("~/Scripts/WATCfg.txt"));
+            var lines = new List<string>();
+            if (ctrl != null)
+            {
+                lines = System.IO.File.ReadAllLines(ctrl.Server.MapPath("~/Scripts/WATCfg.txt")).ToList();
+            }
+            else
+            {
+                lines = System.IO.File.ReadAllLines(AppDomain.CurrentDomain.BaseDirectory+ @"\Scripts\WATCfg.txt").ToList();
+            }
             var ret = new Dictionary<string, string>();
             foreach (var line in lines)
             {

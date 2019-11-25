@@ -1856,7 +1856,7 @@ namespace WAT.Controllers
             return WUXIWATPvsPChart(xparam,yparam,wflist, xdatalist, ydatalist);
         }
 
-        public ActionResult WATWIP()
+        public ActionResult WATTEST()
         {
             return RedirectToAction("WUXIWATStatus", "WATLogic");
         }
@@ -1869,6 +1869,24 @@ namespace WAT.Controllers
         public JsonResult WUXIWATStatusData()
         {
             var wipdata = WuxiWATData4MG.GetWATStatus(this);
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wipdata = wipdata
+            };
+            return ret;
+        }
+
+        public ActionResult WATWIP()
+        {
+            return View();
+        }
+
+        public JsonResult WATWIPDATA()
+        {
+            var wipdata = WUXIWATWIP.GetWATWIP(this);
 
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;

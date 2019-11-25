@@ -296,16 +296,10 @@ namespace WAT.Models
             return dbret;
         }
 
-        public static void GetVcselType(List<WuxiWATData4MG> datalist,Controller ctrl)
+        public static Dictionary<string, bool> GetKOYODict(List<string> wflist, Controller ctrl)
         {
             var syscfg = CfgUtility.GetSysConfig(ctrl);
             var koyopns = syscfg["KOYOPNS"];
-
-            var wflist = new List<string>();
-            foreach (var d in datalist)
-            {
-                wflist.Add(d.CouponID);
-            }
             var wfcond = "('" + string.Join("','", wflist)+"')";
 
             var koyodict = new Dictionary<string, bool>();
@@ -327,12 +321,23 @@ namespace WAT.Models
                 }
             }
 
+            return koyodict;
+        }
+
+        public static void GetVcselType(List<WuxiWATData4MG> datalist,Controller ctrl)
+        {
+            var wflist = new List<string>();
+            foreach (var d in datalist)
+            {
+                wflist.Add(d.CouponID);
+            }
+
+            var koyodict = GetKOYODict(wflist, ctrl);
             foreach (var d in datalist)
             {
                 if (koyodict.ContainsKey(d.CouponID.ToUpper()))
                 { d.VType = "KOYO"; }
             }
-
         }
 
         public static List<WuxiWATData4MG> GetWATStatus(Controller ctrl)

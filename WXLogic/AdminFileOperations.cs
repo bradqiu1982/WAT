@@ -64,30 +64,16 @@ namespace WXLogic
             }
         }
 
-        public static List<int> GetDieOneOfWafer(string wafer)
+        public static List<int> GetDieOneByFile(string FileName)
         {
             var ret = new List<int>();
             var syscfgdict = WXCfg.GetSysCfg();
-            var reviewdir = syscfgdict["DIESORTREVIEW"];
-            var fs = "";
-            var allfiles = DirectoryEnumerateAllFiles(reviewdir);
-            foreach (var f in allfiles)
-            {
-                if (f.Contains(wafer))
-                {
-                    fs = f;
-                    break;
-                }
-            }
-
-            if (string.IsNullOrEmpty(fs))
-            { return ret; }
 
             var folderpwd = syscfgdict["SHAREFOLDERPWD"];
             using (NativeMethods cv = new NativeMethods("brad.qiu", "china", folderpwd))
             {
                 var doc = new XmlDocument();
-                doc.Load(fs);
+                doc.Load(FileName);
                 var namesp = doc.DocumentElement.GetAttribute("xmlns");
                 doc = StripNamespace(doc);
                 XmlElement root = doc.DocumentElement;
@@ -147,6 +133,29 @@ namespace WXLogic
 
             return ret;
         }
+
+        public static List<int> GetDieOneByWafer(string wafer)
+        {
+            var ret = new List<int>();
+            var syscfgdict = WXCfg.GetSysCfg();
+            var reviewdir = syscfgdict["DIESORTREVIEW"];
+            var fs = "";
+            var allfiles = DirectoryEnumerateAllFiles(reviewdir);
+            foreach (var f in allfiles)
+            {
+                if (f.Contains(wafer))
+                {
+                    fs = f;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(fs))
+            { return ret; }
+
+            return GetDieOneByFile(fs);
+        }
+
 
     }
 }

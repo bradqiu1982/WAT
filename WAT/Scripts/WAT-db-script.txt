@@ -382,3 +382,30 @@ update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan
 update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan] = 'TEST_84h_100C_13mA'
 update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI2_100C_12mA_120H' where [Plan] = 'TEST_84h100C_13mA'
 update [WAT].[dbo].[OvenStart] set [Plan] = 'E08_BI1_100C_12mA_8H' where [Plan] = 'TEST_8h_100C_12MA'
+
+
+Create View WuxiWATOvenData As
+select d.rid,s.SN,s.[Plan],s.Board,s.Seat,d.[LEVEL],d.SLOT,d.TARGETC,d.WATER_SETC,d.TARGET_IC,d.OVENTEMPERATURE,d.ImA,d.CreateTime from WAT.dbo.OvenData (nolock) d 
+       left join WAT.dbo.OvenStart (nolock) s on d.DataSet_ID = s.DataSet_ID
+	   where  Len(s.SN) > 9 and d.CreateTime <= DATEADD(DAY,-7,GETDATE()) 
+
+
+Create View WUXIWATTESTSTATUS
+  AS
+  select WAFER,STEP,TestTimeStamp from 
+	(select distinct CASE WHEN len(s.SN) = 17 THEN left(s.SN,9)
+		 ELSE CASE WHEN len(s.SN) > 17 THEN left(s.SN,13)
+		 ELSE '' END END as WAFER,
+		 s.[Plan] as STEP, d.CreateTime as TestTimeStamp
+		 from [WAT].[dbo].[OvenData] d with (nolock) 
+		 inner join [WAT].[dbo].[OvenStart] s with (nolock) on d.DataSet_ID = s.DataSet_ID
+		 where d.CreateTime >=  DATEADD(DAY,-30,GETDATE()) 
+		 and d.CreateTime <= GETDATE() and len(s.SN) >= 17 
+
+  UNION 
+
+	select distinct CASE WHEN len(Containername) = 20 THEN left(Containername,9)
+		 ELSE CASE WHEN len(Containername) > 20 THEN left(Containername,13)
+		 ELSE '' END END as WAFER,TestStep as STEP,TestTimeStamp 
+		 FROM [Insite].[dbo].[ProductionResult] where TestTimeStamp >=  DATEADD(DAY,-30,GETDATE()) 
+		 and TestTimeStamp <= GETDATE() and len(Containername) >= 17  ) as subquery

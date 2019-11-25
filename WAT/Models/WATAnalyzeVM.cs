@@ -529,9 +529,6 @@ namespace WAT.Models
             { return ret; }
             var arraysize = UT.O2I(array);
 
-            var dieonex = AdminFileOperations.GetDieOneOfWafer(wafer);
-            if (dieonex.Count == 0)
-            { return ret; }
 
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
             var reviewfolder = syscfgdict["DIESORTREVIEW"];
@@ -560,6 +557,10 @@ namespace WAT.Models
             }
 
             if (string.IsNullOrEmpty(fs))
+            { return ret; }
+
+            var dieonex = AdminFileOperations.GetDieOneByFile(fs);
+            if (dieonex.Count == 0)
             { return ret; }
 
             var folderuser = syscfgdict["SHAREFOLDERUSER"];
