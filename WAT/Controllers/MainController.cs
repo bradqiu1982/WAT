@@ -237,6 +237,14 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult CovertMapFile(string Wafer,string FromBin,string ToBin)
+        {
+            if (!String.IsNullOrEmpty(Wafer) && !String.IsNullOrEmpty(FromBin) && !String.IsNullOrEmpty(ToBin))
+            { DieSortVM.ConvertBinMapFileData(Wafer, FromBin, ToBin, this); }
+            
+            return View("HeartBeat");
+        }
+
         public ActionResult NeomapToAllen()
         { return View(); }
 
