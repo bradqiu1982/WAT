@@ -333,7 +333,9 @@ namespace WAT.Models
             var wxlogic = new WXLogic.WXWATLogic();
             wxlogic.AllowToMoveMapFile = false;
             wxlogic.AnalyzeParam = param.ToUpper();
-            wxlogic.WATPassFail(wf+"E08", jstepname);
+            if (!wf.Contains("E") && !wf.Contains("R") && !wf.Contains("T"))
+            { wf = wf + "E08"; }
+            wxlogic.WATPassFail(wf, jstepname);
 
             var ret = new List<XYVAL>();
             foreach (var val in wxlogic.AnalyzeParamData)

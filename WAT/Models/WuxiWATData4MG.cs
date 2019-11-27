@@ -24,7 +24,7 @@ namespace WAT.Models
             }
 
             var oringaldata = WXLogic.WXOriginalWATData.GetData(CouponGroup);
-            var wafernum = CouponGroup.Split(new string[] { "E", "R" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            var wafernum = CouponGroup.Split(new string[] { "E", "R","T" }, StringSplitOptions.RemoveEmptyEntries)[0];
             var probedata = WXLogic.WXProbeData.GetData(wafernum);
 
             var probedict = new Dictionary<string, WXLogic.WXProbeData>();
@@ -72,15 +72,17 @@ namespace WAT.Models
             var CouponGroup = "";
             try
             {
-                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") && !coupongroup1.Contains("R")))
+                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") && !coupongroup1.Contains("R") && !coupongroup1.Contains("T")))
                 { return string.Empty; }
                 else
                 {
                     var len = 0;
                     if (coupongroup1.Contains("E"))
                     { len = coupongroup1.IndexOf("E") + 3; }
-                    else
+                    else if (coupongroup1.Contains("R"))
                     { len = coupongroup1.IndexOf("R") + 3; }
+                    else
+                    { len = coupongroup1.IndexOf("T") + 3; }
 
                     if (coupongroup1.Length < len)
                     { return string.Empty; }
@@ -333,10 +335,10 @@ namespace WAT.Models
         private static List<List<object>> GetWUXIWATWaferStepData()
         {
             var sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 20 and Containername not like '17%' and Containername like '%E08%' group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
+                         where len(Containername) = 20 and Containername not like '17%' and (Containername like '%E08%' or Containername like '%R08%') group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             sql = @"select distinct left(Containername,13),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 24 and Containername like '%E08%' group by left(Containername,13),TestStep order by latesttime desc,left(Containername,13)";
+                         where len(Containername) = 24 and (Containername like '%E08%'  or Containername like '%R08%') group by left(Containername,13),TestStep order by latesttime desc,left(Containername,13)";
             var dbret1 = DBUtility.ExeLocalSqlWithRes(sql);
             dbret.AddRange(dbret1);
             return dbret;
