@@ -80,6 +80,19 @@ namespace WAT.Models
             if (inspectedwafer.Count == 0)
             { return; }
 
+            int wait = 0;
+            foreach (var wf in inspectedwafer)
+            {
+                if (!Models.WXProbeData.AllenHasData(wf.Key))
+                {
+                    Models.WXProbeData.AddProbeTrigge2Allen(wf.Key);
+                    wait += 1;
+                }
+            }
+
+            if (wait > 0)
+            { new System.Threading.ManualResetEvent(false).WaitOne(5000*60*wait); }
+
             var filetype = "WAFER";
             var allwffiles = GetAllWaferFile(ctrl);
 
