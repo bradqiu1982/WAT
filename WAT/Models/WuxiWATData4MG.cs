@@ -163,18 +163,20 @@ namespace WAT.Models
                     }//end else
                 }
 
-                if (ret.ValueCollect.ContainsKey("fail mode") && !string.IsNullOrEmpty(ret.ValueCollect["fail mode"]))
+                var fdict = new Dictionary<string, int>();
+                var ftab = (List<WXLogic.WXWATFailureMode>)ret.DataTables[1];
+                foreach(var f in ftab)
                 {
-                    var mddict = new Dictionary<string, bool>();
-                    var unitstr = ret.ValueCollect["fail mode"].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var u in unitstr)
+                    if (string.Compare(f.Failure, "PASS", true) != 0)
                     {
-                        var md = u.Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries)[2];
-                        if (!mddict.ContainsKey(md))
-                        { mddict.Add(md, true); }
+                        if (!fdict.ContainsKey(f.Failure.ToUpper()))
+                        { fdict.Add(f.Failure, 1); }
+                        else
+                        { fdict[f.Failure] += 1; }
                     }
-                    failmode = string.Join(",", mddict.Keys);
                 }
+                foreach (var kv in fdict)
+                { failmode += kv.Key + ":" + kv.Value + ";"; }
             }
             catch (Exception e) { }
 
@@ -269,18 +271,62 @@ namespace WAT.Models
                 StoreWATResult(tempvm.CouponID, jdstep, ret[0], ret[1]);
                 tempvm.ReTest = ret[0];
                 tempvm.FailureStr = ret[1];
-                tempvm.FailureShortStr = tempvm.FailureStr;
-                if (tempvm.FailureStr.Length > 20)
-                { tempvm.FailureShortStr = tempvm.FailureStr.Substring(0, 20); }
+                //tempvm.FailureShortStr = tempvm.FailureStr;
+                //if (tempvm.FailureStr.Length > 20)
+                //{ tempvm.FailureShortStr = tempvm.FailureStr.Substring(0, 20); }
             }
             else
             {
                 tempvm.ReTest = ret[0];
                 tempvm.FailureStr = ret[1];
-                tempvm.FailureShortStr = tempvm.FailureStr;
-                if (tempvm.FailureStr.Length > 20)
-                { tempvm.FailureShortStr = tempvm.FailureStr.Substring(0, 20); }
+                //tempvm.FailureShortStr = tempvm.FailureStr;
+                //if (tempvm.FailureStr.Length > 20)
+                //{ tempvm.FailureShortStr = tempvm.FailureStr.Substring(0, 20); }
             }
+
+            if (!string.IsNullOrEmpty(tempvm.FailureStr))
+            {
+                var kvlist = tempvm.FailureStr.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                foreach (var kv in kvlist)
+                {
+                    var kvs = kv.ToUpper().Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                    if (kvs[0].Contains("DVF"))
+                    {
+                        if (kvs.Length >= 2)
+                            tempvm.DVF = UT.O2I(kvs[1]);
+                        else
+                            tempvm.DVF = 1;
+                    }
+                    else if (kvs[0].Contains("LOWPOWERLOWLEAKAGE"))
+                    {
+                        if (kvs.Length >= 2)
+                            tempvm.LPW = UT.O2I(kvs[1]);
+                        else
+                            tempvm.LPW = 1;
+                    }
+                    else if (kvs[0].Contains("DISLOCATION"))
+                    {
+                        if (kvs.Length >= 2)
+                            tempvm.DIS = UT.O2I(kvs[1]);
+                        else
+                            tempvm.DIS = 1;
+                    }
+                    else if (kvs[0].Contains("WEAROUT"))
+                    {
+                        if (kvs.Length >= 2)
+                            tempvm.WOT = UT.O2I(kvs[1]);
+                        else
+                            tempvm.WOT = 1;
+                    }
+                    else if (kvs[0].Contains("DLAM"))
+                    {
+                        if (kvs.Length >= 2)
+                            tempvm.DLA = UT.O2I(kvs[1]);
+                        else
+                            tempvm.DLA = 1;
+                    }
+                }//end foreach
+            }//end if
         }
 
 
@@ -348,6 +394,9 @@ namespace WAT.Models
             var dbret = GetWUXIWATWaferStepData();
             foreach (var line in dbret)
             {
+                if (UT.O2T(line[2]) < DateTime.Parse("2019-10-01 00:00:00"))
+                { continue; };
+
                 var wafer = UT.O2S(line[0]);
                 var TestStep = UT.O2S(line[1]);
                 var TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
@@ -477,6 +526,12 @@ namespace WAT.Models
             RPStr = "";
             VType = "";
             VArray = "";
+
+            DVF = 0;
+            LPW = 0;
+            DIS = 0;
+            WOT = 0;
+            DLA = 0;
         }
 
 
@@ -517,6 +572,12 @@ namespace WAT.Models
             RPStr = "";
             VType = "";
             VArray = "";
+
+            DVF = 0;
+            LPW = 0;
+            DIS = 0;
+            WOT = 0;
+            DLA = 0;
         }
 
         public string CouponID { set; get; }
@@ -557,5 +618,11 @@ namespace WAT.Models
         public string RPStr { set; get; }
         public string VType { set; get; }
         public string VArray { set; get; }
+
+        public int DVF { set; get; }
+        public int LPW { set; get; }
+        public int DIS { set; get; }
+        public int WOT { set; get; }
+        public int DLA { set; get; }
     }
 }

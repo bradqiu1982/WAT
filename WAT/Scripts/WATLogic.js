@@ -2037,7 +2037,11 @@
                             '<th>TestTime</th>' +
                             '<th>TestStep</th>' +
                             '<th>Result</th>' +
-                            '<th>FailurMode</th>' +
+                            '<th>DVF</th>' +
+                            '<th>WOT</th>' +
+                            '<th>DIS</th>' +
+                            '<th>LPW</th>' +
+                            //'<th>DLA</th>' +
                             '<th>RAWData</th>' +
                             '<th>WATLogic</th>' +
                             '<th>PowerOnCoupon</th>' +
@@ -2055,6 +2059,11 @@
                         var dvfoncoupon = '<td></td>';
                         var poweronwafer = '<td></td>';
                         var powervsdith = '<td></td>';
+
+                        var DVFtd = '<td>' + val.DVF + '</td>';
+                        if (val.DVF == 0 || val.DVF == 1)
+                        { DVFtd = '<td style="color:orange;">' + val.DVF + '</td>'; }
+
                         var assemblylink = '<td><a href="/WATLogic/WUXIWATCoupon?param=Assembly&wafer=' + val.CouponID + '&rp=RP00" target="_blank" >Assembly</a></td>';
 
                         if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1 && val.ReTest.indexOf('coupon count') == -1 && val.ReTest.indexOf('Fail to') == -1)
@@ -2077,8 +2086,13 @@
                             '<td>' + val.TestTime + '</td>' +
                             '<td>' + val.TestStep + '</td>' +
                              '<td>' + val.ReTest + '</td>' +
-                             '<td class="FAILUREDETIAL" detailinfo="' + val.FailureStr + '">'
-                             + val.FailureShortStr + '</td>' +
+                             DVFtd +
+                             '<td>' + val.WOT + '</td>' +
+                             '<td>' + val.DIS + '</td>' +
+                             '<td>' + val.LPW + '</td>' +
+                             //'<td>' + val.DLA + '</td>' +
+                             //'<td class="FAILUREDETIAL" detailinfo="' + val.FailureStr + '">'
+                             //+ val.FailureShortStr + '</td>' +
                              rawdatalink +
                              logiclink +
                              poweroncoupon +
