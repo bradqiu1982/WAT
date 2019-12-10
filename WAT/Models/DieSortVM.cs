@@ -83,10 +83,13 @@ namespace WAT.Models
             int wait = 0;
             foreach (var wf in inspectedwafer)
             {
-                if (!Models.WXProbeData.AllenHasData(wf.Key))
+                if (wf.Key.Length == 9)
                 {
-                    Models.WXProbeData.AddProbeTrigge2Allen(wf.Key);
-                    wait += 1;
+                    if (!Models.WXProbeData.AllenHasData(wf.Key))
+                    {
+                        Models.WXProbeData.AddProbeTrigge2Allen(wf.Key);
+                        wait += 1;
+                    }
                 }
             }
 
@@ -146,9 +149,9 @@ namespace WAT.Models
             var reviewfolder = syscfgdict["DIESORTREVIEW"];
 
             //check wafer's product family
-            var productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+            var productfm = "";
             var sixinch = false;
-            if (string.IsNullOrEmpty(productfm))
+            if (wafer.Length == 13)
             {
                 productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
                 if (!string.IsNullOrEmpty(productfm))
@@ -158,14 +161,37 @@ namespace WAT.Models
                     FileLoadedData.UpdateLoadedFile(wafer, "NOFAMILY");
                     if (!WebLog.CheckEmailRecord(wafer, "EM-PRODFM"))
                     {
-                        EmailUtility.SendEmail(ctrl, "DIE SORT WAFER FATAL ERROR-"+wafer, towho, "Detail: Fail to get product family by wafer " + wafer);
+                        EmailUtility.SendEmail(ctrl, "DIE SORT WAFER FATAL ERROR-" + wafer, towho, "Detail: Fail to get product family by wafer " + wafer);
                         new System.Threading.ManualResetEvent(false).WaitOne(300);
                     }
-                    
+
                     WebLog.Log(wafer, "DIESORT", "fail to to get product family by wafer " + wafer);
                     return false;
                 }
             }
+            else
+            {
+                productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                    if (!string.IsNullOrEmpty(productfm))
+                    { sixinch = true; }
+                    else
+                    {
+                        FileLoadedData.UpdateLoadedFile(wafer, "NOFAMILY");
+                        if (!WebLog.CheckEmailRecord(wafer, "EM-PRODFM"))
+                        {
+                            EmailUtility.SendEmail(ctrl, "DIE SORT WAFER FATAL ERROR-"+wafer, towho, "Detail: Fail to get product family by wafer " + wafer);
+                            new System.Threading.ManualResetEvent(false).WaitOne(300);
+                        }
+                    
+                        WebLog.Log(wafer, "DIESORT", "fail to to get product family by wafer " + wafer);
+                        return false;
+                    }
+                }
+            }
+
 
             //get wafer's array info
             var waferarray = GetWaferArrayInfo(productfm, sixinch);
@@ -510,10 +536,18 @@ namespace WAT.Models
 
             if (string.IsNullOrEmpty(fs))
             {
-                var productfm = WXEvalPN.GetProductFamilyFromAllen(wf);
-                if (string.IsNullOrEmpty(productfm))
+                var productfm = "";
+                if (wf.Length == 13)
                 {
                     productfm = WXEvalPN.GetProductFamilyFromSherman(wf);
+                }
+                else
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromAllen(wf);
+                    if (string.IsNullOrEmpty(productfm))
+                    {
+                        productfm = WXEvalPN.GetProductFamilyFromSherman(wf);
+                    }
                 }
 
                 var allfilelist = new List<string>();
@@ -741,6 +775,8 @@ namespace WAT.Models
 
             if (!PrepareEvalPN(wafernum))
             { return false; }
+
+            WATApertureSize.PrepareAPConst2162(wafernum);
 
             return true;
         }

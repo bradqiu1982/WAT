@@ -13,7 +13,7 @@ namespace WAT.Models
         {
             var ret = new List<WXProbeData>();
             
-            var sql = @"select [Xcoord],[Ycoord],[Ith],[SeriesR],[SlopEff] from [EngrData].[dbo].[Wuxi_WAT_VR_Report] 
+            var sql = @"select distinct [Xcoord],[Ycoord],[Ith],[SeriesR],[SlopEff] from [EngrData].[dbo].[Wuxi_WAT_VR_Report] 
                         where [WaferID] = @WaferID and [Ith] is not null and [SeriesR] is not null and [SlopEff] is not null";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferID", WaferNum);
@@ -77,10 +77,18 @@ namespace WAT.Models
 
         public static bool PrepareProbeData(string WaferNum)
         {
-            var srclist = GetAllenData(WaferNum);
-            if (srclist.Count == 0)
+            var srclist = new List<WXProbeData>();
+            if (WaferNum.Length == 13)
             {
                 srclist = GetShermanData(WaferNum);
+            }
+            else
+            {
+                srclist = GetAllenData(WaferNum);
+                if (srclist.Count == 0)
+                {
+                    srclist = GetShermanData(WaferNum);
+                }
             }
 
             if (srclist.Count > 0)
@@ -115,46 +123,6 @@ namespace WAT.Models
             {
                 return false;
             }
-        }
-
-        public static List<WXProbeData> GetData(string WaferNum)
-        {
-            var ret = new List<WXProbeData>();
-
-            var sql = @"SELECT [WaferID]
-					  ,[Xcoord]
-					  ,[Ycoord]
-					  ,[Ith]
-					  ,[Wafer]
-					  ,[SeriesR]
-					  ,[SlopEff]
-				   FROM [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] pvr with(nolock)
-				   WHERE [WaferID] = @WaferNum
-				   AND pvr.RID = (SELECT max(RID) FROM [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] pvrmax
-									WHERE pvrmax.[WaferID] = @WaferNum
-									AND pvrmax.[Xcoord]=pvr.[Xcoord]
-									AND pvrmax.[Ycoord]=pvr.[Ycoord]
-									AND pvrmax.[WaferID]=pvr.[WaferID]
-									)";
-
-            var dict = new Dictionary<string, string>();
-            dict.Add("@WaferNum", WaferNum);
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
-            {
-                var tempvm = new WXProbeData();
-                tempvm.WaferID = UT.O2S(line[0]);
-                tempvm.X = UT.O2S(line[1]);
-                tempvm.Y = UT.O2S(line[2]);
-                tempvm.Ith = UT.O2S(line[3]);
-                tempvm.WaferNum = UT.O2S(line[4]);
-                tempvm.SeriesR = UT.O2S(line[5]);
-                tempvm.SlopEff = UT.O2S(line[6]);
-
-                ret.Add(tempvm);
-            }
-
-            return ret;
         }
 
         public WXProbeData()

@@ -409,3 +409,13 @@ Create View WUXIWATTESTSTATUS
 		 ELSE '' END END as WAFER,TestStep as STEP,TestTimeStamp 
 		 FROM [Insite].[dbo].[ProductionResult] where TestTimeStamp >=  DATEADD(DAY,-30,GETDATE()) 
 		 and TestTimeStamp <= GETDATE() and len(Containername) >= 17  ) as subquery
+
+
+CREATE TABLE WAT.dbo.WaferAPConst(
+	[Wafer]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[ApConst]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal4]   DATETIME  DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+);

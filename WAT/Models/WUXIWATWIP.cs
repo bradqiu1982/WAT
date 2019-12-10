@@ -13,7 +13,7 @@ namespace WAT.Models
         {
             var ret = new List<WUXIWATWIP>();
             var wdict = new Dictionary<string, bool>();
-            var sql = "SELECT distinct [WAFER] ,[STEP] ,[TestTimeStamp] FROM [WAT].[dbo].[WUXIWATTESTSTATUS] order by TestTimeStamp desc";
+            var sql = "SELECT distinct [WAFER] ,[STEP] ,[TestTimeStamp] FROM [WAT].[dbo].[WUXIWATTESTSTATUS] where [WAFER] <> '' order by TestTimeStamp desc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
@@ -39,6 +39,13 @@ namespace WAT.Models
                     if (koyodict.ContainsKey(item.WAFER))
                     { item.VType = "KOYO"; }
                 }
+
+                var OGPSNList = WATOGPVM.GetAllOGPWafers(ctrl);
+                foreach (var item in ret)
+                {
+                    if (OGPSNList.Contains(item.WAFER))
+                    { item.HasOGP = "YES"; }
+                }
             }
 
             return ret;
@@ -51,6 +58,7 @@ namespace WAT.Models
             TESTTIMESTAMP = "";
             VType = "";
             VArray = "";
+            HasOGP = "NO";
         }
 
         public string WAFER { set; get; }
@@ -58,5 +66,6 @@ namespace WAT.Models
         public string TESTTIMESTAMP { set; get; }
         public string VType { set; get; }
         public string VArray { set; get; }
+        public string HasOGP { set; get; }
     }
 }

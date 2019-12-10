@@ -227,10 +227,18 @@ namespace WAT.Controllers
             var syscfgdict = CfgUtility.GetSysConfig(this);
             var wf = Request.Form["wf"].Trim();
 
-            var productfm = WXEvalPN.GetProductFamilyFromAllen(wf);
-            if (string.IsNullOrEmpty(productfm))
+            var productfm = "";
+            if (wf.Length == 13)
             {
                 productfm = WXEvalPN.GetProductFamilyFromSherman(wf);
+            }
+            else
+            {
+                productfm = WXEvalPN.GetProductFamilyFromAllen(wf);
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromSherman(wf);
+                }
             }
 
             var allfilelist = new List<string>();

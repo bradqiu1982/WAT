@@ -290,12 +290,49 @@ namespace WXLogic
             {
                 if (string.Compare(srcdata.CommonTestName, orginalname, true) == 0)
                 {
-                    if (AnalyzeParam.Contains("_AD_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].absolutedeltaref))
-                    { AnalyzeParamData.Add(new XYVAL(srcdata.X,srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].absolutedeltaref))); }
-                    if (AnalyzeParam.Contains("_DB_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].dBdeltaref))
-                    { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].dBdeltaref))); }
-                    if (AnalyzeParam.Contains("_RD_") && !string.IsNullOrEmpty(srcdata.DeltaList[1].ratiodeltaref))
-                    { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].ratiodeltaref))); }
+                    if (AnalyzeParam.Contains("_AD_"))
+                    {
+                        if (AnalyzeParam.Contains("REF0") && AnalyzeParam.Contains("RP01"))
+                        {
+                            if (!string.IsNullOrEmpty(srcdata.DeltaList[0].absolutedeltaref))
+                            { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[0].absolutedeltaref))); }
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(srcdata.DeltaList[1].absolutedeltaref))
+                            { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].absolutedeltaref))); }
+                        }
+                    }
+
+                    if (AnalyzeParam.Contains("_DB_"))
+                    {
+                        if (AnalyzeParam.Contains("REF0") && AnalyzeParam.Contains("RP01"))
+                        {
+                            if (!string.IsNullOrEmpty(srcdata.DeltaList[0].dBdeltaref))
+                            { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[0].dBdeltaref))); }
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(srcdata.DeltaList[1].dBdeltaref))
+                            { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].dBdeltaref))); }
+                        }
+                    }
+
+                    if (AnalyzeParam.Contains("_RD_"))
+                    {
+                        if (AnalyzeParam.Contains("REF0") && AnalyzeParam.Contains("RP01"))
+                        {
+                            if (!string.IsNullOrEmpty(srcdata.DeltaList[0].ratiodeltaref))
+                            { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[0].ratiodeltaref))); }
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrEmpty(srcdata.DeltaList[1].ratiodeltaref))
+                            { AnalyzeParamData.Add(new XYVAL(srcdata.X, srcdata.Y, srcdata.UnitNum, UT.O2D(srcdata.DeltaList[1].ratiodeltaref))); }
+                        }
+                    }
+
+
                 }
             }
         }

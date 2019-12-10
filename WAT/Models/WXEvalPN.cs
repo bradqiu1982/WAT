@@ -53,11 +53,12 @@ namespace WAT.Models
                     INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductBase] pb with(nolock) ON pb.[RevOfRcdId] = c.[ProductId] 
                     INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId] 
                     INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductFamily] pf with(nolock) ON pf.[ProductFamilyId] = p.[ProductFamilyId]
-                    WHERE c.[ContainerName] like '%<wafernum>%'";
+                    WHERE c.[ContainerName] = @wafernum";
 
-            sql = sql.Replace("<wafernum>", wafernum);
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafernum", wafernum);
 
-           var dbret = DBUtility.ExeShermanSqlWithRes(sql);
+            var dbret = DBUtility.ExeShermanSqlWithRes(sql,dict);
             foreach (var line in dbret)
             { return UT.O2S(line[0]); }
 
@@ -167,14 +168,24 @@ namespace WAT.Models
 
         public static bool PrepareEvalPN(string wafernum)
         {
-            var allenret = PrepareAllenEvalPN(wafernum);
-            UpdateLotTypeFromAllen(wafernum);
-            if (!allenret)
+            if (wafernum.Length == 13)
             {
                 var shermanret = PrepareShermanEvalPN(wafernum);
                 UpdateLotTypeFromSherman(wafernum);
                 if (!shermanret)
                 { return false; }
+            }
+            else
+            {
+                var allenret = PrepareAllenEvalPN(wafernum);
+                UpdateLotTypeFromAllen(wafernum);
+                if (!allenret)
+                {
+                    var shermanret = PrepareShermanEvalPN(wafernum);
+                    UpdateLotTypeFromSherman(wafernum);
+                    if (!shermanret)
+                    { return false; }
+                }
             }
             return true;
         }

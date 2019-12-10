@@ -596,8 +596,8 @@
                             '<th>Eval_PN</th>' +
                             '<th>Bin_Product</th>' +
                             '<th>ParameterName</th>' +
-                            '<th>UpperSpec</th>' +
                             '<th>LowerSpec</th>' +
+                            '<th>UpperSpec</th>' +
                             '<th>Min_Value</th>' +
                             '<th>Max_Value</th>' +
                             '<th>DUTCount</th>' +
@@ -611,8 +611,8 @@
                             '<td>' + val.Eval_PN + '</td>' +
                             '<td>' + val.Bin_PN + '</td>' +
                             '<td>' + val.ParamName + '</td>' +
-                            '<td>' + val.UpperLimit + '</td>' +
                             '<td>' + val.LowLimit + '</td>' +
+                            '<td>' + val.UpperLimit + '</td>' +
                             '<td>' + val.MinVal + '</td>' +
                             '<td>' + val.MaxVal + '</td>' +
                             '<td>' + val.DUTCount + '</td>' +
@@ -2164,6 +2164,7 @@
                             '<th class="dt-center">Type</th>' +
                             '<th class="dt-center">Array</th>' +
                             '<th class="dt-center">STEP</th>' +
+                            '<th class="dt-center">HasOGPXY</th>' +
                             '<th class="dt-center">TestTime</th>' +
                             '</tr>'
                         );
@@ -2176,6 +2177,7 @@
                             '<td class="dt-center">' + val.VType + '</td>' +
                             '<td class="dt-center">' + val.VArray + '</td>' +
                             '<td class="dt-center">' + val.STEP + '</td>' +
+                            '<td class="dt-center">' + val.HasOGP + '</td>' +
                             '<td class="dt-center">' + val.TESTTIMESTAMP + '</td>' +
                             '</tr>'
                         );

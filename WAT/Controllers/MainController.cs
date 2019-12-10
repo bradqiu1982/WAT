@@ -237,6 +237,7 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        //  /main/CovertMapFile?Wafer=183124-80&FromBin=54&ToBin=55
         public ActionResult CovertMapFile(string Wafer,string FromBin,string ToBin)
         {
             if (!String.IsNullOrEmpty(Wafer) && !String.IsNullOrEmpty(FromBin) && !String.IsNullOrEmpty(ToBin))

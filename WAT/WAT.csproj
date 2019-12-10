@@ -282,6 +282,7 @@
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />
     <Compile Include="Models\WATAnalyzeVM.cs" />
+    <Compile Include="Models\WATApertureSize.cs" />
     <Compile Include="Models\WATGoldSample.cs" />
     <Compile Include="Models\WATOGPVM.cs" />
     <Compile Include="Models\WATOven.cs" />

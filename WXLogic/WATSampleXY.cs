@@ -23,12 +23,22 @@ namespace WXLogic
         public static string GetArrayFromAllenSherman(string wafer)
         {
             var sixinch = false;
-            var productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
-            if (string.IsNullOrEmpty(productfm))
+            var productfm = "";
+            if (wafer.Length == 13)
             {
                 productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
                 if (!string.IsNullOrEmpty(productfm))
                 { sixinch = true; }
+            }
+            else
+            {
+                productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                    if (!string.IsNullOrEmpty(productfm))
+                    { sixinch = true; }
+                }
             }
 
             if (string.IsNullOrEmpty(productfm))
@@ -271,6 +281,28 @@ namespace WXLogic
             return newxy;
         }
 
+        public static void CorrectChannelIndex(List<WATSampleXY> ogporder, int arraysize)
+        {
+            foreach (var item in ogporder)
+            {
+                var ch = UT.O2I(item.ChannelInfo);
+                if (arraysize == 12)
+                {
+                    if (ch > 12)
+                    { item.ChannelInfo = (ch - 12).ToString(); }
+                    else
+                    { item.ChannelInfo = (ch + 12).ToString(); }
+                }
+                else
+                {
+                    if (ch > 16)
+                    { item.ChannelInfo = (ch - 16).ToString(); }
+                    else
+                    { item.ChannelInfo = (ch + 16).ToString(); }
+                }
+            }
+        }
+
         public static List<WATSampleXY> GetSampleXYByCouponGroup(string coupongroup)
         {
             var ret = new List<WATSampleXY>();
@@ -326,6 +358,7 @@ namespace WXLogic
 
             if (string.Compare(array, "1") == 0)
             {
+                CorrectChannelIndex(ret, 1);
                 return ret;
             }
             else
@@ -346,6 +379,7 @@ namespace WXLogic
                     }
                 }
 
+                CorrectChannelIndex(newret, arraysize);
                 return newret;
             }
 
