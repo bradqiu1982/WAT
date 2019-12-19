@@ -389,7 +389,7 @@ namespace WAT.Controllers
 
             foreach (var die in ignoredies)
             {
-                var waferxy = die.ToUpper().Split(new string[] { "E","R","T" }, StringSplitOptions.RemoveEmptyEntries);
+                var waferxy = die.ToUpper().Split(new string[] { "E","R","T","_" }, StringSplitOptions.RemoveEmptyEntries);
                 if (waferxy.Length == 4)
                 {
                     WXWATIgnoreDie.UpdateIgnoreDie(waferxy[0], waferxy[2], waferxy[3], reason, username);
