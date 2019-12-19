@@ -300,20 +300,25 @@ namespace WAT.Models
                 var fpn = "";
                 var product = "";
 
-                var pnlist = GetPnFromWafer(wafer, offeredpn);
-                if (pnlist.Count > 0)
+                if (wafer.Length == 13)
                 {
-                    var vcselinfo = GetVCSELInfoFromPNList(wafer, pnlist);
-                    if (vcselinfo.Count > 0)
+
+                }
+                else
+                {
+                    var pnlist = GetPnFromWafer(wafer, offeredpn);
+                    if (pnlist.Count > 0)
                     {
-                        bomdesc = System.Security.SecurityElement.Escape(vcselinfo[0]);
-                        bompn = vcselinfo[1];
-                        fpn = vcselinfo[2];
-                        product = System.Security.SecurityElement.Escape(vcselinfo[3]);
+                        var vcselinfo = GetVCSELInfoFromPNList(wafer, pnlist);
+                        if (vcselinfo.Count > 0)
+                        {
+                            bomdesc = System.Security.SecurityElement.Escape(vcselinfo[0]);
+                            bompn = vcselinfo[1];
+                            fpn = vcselinfo[2];
+                            product = System.Security.SecurityElement.Escape(vcselinfo[3]);
+                        }
                     }
                 }
-
-
 
                 var bin57dict = new Dictionary<string, string>();
                 var bin57countkey = "DIESORTSAMPLEBIN57X" + waferarray;
@@ -776,8 +781,9 @@ namespace WAT.Models
             if (!PrepareEvalPN(wafernum))
             { return false; }
 
-            WATApertureSize.PrepareAPConst2162(wafernum);
-
+            if (wafernum.Length == 9)
+            { WATApertureSize.PrepareAPConst2162(wafernum); }
+            
             return true;
         }
 

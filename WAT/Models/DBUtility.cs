@@ -846,6 +846,12 @@ namespace WAT.Models
                 sqlreader = command.ExecuteReader();
                 if (sqlreader.HasRows)
                 {
+                    var headname = new List<object>();
+                    for (int i = 0; i < sqlreader.FieldCount; i++)
+                    { headname.Add(sqlreader.GetName(i)); }
+                    if (headname.Count > 0)
+                    { ret.Add(headname); }
+                    
                     while (sqlreader.Read())
                     {
                         Object[] values = new Object[sqlreader.FieldCount];

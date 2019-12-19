@@ -61,15 +61,64 @@ namespace WAT.Models
             dict.Add("@DATA_SET_TYPE_NAME", "Final Probe");
             dict.Add("@Include_Units_IN_Col_Headers", "1");
             dict.Add("@Passing_Dies_Only", "0");
+            dict.Add("@Sample_Quantity", "-1");
+            dict.Add("@Comma_Delimited_TEST_NAMES_To_Return", "RT.Ith,RT.SeriesR,RT.SlopEff");
             var dbret = DBUtility.ExeShermanStoreProcedureWithRes("Get_Latest_PROBE_DATA_For_Wafer", dict);
+
+            var xidx = 14;
+            var yidx = 15;
+            var iidx = 22;
+            var sridx = 21;
+            var slidx = 23;
+
+            var ridx = 0;
             foreach (var line in dbret)
             {
+                if (ridx == 0)
+                {
+                    ridx++;
+                    var colname1 = UT.O2S(line[0]).ToUpper();
+                    if (colname1.Contains("DATA_SET_ID"))
+                    {
+                        var colidx = 0;
+                        foreach (var item in line)
+                        {
+                            var cname = UT.O2S(item).ToUpper();
+                            if (string.Compare(cname, "X") == 0)
+                            { xidx = colidx;}
+                            if (string.Compare(cname, "Y") == 0)
+                            { yidx = colidx;}
+                            if (cname.Contains("RT.ITH"))
+                            {
+                                iidx = colidx;
+                            }
+                            if (cname.Contains("RT.SER"))
+                            { sridx = colidx; }
+                            if (cname.Contains("RT.SLOP"))
+                            { slidx = colidx; }
+
+                            colidx++;
+                        }
+                        continue;
+                    }
+                }
+
+                if (line[xidx] == DBNull.Value || line[yidx] == DBNull.Value
+                    || line[iidx] == DBNull.Value || line[sridx] == DBNull.Value
+                    || line[slidx] == DBNull.Value)
+                { continue; }
+
                 var tempvm = new WXProbeData();
-                tempvm.X = UT.O2S(line[12]);
-                tempvm.Y = UT.O2S(line[13]);
-                tempvm.Ith = UT.O2S(line[61]);
-                tempvm.SeriesR = UT.O2S(line[122]);
-                tempvm.SlopEff = UT.O2S(line[245]);
+                tempvm.X = UT.O2S(line[xidx]);
+                tempvm.Y = UT.O2S(line[yidx]);
+                tempvm.Ith = UT.O2S(line[iidx]);
+                tempvm.SeriesR = UT.O2S(line[sridx]);
+                tempvm.SlopEff = UT.O2S(line[slidx]);
+
+                //tempvm.Ith = UT.O2S(line[90]);
+                //tempvm.SeriesR = UT.O2S(line[132]);
+                //tempvm.SlopEff = UT.O2S(line[133]);
+
                 ret.Add(tempvm);
             }
             return ret;

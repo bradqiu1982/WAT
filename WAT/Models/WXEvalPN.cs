@@ -65,23 +65,23 @@ namespace WAT.Models
             return string.Empty;
         }
 
-        private static void UpdateLotTypeFromSherman(string wafernum)
-        {
-            var sql = @"SELECT ContainerType FROM [SHM-CSSQL].[Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
-            sql = sql.Replace("<wafernum>", wafernum);
+        //private static void UpdateLotTypeFromSherman(string wafernum)
+        //{
+        //    var sql = @"SELECT ContainerType FROM [SHM-CSSQL].[Insite].[insite].[Container] WHERE [ContainerName] like '%<wafernum>%'";
+        //    sql = sql.Replace("<wafernum>", wafernum);
 
-            var dbret = DBUtility.ExeShermanSqlWithRes(sql);
-            foreach (var line in dbret)
-            {
-                sql = "update WAT.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
-                var dict = new Dictionary<string, string>();
-                dict.Add("@WaferNum", wafernum);
-                dict.Add("@LotType", UT.O2S(line[0]));
-                DBUtility.ExeLocalSqlNoRes(sql, dict);
-                return;
-            }
+        //    var dbret = DBUtility.ExeShermanSqlWithRes(sql);
+        //    foreach (var line in dbret)
+        //    {
+        //        sql = "update WAT.dbo.WXEvalPN set LotType = @LotType where WaferNum = @WaferNum";
+        //        var dict = new Dictionary<string, string>();
+        //        dict.Add("@WaferNum", wafernum);
+        //        dict.Add("@LotType", UT.O2S(line[0]));
+        //        DBUtility.ExeLocalSqlNoRes(sql, dict);
+        //        return;
+        //    }
 
-        }
+        //}
 
 
         private static bool PrepareAllenEvalPN(string wafernum)
@@ -112,7 +112,11 @@ namespace WAT.Models
             {
                 var evalpn = UT.O2S(line[0]);
                 var dcdname = UT.O2S(line[1]);
-                var evalbin = UT.O2S(line[2]);
+                var evalbin = UT.O2S(line[2]).ToUpper();
+                if (evalbin.Contains("E08")
+                    || evalbin.Contains("E06")
+                    || evalbin.Contains("E01"))
+                { dcdname = "Eval_50up_rp"; }
 
                 sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@EvalBinName,@Product)";
                 dict = new Dictionary<string, string>();
@@ -133,32 +137,61 @@ namespace WAT.Models
             if (string.IsNullOrEmpty(pdfm))
             { return false; }
 
-
             var sql = "delete from WAT.dbo.WXEvalPN where WaferNum=@WaferNum";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", wafernum);
             DBUtility.ExeLocalSqlNoRes(sql, dict);
 
-
             var templist = new List<WXEvalPN>();
-            var tempvm = new WXEvalPN();
-            tempvm.EvalPN = pdfm + "001";
-            tempvm.DCDName = "Eval_50up_rp";
-            templist.Add(tempvm);
+            sql = @"SELECT  pb.productname FROM [SHM-CSSQL].[Insite].[insite].[Container] c with(nolock)
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductBase] pb with(nolock) ON pb.[RevOfRcdId] = c.[ProductId] 
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId]
+		            INNER JOIN [SHM-CSSQL].[Insite].[insite].[factory] f with(nolock) on f.factoryid=p.factoryid
+                    WHERE c.[ContainerName] = @wafernum and f.factoryname  = 'chip'";
 
-            tempvm = new WXEvalPN();
-            tempvm.EvalPN = pdfm + "002";
-            tempvm.DCDName = "Eval_COB_rp";
-            templist.Add(tempvm);
+            var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var pdname = UT.O2S(line[0]);
+
+                var tempvm = new WXEvalPN();
+                tempvm.EvalPN =pdname + "_B";
+                tempvm.DCDName = "Eval_50up_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E08";
+                templist.Add(tempvm);
+
+                tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_C";
+                tempvm.DCDName = "Eval_50up_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E06";
+                templist.Add(tempvm);
+
+                tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_T";
+                tempvm.DCDName = "Eval_COB_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E07";
+                templist.Add(tempvm);
+
+                tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_HB";
+                tempvm.DCDName = "Eval_COB_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E10";
+                templist.Add(tempvm);
+            }
 
             foreach (var item in templist)
             {
-                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@EvalBinName,@Product)";
+                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,LotType,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@LotType,@EvalBinName,@Product)";
                 dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum", wafernum);
-                dict.Add("@EvalPN", tempvm.EvalPN);
-                dict.Add("@DCDName", tempvm.DCDName);
-                dict.Add("@EvalBinName", "E08");
+                dict.Add("@EvalPN", item.EvalPN);
+                dict.Add("@DCDName", item.DCDName);
+                dict.Add("@LotType", item.LotType);
+                dict.Add("@EvalBinName", item.EvalBin);
                 dict.Add("@Product", pdfm);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
@@ -171,7 +204,7 @@ namespace WAT.Models
             if (wafernum.Length == 13)
             {
                 var shermanret = PrepareShermanEvalPN(wafernum);
-                UpdateLotTypeFromSherman(wafernum);
+                //UpdateLotTypeFromSherman(wafernum);
                 if (!shermanret)
                 { return false; }
             }
@@ -182,18 +215,28 @@ namespace WAT.Models
                 if (!allenret)
                 {
                     var shermanret = PrepareShermanEvalPN(wafernum);
-                    UpdateLotTypeFromSherman(wafernum);
+                    //UpdateLotTypeFromSherman(wafernum);
                     if (!shermanret)
                     { return false; }
                 }
             }
             return true;
         }
-        
+
+        public WXEvalPN()
+        {
+            WaferNum = "";
+            EvalPN = "";
+            DCDName = "";
+            LotType = "";
+            EvalBin = "";
+        }
+
         public string WaferNum { set; get; }
         public string EvalPN { set; get; }
         public string DCDName { set; get; }
         public string LotType { set; get; }
+        public string EvalBin { set; get; }
 
     }
 }
