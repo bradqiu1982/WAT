@@ -48,6 +48,19 @@ namespace WAT.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
+        public static void UpdateIgnoreDiePicture(string wafer, string x, string y, string url)
+        {
+
+            var dict = new Dictionary<string, string>();
+            dict.Add("@Wafer", wafer);
+            dict.Add("@X", x);
+            dict.Add("@Y", y);
+            dict.Add("@Atta", url);
+
+            var sql = "update [EngrData].[dbo].[WXWATIgnoreDie] set Atta=@Atta where Wafer=@Wafer and X=@X and Y=@Y";
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
         public static Dictionary<string, WXWATIgnoreDie> RetrieveIgnoreDieDict(string wafer)
         {
             var ret = new Dictionary<string, WXWATIgnoreDie>();
@@ -67,7 +80,7 @@ namespace WAT.Models
         {
             var ret = new List<WXWATIgnoreDie>();
 
-            var sql = "select Wafer,X,Y,Reason,UserName from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer = @Wafer";
+            var sql = "select Wafer,X,Y,Reason,UserName,Atta from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer = @Wafer";
             var dict = new Dictionary<string, string>();
             dict.Add("@Wafer", wafer);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
@@ -79,6 +92,7 @@ namespace WAT.Models
                 tempvm.Y = Convert.ToString(line[2]);
                 tempvm.Reason = Convert.ToString(line[3]);
                 tempvm.UserName = Convert.ToString(line[4]);
+                tempvm.Atta = UT.O2S(line[5]);
                 ret.Add(tempvm);
             }
 
@@ -93,6 +107,7 @@ namespace WAT.Models
             Y = "";
             Reason = "";
             UserName = "";
+            Atta = "";
         }
 
         public string Wafer { set; get; }
@@ -100,6 +115,6 @@ namespace WAT.Models
         public string Y { set; get; }
         public string Reason { set; get; }
         public string UserName { set; get; }
-
+        public string Atta { set; get;}
     }
 }

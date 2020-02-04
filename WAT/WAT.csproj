@@ -875,6 +875,7 @@
     <Content Include="Views\Main\NeomapToAllen.cshtml" />
     <Content Include="Views\Main\Prepare4WAT.cshtml" />
     <Content Include="Views\WATLogic\WATWIP.cshtml" />
+    <Content Include="Views\DieSort\SamplePick4Ipoh.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

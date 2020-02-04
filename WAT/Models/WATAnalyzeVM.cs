@@ -175,8 +175,14 @@ namespace WAT.Models
 
             var containerdict = new Dictionary<string, bool>();
 
+            if (!wf.Contains("E") && !wf.Contains("R") && !wf.Contains("T"))
+            { wf = wf + "E"; }
+
+            if (!wf.Contains("E08") && !wf.Contains("R08") && !wf.Contains("T08"))
+            { wf = wf + "08"; }
+
             var ret = new List<XYVAL>();
-            var sql = "select <param>,Containername,ChannelInfo from Insite.dbo.ProductionResult where (Containername like '<coupongroup>E08%' or Containername like '<coupongroup>R08%') and TestStep='<TestStep>' order by TestTimeStamp desc";
+            var sql = "select <param>,Containername,ChannelInfo from Insite.dbo.ProductionResult where (Containername like '<coupongroup>%') and TestStep='<TestStep>' order by TestTimeStamp desc";
             sql = sql.Replace("<param>", param).Replace("<coupongroup>", wf).Replace("<TestStep>", teststep);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
@@ -333,8 +339,13 @@ namespace WAT.Models
             var wxlogic = new WXLogic.WXWATLogic();
             wxlogic.AllowToMoveMapFile = false;
             wxlogic.AnalyzeParam = param.ToUpper();
+
             if (!wf.Contains("E") && !wf.Contains("R") && !wf.Contains("T"))
-            { wf = wf + "E08"; }
+            { wf = wf + "E"; }
+
+            if (!wf.Contains("E08") && !wf.Contains("R08") && !wf.Contains("T08"))
+            { wf = wf + "08"; }
+
             wxlogic.WATPassFail(wf, jstepname);
 
             var ret = new List<XYVAL>();

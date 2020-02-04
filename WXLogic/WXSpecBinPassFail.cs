@@ -26,7 +26,7 @@ namespace WXLogic
                 tempvm.WUL = UT.O2S(line[5]);
                 tempvm.DTLL = UT.O2S(line[6]);
                 tempvm.DTUL = UT.O2S(line[7]);
-                tempvm.minDUT = UT.O2I(line[8]);
+                tempvm.minDUT = (int)(UT.O2I(line[8])*0.9);
 
                 tempvm.Ref1 = UT.O2S(line[9]);
                 tempvm.Ref2 = UT.O2S(line[10]);

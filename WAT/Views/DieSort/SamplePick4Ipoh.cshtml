@@ -1,0 +1,25 @@
+﻿
+@{
+    ViewBag.Title = "SamplePick4Ipoh";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/diesort.js"></script>
+<script type="text/javascript">
+        $(function(){
+            DIESORT.PICK4IPOH();
+        })
+</script>
+
+<div class="row form-group">
+    <div class="col-xs-4"></div>
+    <div class="col-xs-4"><h1>Sample Pick 4 Ipoh</h1></div>
+    <div class="col-xs-4"></div>
+</div>
+
+<div class="row form-group">
+    <div class="col-xs-1"></div>
+    <div class="col-xs-2"><input class="form-control" type="text" value="Wafer Number" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="wafernum" name="wafernum"></div>
+    <div class="col-xs-2"><button class="btn btn-success" id="btn-pick" name="btn-pick">PICK</button></div>
+</div>

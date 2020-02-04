@@ -58,7 +58,9 @@ namespace WXLogic
             }
 
             var bitemp = 100;
-            if (CouponGroup.Contains("E06") && CouponGroup.Contains("R06"))
+            if (CouponGroup.Contains("E06") 
+                || CouponGroup.Contains("R06") 
+                || CouponGroup.Contains("T06"))
             { bitemp = 25; }
 
             var shippable = 1;
@@ -114,7 +116,9 @@ namespace WXLogic
             
             var waferarray = WATSampleXY.GetArrayFromAllenSherman(containerinfo.wafer);
 
-            if (!string.IsNullOrEmpty(waferarray) && CouponGroup.Contains("E08") && string.IsNullOrEmpty(AnalyzeParam))
+            if (!string.IsNullOrEmpty(waferarray)
+                && (CouponGroup.Contains("E08") || CouponGroup.Contains("R08")|| CouponGroup.Contains("T08"))
+                && string.IsNullOrEmpty(AnalyzeParam))
             {
                 var couponcount = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
 
@@ -266,7 +270,7 @@ namespace WXLogic
 
             if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
                 && logicresult.TestPass
-                && (CouponGroup.Contains("E08") || CouponGroup.Contains("E01"))
+                && (CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("E01"))
                 && string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0
                 && string.IsNullOrEmpty(AnalyzeParam)
                 && AllowToMoveMapFile)
@@ -612,7 +616,13 @@ namespace WXLogic
                 && bfailmode && scrapspec.Count > 0
                 && (containerinfo.containername.ToUpper().Contains("E01")
                 || containerinfo.containername.ToUpper().Contains("E06")
-                || containerinfo.containername.ToUpper().Contains("E08"))
+                || containerinfo.containername.ToUpper().Contains("E08")
+                || containerinfo.containername.ToUpper().Contains("R01")
+                || containerinfo.containername.ToUpper().Contains("R06")
+                || containerinfo.containername.ToUpper().Contains("R08")
+                || containerinfo.containername.ToUpper().Contains("T01")
+                || containerinfo.containername.ToUpper().Contains("T06")
+                || containerinfo.containername.ToUpper().Contains("T08"))
                     )
             {
                 return true;
@@ -668,23 +678,29 @@ namespace WXLogic
             var cp = couponid.ToUpper();
             var rpstr = "rp" + (100 + UT.O2I(rp)).ToString().Substring(1);
 
-            if (cp.Contains("E08")
-                || cp.Contains("E01")
-                || cp.Contains("E06"))
+            var charlist = new List<string>();
+            charlist.Add("E");
+            charlist.Add("R");
+            charlist.Add("T");
+
+            foreach (var c in charlist)
             {
-                return "Eval_50up_" + rpstr;
+                if (cp.Contains(c+"08")
+                    || cp.Contains(c + "01")
+                    || cp.Contains(c + "06"))
+                {
+                    return "Eval_50up_" + rpstr;
+                }
+                else if (cp.Contains(c + "07")
+                    || cp.Contains(c + "10")
+                    || cp.Contains(c + "09")
+                    || cp.Contains(c + "03"))
+                {
+                    return "Eval_COB_" + rpstr;
+                }
             }
-            else if (cp.Contains("E07")
-                || cp.Contains("E10")
-                || cp.Contains("E09")
-                || cp.Contains("E03"))
-            {
-                return "Eval_COB_" + rpstr;
-            }
-            else
-            {
-                return "";
-            }
+
+            return "";
         }
 
 

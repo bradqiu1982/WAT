@@ -401,6 +401,48 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public JsonResult IgnoreWATDiePicture()
+        {
+            var ignoredies = Request.Form["igid"];
+            var waferxy = ignoredies.ToUpper().Split(new string[] { "E", "R", "T", "_" }, StringSplitOptions.RemoveEmptyEntries);
+            if (waferxy.Length == 4)
+            {
+                try
+                {
+                    foreach (string fl in Request.Files)
+                    {
+                        if (fl != null && Request.Files[fl].ContentLength > 0)
+                        {
+                            string fn = Path.GetFileName(Request.Files[fl].FileName).Replace("#", "")
+                                .Replace("&", "").Replace("?", "").Replace("%", "").Replace("+", "");
+                            if (!fn.ToUpper().Contains(".PNG") && !fn.ToUpper().Contains(".JPG") && !fn.ToUpper().Contains(".BMP"))
+                            { continue; }
+
+                            string datestring = DateTime.Now.ToString("yyyyMMdd");
+                            string imgdir = Server.MapPath("~/userfiles") + "\\docs\\" + datestring + "\\";
+
+                            if (!Directory.Exists(imgdir))
+                            {
+                                Directory.CreateDirectory(imgdir);
+                            }
+
+                            fn = Path.GetFileNameWithoutExtension(fn) + "-" + DateTime.Now.ToString("yyyyMMddHHmmss") + Path.GetExtension(fn);
+                            Request.Files[fl].SaveAs(imgdir + fn);
+                            var url = "/userfiles/docs/" + datestring + "/" + fn;
+
+                            WXWATIgnoreDie.UpdateIgnoreDiePicture(waferxy[0], waferxy[2], waferxy[3], url);
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {}
+            }
+
+            var ret = new JsonResult();
+            ret.Data = new { sucess = true };
+            return ret;
+        }
 
         public ActionResult WATOGPData()
         {
@@ -1319,10 +1361,10 @@ namespace WAT.Controllers
         {
             var param = Request.Form["param"].Trim();
             param = WATAnalyzeVM.RealParam(param);
-            var wafernum = Request.Form["wafernum"].Trim();
+            var wafernum = Request.Form["wafernum"].Trim().ToUpper();
             var rp = Request.Form["rp"];
 
-            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum, this);
+            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum.Replace("E","").Replace("R", "").Replace("T", ""), this);
             if (vcselxy.Count == 0)
             {
                 var ret = new JsonResult();

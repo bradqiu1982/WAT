@@ -143,7 +143,7 @@ namespace WAT.Models
             {
                 var WLG = new WXLogic.WXWATLogic();
                 WLG.AllowToMoveMapFile = allowmovemapfile;
-                var ret = WLG.WATPassFail(tempvm.CouponID + "E08", jdstep);
+                var ret = WLG.WATPassFail(tempvm.CouponID + "08", jdstep);
 
                 if (!string.IsNullOrEmpty(ret.AppErrorMsg))
                 { result = ret.AppErrorMsg; }
@@ -334,11 +334,13 @@ namespace WAT.Models
 
         private static List<List<object>> GetWUXIWATWaferStepData()
         {
-            var sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 20 and Containername not like '17%' and (Containername like '%E08%' or Containername like '%R08%') group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
+            var sql = @"select distinct left(Containername,10),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
+                         where len(Containername) = 20 and Containername not like '17%' and (Containername like '%E08%' 
+                            or Containername like '%R08%'  or Containername like '%T08%') group by left(Containername,10),TestStep order by latesttime desc,left(Containername,10)";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            sql = @"select distinct left(Containername,13),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 24 and (Containername like '%E08%'  or Containername like '%R08%') group by left(Containername,13),TestStep order by latesttime desc,left(Containername,13)";
+            sql = @"select distinct left(Containername,14),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
+                         where len(Containername) = 24 and (Containername like '%E08%' 
+                        or Containername like '%R08%'  or Containername like '%T08%') group by left(Containername,14),TestStep order by latesttime desc,left(Containername,14)";
             var dbret1 = DBUtility.ExeLocalSqlWithRes(sql);
             dbret.AddRange(dbret1);
             return dbret;
@@ -349,6 +351,7 @@ namespace WAT.Models
             var syscfg = CfgUtility.GetSysConfig(ctrl);
             var koyopns = syscfg["KOYOPNS"];
             var wfcond = "('" + string.Join("','", wflist)+"')";
+            wfcond = wfcond.Replace("E", "").Replace("R", "").Replace("T", "");
 
             var koyodict = new Dictionary<string, bool>();
 
@@ -377,13 +380,13 @@ namespace WAT.Models
             var wflist = new List<string>();
             foreach (var d in datalist)
             {
-                wflist.Add(d.CouponID);
+                wflist.Add(d.CouponID.Replace("E", "").Replace("R", "").Replace("T", ""));
             }
 
             var koyodict = GetKOYODict(wflist, ctrl);
             foreach (var d in datalist)
             {
-                if (koyodict.ContainsKey(d.CouponID.ToUpper()))
+                if (koyodict.ContainsKey(d.CouponID.Replace("E", "").Replace("R", "").Replace("T", "")))
                 { d.VType = "KOYO"; }
             }
         }
@@ -403,7 +406,7 @@ namespace WAT.Models
                 var TestStep = UT.O2S(line[1]);
                 var TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
                 var tempvm = new WuxiWATData4MG();
-                tempvm.CouponID = wafer;
+                tempvm.CouponID = wafer.ToUpper();
                 tempvm.TestStep = TestStep;
                 tempvm.TestTime = TestTime;
                 tempvm.RPStr = GetRPFromTestStep(tempvm.TestStep);
@@ -426,7 +429,7 @@ namespace WAT.Models
                 });
                 var tempvm = tmplist[0];
                 GetWATTestResult(tempvm);
-                tempvm.VArray = WXLogic.WATSampleXY.GetArrayFromAllenSherman(tempvm.CouponID);
+                tempvm.VArray = WXLogic.WATSampleXY.GetArrayFromAllenSherman(tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T",""));
                 ret.Add(tempvm);
             }
 
@@ -444,15 +447,32 @@ namespace WAT.Models
 
             foreach (var line in dbret)
             {
-                var wafer = UT.O2S(line[0]);
-                if (wdict.ContainsKey(wafer))
+                var CouponID = UT.O2S(line[0]).ToUpper();
+               
+                if (wdict.ContainsKey(CouponID))
                 { continue; }
-                wdict.Add(wafer, wafer);
+                wdict.Add(CouponID, CouponID);
+
+                var wafer = CouponID.Replace("E", "").Replace("R", "").Replace("T", "");
+                if (wafer.Length == 9)
+                {
+                    if (!Models.WXProbeData.AllenHasData(wafer))
+                    {
+                        Models.WXProbeData.AddProbeTrigge2Allen(wafer);
+                    }
+                    else
+                    {
+                        if (!Models.WXProbeData.LoaclHasData(wafer))
+                        {
+                            DieSortVM.PrepareData4WAT(wafer);
+                        }
+                    }
+                }
 
                 var TestStep = UT.O2S(line[1]);
                 var TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
                 var tempvm = new WuxiWATData4MG();
-                tempvm.CouponID = wafer;
+                tempvm.CouponID = CouponID;
                 tempvm.TestStep = TestStep;
                 tempvm.TestTime = TestTime;
                 RefreshWATTestResult(tempvm);
@@ -512,12 +532,14 @@ namespace WAT.Models
             {
                 IgnoredFlag = "COMMENTLINE";
                 Comment = ignoredict[key].Reason;
+                Atta = ignoredict[key].Atta;
                 Operator = ignoredict[key].UserName;
             }
             else
             {
                 IgnoredFlag = "";
                 Comment = "";
+                Atta = "";
                 Operator = "";
             }
 
@@ -555,6 +577,7 @@ namespace WAT.Models
             SeriesR = "";
             IgnoredFlag = "";
             Comment = "";
+            Atta = "";
             Operator = "";
             RP = 0;
             TestStep = "";
@@ -612,6 +635,7 @@ namespace WAT.Models
         public string IgnoredFlag { set; get; }
         public string Comment { set; get; }
         public string Operator { set; get; }
+        public string Atta { set; get; }
         public string TestTime { set; get; }
 
         public string ReTest { set; get; }

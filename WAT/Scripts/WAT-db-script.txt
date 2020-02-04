@@ -246,12 +246,15 @@ CREATE TABLE [EngrData].[dbo].[WUX_WATShareData](
     [BinName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 );
 
+ALTER TABLE  [EngrData].[dbo].[WXWATIgnoreDie] ADD [Atta]   NVARCHAR (300) DEFAULT ('') NOT NULL;
+
 CREATE TABLE [EngrData].[dbo].[WXWATIgnoreDie](
     [Wafer]   NVARCHAR (200) DEFAULT ('') NOT NULL,
     [X]   NVARCHAR (200) DEFAULT ('') NOT NULL,
     [Y]   NVARCHAR (200) DEFAULT ('') NOT NULL,
     [Reason]   NVARCHAR (200) DEFAULT ('') NOT NULL,
-    [UserName]   NVARCHAR (200) DEFAULT ('') NOT NULL
+    [UserName]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Atta]   NVARCHAR (300) DEFAULT ('') NOT NULL
 );
 
 create Table PassFailCoupon4Comparing(

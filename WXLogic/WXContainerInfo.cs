@@ -12,7 +12,7 @@ namespace WXLogic
         {
             var ret = new WXContainerInfo();
             ret.containername = CouponGroup.ToUpper().Trim();
-            ret.wafer = ret.containername.Split(new string[] { "E", "R" }, StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+            ret.wafer = ret.containername.Split(new string[] { "E", "R","T" }, StringSplitOptions.RemoveEmptyEntries)[0].Trim();
             ret.containertype = WXEvalPN.GetLotTypeByWaferNum(ret.wafer);
             ret.lottype = ret.containertype;
             ret.ProductName = WXEvalPN.GetEvalPNByWaferNum(ret.containername, ret.wafer);

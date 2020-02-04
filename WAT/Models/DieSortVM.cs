@@ -1565,6 +1565,255 @@ namespace WAT.Models
             return ret;
         }
 
+        public static string PickSample4Ipoh(string wafer,Controller ctrl)
+        {
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+
+            var allwffiles = DieSortVM.GetAllWaferFile(ctrl);
+            var productfm = "";
+            if (wafer.Length == 13)
+            {
+                productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                if (string.IsNullOrEmpty(productfm))
+                { return "fail to to get product family by wafer " + wafer; }
+            }
+            else
+            {
+                productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                    if (string.IsNullOrEmpty(productfm))
+                    { return "fail to to get product family by wafer " + wafer; }
+                }
+            }
+
+            //get the actual wafer file
+            var swaferfile = "";
+            foreach (var f in allwffiles)
+            {
+                var uf = f.ToUpper();
+                if (uf.Contains(productfm.ToUpper()) && uf.Contains(wafer.ToUpper()))
+                {
+                    swaferfile = f;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(swaferfile))
+            {
+                foreach (var f in allwffiles)
+                {
+                    var uf = f.ToUpper();
+                    if (uf.Contains(wafer.ToUpper()))
+                    {
+                        swaferfile = f;
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(swaferfile))
+            {
+                return "map file does not exist";
+            }
+
+
+            var waferfile = ExternalDataCollector.DownloadShareFile(swaferfile, ctrl);
+            if (waferfile == null)
+            { return "fail to download map file"; }
+
+            try
+            {
+                //get modify information
+                var doc = new XmlDocument();
+                doc.Load(waferfile);
+                var namesp = doc.DocumentElement.GetAttribute("xmlns");
+                doc = StripNamespace(doc);
+                XmlElement root = doc.DocumentElement;
+
+                var passedbinxydict = GetIPOHPassedBinXYDict(root);
+                if (passedbinxydict.Count == 0)
+                { return "fail to get any good bin"; }
+
+                var bin1dict = new Dictionary<string, string>();
+                var bin2dict = new Dictionary<string, string>();
+                GetIPOHSelectedXYDict(passedbinxydict, bin1dict, bin2dict
+                    ,UT.O2I(syscfgdict["IPOHBIN1CNT"]), UT.O2I(syscfgdict["IPOHBIN2CNT"]));
+                if (bin1dict.Count == 0)
+                {
+                    return "fail to get sample";
+                }
+
+                var allbincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                foreach (XmlElement nd in allbincodelist)
+                {
+                    var binnum = UT.O2I(nd.InnerText);
+                    if ((binnum >= 30 && binnum <= 39))
+                    { }
+                    else
+                    {
+                        nd.InnerText = "99";
+                    }
+                }
+
+                foreach (var kv in bin1dict)
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                    {
+                        nd.InnerText = "1";
+                    }
+                }
+
+                foreach (var kv in bin2dict)
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                    {
+                        nd.InnerText = "2";
+                    }
+                }
+
+
+                var desfolder = syscfgdict["DIESORTSHARE"];
+                doc.DocumentElement.SetAttribute("xmlns", namesp);
+                var savename = Path.Combine(desfolder, Path.GetFileNameWithoutExtension(waferfile)+"_IPOH"+Path.GetExtension(waferfile));
+                if (ExternalDataCollector.FileExist(ctrl, savename))
+                { ExternalDataCollector.FileDelete(ctrl, savename); }
+                doc.Save(savename);
+
+            }
+            catch (Exception ex) { return ex.Message; }
+
+            return string.Empty;
+        }
+
+        private static Dictionary<string, string> GetIPOHPassedBinXYDict(XmlElement root)
+        {
+            var passbinnodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode and @Pick='true']");
+            if (passbinnodes.Count == 0)
+            { return new Dictionary<string, string>(); }
+
+            var passbinlist = new List<string>();
+            foreach (XmlElement nd in passbinnodes)
+            {
+                var bincode = nd.GetAttribute("BinCode");
+                if(bincode.Contains("55")
+                    ||bincode.Contains("57")
+                    ||bincode.Contains("59"))
+                passbinlist.Add(bincode);
+            }
+            if (passbinlist.Count == 0)
+            { return new Dictionary<string, string>(); }
+
+            var ret = new Dictionary<string, string>();
+            var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+            foreach (XmlElement nd in bincodelist)
+            {
+                if (passbinlist.Contains(nd.InnerText))
+                {
+                    var k = nd.GetAttribute("X") + ":::" + nd.GetAttribute("Y");
+                    if (!ret.ContainsKey(k))
+                    { ret.Add(k, nd.InnerText); }
+                }
+            }
+            return ret;
+        }
+
+        private static void GetIPOHSelectedXYDict(Dictionary<string, string> passedbinxydict, Dictionary<string, string> bin1dict
+            , Dictionary<string, string> bin2dict,int bin1cnt, int bin2cnt)
+        {
+            var xdict = new Dictionary<int, bool>();
+            var ydict = new Dictionary<int, bool>();
+
+            foreach (var kv in passedbinxydict)
+            {
+                try
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    var x = Convert.ToInt32(xystr[0]);
+                    var y = Convert.ToInt32(xystr[1]);
+                    if (!xdict.ContainsKey(x))
+                    { xdict.Add(x, true); }
+                    if (!ydict.ContainsKey(y))
+                    { ydict.Add(y, true); }
+                }
+                catch (Exception ex) { }
+            }
+
+            var xlist = xdict.Keys.ToList();
+            var ylist = ydict.Keys.ToList();
+
+            xlist.Sort();
+            ylist.Sort();
+
+            var xsector = xlist.Count / 2;
+            var ysector = (ylist[ylist.Count - 1] - ylist[0]) / 3;
+
+            var xstarterlist = new List<int>();
+            xstarterlist.Add(0);
+            xstarterlist.Add(1);
+
+            var ystarterlist = new List<int>();
+            ystarterlist.Add(ylist[0]);
+            ystarterlist.Add(ylist[0] + ysector);
+            ystarterlist.Add(ylist[0] + 2 * ysector);
+
+
+            var rad = new Random(DateTime.Now.Millisecond);
+            var idx = 0;
+            var maxtimes = 140000;
+            while (true)
+            {
+                foreach (var xstart in xstarterlist)
+                {
+                    foreach (var ystart in ystarterlist)
+                    {
+                        var xrad = rad.Next(xsector);
+                        var xval = 0;
+                        var xidx = xstart * xsector + xrad;
+                        if (xidx < xlist.Count)
+                        { xval = xlist[xidx]; }
+                        else
+                        { xval = xlist[xidx - 1]; }
+
+
+                        var yrad = rad.Next(ysector);
+                        var yval = ystart + yrad;
+                        var k = xval.ToString() + ":::" + yval.ToString();
+
+                        if (passedbinxydict.ContainsKey(k))
+                        {
+                            if (bin1dict.Count < bin1cnt)
+                            {
+                                if (!bin1dict.ContainsKey(k))
+                                {
+                                    bin1dict.Add(k, passedbinxydict[k]);
+                                }
+                            }
+                            else
+                            {
+                                if (!bin2dict.ContainsKey(k) && !bin1dict.ContainsKey(k))
+                                {
+                                    bin2dict.Add(k, passedbinxydict[k]);
+                                    if (bin2dict.Count >= bin2cnt)
+                                    {
+                                        return;
+                                    }
+                                }
+                            }
+                        }//match pass die
+                    }//end foreach
+                }//end foreach
+
+                if (idx > maxtimes)
+                { break; }
+                idx = idx + 1;
+            }//end while(true)
+
+        }
+
         public static void ModifyMapFileAsExpect(Controller ctrl)
         {
             var doc = new XmlDocument();

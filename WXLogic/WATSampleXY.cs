@@ -303,22 +303,15 @@ namespace WXLogic
             }
         }
 
-        public static List<WATSampleXY> GetSampleXYByCouponGroup(string coupongroup)
+        private static List<WATSampleXY> LoadOGPFromMEDB(string coupongroup,int arraysize,string wafer)
         {
             var ret = new List<WATSampleXY>();
-            var wafer = coupongroup.ToUpper().Split(new string[] { "E","R" }, StringSplitOptions.RemoveEmptyEntries)[0];
-            var array = GetArrayFromDieSort(wafer);
-            if (string.IsNullOrEmpty(array))
-            { array = GetArrayFromAllenSherman(wafer); }
-            if (string.IsNullOrEmpty(array))
-            { return ret; }
-
-            var arraysize = UT.O2I(array);
 
             var watcfg = WXCfg.GetSysCfg();
             if (watcfg.ContainsKey("OGPCONNSTR") && watcfg.ContainsKey("OGPSQLSTR"))
             {
-                try {
+                try
+                {
                     var ogpconn = DBUtility.GetConnector(watcfg["OGPCONNSTR"]);
                     var sql = watcfg["OGPSQLSTR"];
                     sql = sql.Replace("<coupongroup>", coupongroup);
@@ -343,18 +336,90 @@ namespace WXLogic
                         {
                             tempvm.X = UT.O2I(UT.O2S(line[2]).Replace("X", "")).ToString();
                         }
-                        tempvm.Y = UT.O2I(UT.O2S(line[3]).Replace("Y","")).ToString();
+                        tempvm.Y = UT.O2I(UT.O2S(line[3]).Replace("Y", "")).ToString();
                         ret.Add(tempvm);
                     }
-                } catch (Exception ex) { }
+                }
+                catch (Exception ex) { }
             }
 
             var dieonex = AdminFileOperations.GetDieOneByWafer(wafer);
             if (dieonex.Count > 0)
             {
-                ret = CorrectXYBySamplePick(wafer,dieonex,arraysize,ret);
+                ret = CorrectXYBySamplePick(wafer, dieonex, arraysize, ret);
             }
 
+            return ret;
+        }
+
+        private static List<WATSampleXY> LoadOGPFromLocalDB(string coupongroup, int arraysize, string wafer)
+        {
+            var ret = new List<WATSampleXY>();
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+                        inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
+                        where f.SN like '<coupongroup>%' order by SN,ImgOrder asc";
+            sql = sql.Replace("<coupongroup>", coupongroup);
+
+            var dict = new Dictionary<string, WATSampleXY>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]);
+                var imgval = UT.O2S((char)UT.O2I(line[1]));
+                var cat = UT.O2S(line[2]).ToUpper();
+                if (dict.ContainsKey(sn))
+                {
+                    if (cat.Contains("X"))
+                    { dict[sn].X += imgval; }
+                    else
+                    { dict[sn].Y += imgval; }
+                }
+                else
+                {
+                    var tempvm = new WATSampleXY();
+                    if (cat.Contains("X"))
+                    { tempvm.X += imgval; }
+                    else
+                    { tempvm.Y += imgval; }
+                    dict.Add(sn, tempvm);
+                }
+            }
+
+            foreach (var kv in dict)
+            {
+                var snidx = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var tempvm = new WATSampleXY();
+                tempvm.CouponID = snidx[0];
+                tempvm.ChannelInfo = snidx[1];
+                var X = UT.O2I(kv.Value.X.Replace("X", "").Replace("x", ""));
+                if (arraysize != 1 && X % arraysize == 0)
+                { X = X - (arraysize - 1); }
+                tempvm.X = X.ToString();
+                var Y = UT.O2I(kv.Value.Y.Replace("Y", "").Replace("y", "")).ToString();
+                tempvm.Y = Y;
+
+                ret.Add(tempvm);
+            }
+
+            return ret;
+        }
+
+        public static List<WATSampleXY> GetSampleXYByCouponGroup(string coupongroup)
+        {
+            var ret = new List<WATSampleXY>();
+            var wafer = coupongroup.ToUpper().Split(new string[] { "E","R","T" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            var array = GetArrayFromDieSort(wafer);
+            if (string.IsNullOrEmpty(array))
+            { array = GetArrayFromAllenSherman(wafer); }
+            if (string.IsNullOrEmpty(array))
+            { return ret; }
+
+            var arraysize = UT.O2I(array);
+
+            ret = LoadOGPFromLocalDB(coupongroup, arraysize, wafer);
+            if (ret.Count == 0)
+            { ret = LoadOGPFromMEDB(coupongroup, arraysize, wafer); }
+            
 
             if (string.Compare(array, "1") == 0)
             {

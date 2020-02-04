@@ -799,6 +799,39 @@
             }
         };
 
+       $.fn.dataTable.ext.buttons.uploadpicture = {
+            text: 'Upload Ignore Picture',
+            action: function (e, dt, node, config) {
+                $('#file1').click();
+            }
+        };
+
+       $('body').on('change', '#file1', function () {
+           var ignoredies = '';
+           $('.diecheck').each(function (i, obj) {
+               if ($(this).prop('checked') == true) {
+                   ignoredies = $(this).attr('myid');
+               }
+           });
+
+           if (ignoredies != null)
+           {
+                $.ajaxFileUpload({
+                            url: '/WATLogic/IgnoreWATDiePicture',
+                            secureuri: false,
+                            data: { 'igid': ignoredies },
+                            fileElementId: 'file1',
+                            dataType: 'json',
+                            success: function (data, status) {
+                                window.location.reload(true);
+                            },
+                            error: function (e) {
+                                //alert(e);
+                            }
+                        });
+           }
+        })
+
         function reviewdata(couponid)
         {
             var options = {
@@ -849,7 +882,10 @@
 
                     $.each(output.mgdata, function (i, val) {
                         var tempstr = '';
-                        if (val.IgnoredFlag != '') {
+                        if (val.IgnoredFlag != '' && val.Atta != '') {
+                            tempstr += '<tr class="COMMENTLINE WITHATTA" data-toggle="tooltip" myatta="' + val.Atta + '" title="Ignore For ' + val.Comment + '">';
+                        }
+                        else if (val.IgnoredFlag != '') {
                             tempstr += '<tr class="COMMENTLINE" data-toggle="tooltip" title="Ignore For ' + val.Comment + '">';
                         }
                         else {
@@ -889,7 +925,7 @@
                         "aaSorting": [],
                         "order": [],
                         dom: 'lBfrtip',
-                        buttons: ['copyHtml5', 'csv', 'excelHtml5', 'ignoredie']
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5', 'ignoredie', 'uploadpicture']
                     });
 
 
@@ -903,6 +939,10 @@
                 return false;
             }
             reviewdata(couponid);
+        });
+
+        $('body').on('click', '.WITHATTA', function () {
+            window.open($(this).attr('myatta'), '_blank');
         });
 
         $(function () {
@@ -2053,7 +2093,7 @@
                         );
                     
                     $.each(output.wipdata, function (i, val) {
-                        var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + 'E08" target="_blank" >RAWDATA</a></td>';
+                        var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '08" target="_blank" >RAWDATA</a></td>';
                         var logiclink = '<td></td>';
                         var poweroncoupon = '<td></td>';
                         var dvfoncoupon = '<td></td>';
@@ -2075,7 +2115,7 @@
                         }
 
                         if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1) {
-                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + 'E08&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
+                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + '08&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
                         }
 
                         $("#logiccontent").append(
@@ -2165,7 +2205,8 @@
                             '<th class="dt-center">Array</th>' +
                             '<th class="dt-center">STEP</th>' +
                             '<th class="dt-center">HasOGPXY</th>' +
-                            '<th class="dt-center">TestTime</th>' +
+                            '<th class="dt-center">Last Active</th>' +
+                            '<th class="dt-center">Spend Hours</th>' +
                             '</tr>'
                         );
                     
@@ -2179,6 +2220,7 @@
                             '<td class="dt-center">' + val.STEP + '</td>' +
                             '<td class="dt-center">' + val.HasOGP + '</td>' +
                             '<td class="dt-center">' + val.TESTTIMESTAMP + '</td>' +
+                            '<td class="dt-center">' + val.During + '</td>' +
                             '</tr>'
                         );
                     });

@@ -633,6 +633,38 @@
         });
     }
 
+    var pick4ipohfun = function () {
+
+        $('body').on('click', '#btn-pick', function () {
+            var wafer = $('#wafernum').val();
+            if (wafer != '')
+            {
+                var options = {
+                    loadingTips: "loading data......",
+                    backgroundColor: "#aaa",
+                    borderColor: "#fff",
+                    opacity: 0.8,
+                    borderColor: "#fff",
+                    TipsColor: "#000",
+                }
+                $.bootstrapLoading.start(options);
+
+                $.post('/DieSort/SamplePick4IpohData', {
+                    wafer:wafer
+                }, function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (output.MSG == '') {
+                        alert('PICK SAMPLE 4 IPOH SUCCESSFULLY');
+                    }
+                    else {
+                        alert(output.MSG);
+                    }
+                });
+            }
+        });
+    }
+
     return {
         REVIEWINIT: function () {
             reviewdiesort();
@@ -649,6 +681,9 @@
         BINSUBSTITUTE: function ()
         {
             binsubstitutefun();
+        },
+        PICK4IPOH: function () {
+            pick4ipohfun();
         }
     }
 }();

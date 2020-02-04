@@ -343,6 +343,20 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult SamplePick4Ipoh()
+        { return View(); }
+
+        public JsonResult SamplePick4IpohData() {
+            var wafer = Request.Form["wafer"];
+            var MSG = DieSortVM.PickSample4Ipoh(wafer,this);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                MSG = MSG
+            };
+            return ret;
+        }
 
     }
 

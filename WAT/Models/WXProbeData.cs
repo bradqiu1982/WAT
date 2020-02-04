@@ -44,6 +44,18 @@ namespace WAT.Models
             { return false; }
         }
 
+        public static bool LoaclHasData(string WaferNum)
+        {
+            var sql = @"select top 1 Wafer from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] where Wafer=@WaferID";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferID", WaferNum);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            if (dbret.Count > 0)
+            { return true; }
+            else
+            { return false; }
+        }
+
         public static bool AddProbeTrigge2Allen(string WaferNum)
         {
             var sql = @"insert into [EngrData].[dbo].[NeoMAP_Triggers] ([Wafer_ID],[Trigger_Type],[Source]) 
