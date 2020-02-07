@@ -28,6 +28,8 @@ namespace WAT.Models
             return retdict.Keys.ToList();
         }
 
+
+
         public static List<object> GetOGPData(string wafer, Controller ctrl)
         {
             var ret = new List<object>();
@@ -52,5 +54,36 @@ namespace WAT.Models
 
             return ret;
         }
+
+        public static List<string> GetMEOGPXYWafer(Controller ctrl)
+        {
+            var retdict = new Dictionary<string, bool>();
+            var syscfg = CfgUtility.GetSysConfig(ctrl);
+            var ogpconn = DBUtility.GetConnector(syscfg["OGPCONNSTR"]);
+            var sql = "  select distinct SN from [AIProjects].[dbo].[CouponData] where len(SN) > 13";
+            var dbret = DBUtility.ExeSqlWithRes(ogpconn, sql);
+            DBUtility.CloseConnector(ogpconn);
+
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]);
+                sn = sn.Substring(0, sn.Length - 4);
+                if (!retdict.ContainsKey(sn))
+                { retdict.Add(sn, true); }
+            }
+
+            return retdict.Keys.ToList();
+        }
+
+        public static List<string> GetLocalOGPXYWafer()
+        {
+            var ret = new List<string>();
+            var sql = "select distinct wafernum FROM [WAT].[dbo].[OGPFatherImg]";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            { ret.Add(UT.O2S(line[0])); }
+            return ret;
+        }
+
     }
 }

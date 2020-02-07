@@ -51,11 +51,16 @@ namespace WAT.Models
                     { item.During = wdict[item.WAFER].During; }
                 }
 
-                var OGPSNList = WATOGPVM.GetAllOGPWafers(ctrl);
+                var OGPSNList = WATOGPVM.GetMEOGPXYWafer(ctrl);
+                var LocalOGP = WATOGPVM.GetLocalOGPXYWafer();
+
                 foreach (var item in ret)
                 {
-                    if (OGPSNList.Contains(item.WAFER.Replace("E", "").Replace("R", "").Replace("T", "")))
+                    if (OGPSNList.Contains(item.WAFER))
                     { item.HasOGP = "YES"; }
+
+                    if (LocalOGP.Contains(item.WAFER))
+                    { item.LocalXY = "YES"; }
                 }
             }
 
@@ -71,6 +76,7 @@ namespace WAT.Models
             VArray = "";
             HasOGP = "NO";
             During = 0;
+            LocalXY = "NO";
         }
 
         public string WAFER { set; get; }
@@ -80,5 +86,6 @@ namespace WAT.Models
         public string VArray { set; get; }
         public string HasOGP { set; get; }
         public double During { set; get; }
+        public string LocalXY { set; get; }
     }
 }

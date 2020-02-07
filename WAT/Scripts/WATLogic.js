@@ -2204,9 +2204,10 @@
                             '<th class="dt-center">Type</th>' +
                             '<th class="dt-center">Array</th>' +
                             '<th class="dt-center">STEP</th>' +
-                            '<th class="dt-center">HasOGPXY</th>' +
+                            '<th class="dt-center">HASXY</th>' +
                             '<th class="dt-center">Last Active</th>' +
                             '<th class="dt-center">Spend Hours</th>' +
+                            '<th class="dt-center">OGPPHOTO</th>' +
                             '</tr>'
                         );
                     
@@ -2218,9 +2219,10 @@
                             '<td class="dt-center">' + val.VType + '</td>' +
                             '<td class="dt-center">' + val.VArray + '</td>' +
                             '<td class="dt-center">' + val.STEP + '</td>' +
-                            '<td class="dt-center">' + val.HasOGP + '</td>' +
+                            '<td class="dt-center">' + val.LocalXY + '</td>' +
                             '<td class="dt-center">' + val.TESTTIMESTAMP + '</td>' +
                             '<td class="dt-center">' + val.During + '</td>' +
+                            '<td class="dt-center">' + val.HasOGP + '</td>' +
                             '</tr>'
                         );
                     });
