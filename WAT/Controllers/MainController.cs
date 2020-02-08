@@ -5,14 +5,38 @@ using System.Web;
 using System.Web.Mvc;
 using WAT.Models;
 using WXLogic;
+using System.Web.Routing;
 
 namespace WAT.Controllers
 {
     public class MainController : Controller
     {
+        private ActionResult Jump2Welcome(string url)
+        {
+            var dict = new RouteValueDictionary();
+            dict.Add("url", url);
+            return RedirectToAction("Welcome", "Main", dict);
+        }
+
+        private bool CheckName(string ip,string url)
+        {
+            var machinename = MachineUserMap.GetUserMachineName(ip);
+            if (machinename.Count == 0)
+            { return false; }
+            else
+            {
+                MachineUserMap.LoginLog(machinename[0], machinename[1], url);
+                return true;
+            }
+        }
+
         // GET: Main
         public ActionResult Index()
         {
+            var url = "/Main/Index";
+            if (!CheckName(Request.UserHostName,url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 
@@ -364,6 +388,21 @@ namespace WAT.Controllers
         {
             WATOven.RefreshDailyOvenData(this);
             return View("HeartBeat");
+        }
+
+        public ActionResult Welcome(string url)
+        {
+            ViewBag.url = url;
+            return View();
+        }
+
+        public JsonResult UpdateMachineUserName()
+        {
+            var username = Request.Form["username"].ToUpper().Trim();
+            MachineUserMap.AddMachineUserMap(Request.UserHostName, username);
+            var ret = new JsonResult();
+            ret.Data = new { sucess = true };
+            return ret;
         }
 
     }

@@ -275,6 +275,7 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\MachineUserMap.cs" />
     <Compile Include="Models\PassFailCoupon4Comparing.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />
@@ -717,10 +718,12 @@
     <Content Include="Content\Finisar.PNG" />
     <Content Include="Content\images\dataloading.gif" />
     <Content Include="Content\images\FinisarLogo.jpg" />
+    <Content Include="Content\images\welcome.png" />
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\jquery.dataTables.min.css" />
     <Content Include="Content\Layout.css" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\welcome.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -876,6 +879,7 @@
     <Content Include="Views\Main\Prepare4WAT.cshtml" />
     <Content Include="Views\WATLogic\WATWIP.cshtml" />
     <Content Include="Views\DieSort\SamplePick4Ipoh.cshtml" />
+    <Content Include="Views\Main\Welcome.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

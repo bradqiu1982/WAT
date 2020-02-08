@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using WAT.Models;
 using WXLogic;
 
@@ -13,6 +14,27 @@ namespace WAT.Controllers
 {
     public class WATLogicController : Controller
     {
+
+        private ActionResult Jump2Welcome(string url)
+        {
+            var dict = new RouteValueDictionary();
+            dict.Add("url", url);
+            return RedirectToAction("Welcome", "Main", dict);
+        }
+
+        private bool CheckName(string ip, string url)
+        {
+            var machinename = MachineUserMap.GetUserMachineName(ip);
+            if (machinename.Count == 0)
+            { return false; }
+            else
+            {
+                MachineUserMap.LoginLog(machinename[0], machinename[1], url);
+                return true;
+            }
+        }
+
+
         private static string DetermineCompName(string IP)
         {
             try
@@ -31,6 +53,10 @@ namespace WAT.Controllers
             var machine = DetermineCompName(Request.UserHostName);
             if (machine.ToUpper().Contains("IPH"))
             { return RedirectToAction("AllenWaferWAT", "WATLogic"); }
+
+            var url = "/WATLogic/VerifyAllenLogic";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
 
             return View();
         }
@@ -117,6 +143,10 @@ namespace WAT.Controllers
 
         public ActionResult AllenWaferWAT()
         {
+            var url = "/WATLogic/AllenWaferWAT";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 
@@ -264,6 +294,10 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATLogic(string wafer,string rp)
         {
+            var url = "/WATLogic/WUXIWATLogic";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             ViewBag.wafer = "";
             ViewBag.jstepname = "";
             if (!string.IsNullOrEmpty(wafer) && !string.IsNullOrEmpty(rp))
@@ -363,6 +397,10 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATDataManage(string wafer)
         {
+            var url = "/WATLogic/WUXIWATDataManage";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             ViewBag.wafer = "";
             if (!string.IsNullOrEmpty(wafer))
             { ViewBag.wafer = wafer; }
@@ -446,6 +484,10 @@ namespace WAT.Controllers
 
         public ActionResult WATOGPData()
         {
+            var url = "/WATLogic/WATOGPData";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 
@@ -475,7 +517,13 @@ namespace WAT.Controllers
         }
 
         public ActionResult WUXIWaferWAT()
-        { return View(); }
+        {
+            var url = "/WATLogic/WUXIWaferWAT";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
+            return View();
+        }
 
         private object GetWuxiWaferWATRest(string coupongroup, string step)
         {
@@ -598,6 +646,10 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATAnalyze()
         {
+            var url = "/WATLogic/WUXIWATAnalyze";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 
@@ -1171,6 +1223,10 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATXY(string param,string wafer,string rp)
         {
+            var url = "/WATLogic/WUXIWATXY";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             ViewBag.param = "";
             if (!string.IsNullOrEmpty(param))
             { ViewBag.param = param; }
@@ -1405,6 +1461,10 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATCoupon(string param, string wafer, string rp)
         {
+            var url = "/WATLogic/WUXIWATCoupon";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             ViewBag.param = "";
             if (!string.IsNullOrEmpty(param))
             { ViewBag.param = param; }
@@ -1640,6 +1700,11 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATPvsP(string xparam, string yparam, string wafer, string rp)
         {
+            var url = "/WATLogic/WUXIWATPvsP";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
+
             ViewBag.xparam = "";
             if (!string.IsNullOrEmpty(xparam))
             { ViewBag.xparam = xparam; }
@@ -1900,11 +1965,19 @@ namespace WAT.Controllers
 
         public ActionResult WATTEST()
         {
+            var url = "/WATLogic/WATTEST";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return RedirectToAction("WUXIWATStatus", "WATLogic");
         }
 
         public ActionResult WUXIWATStatus()
         {
+            var url = "/WATLogic/WUXIWATStatus";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 
@@ -1923,6 +1996,10 @@ namespace WAT.Controllers
 
         public ActionResult WATWIP()
         {
+            var url = "/WATLogic/WATWIP";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 
@@ -1966,6 +2043,9 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATGoldSample(string tester)
         {
+            var url = "/WATLogic/WUXIWATGoldSample";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
 
             var goldentesters = WATGoldSample.GetWATTesterList();
             ViewBag.goldentesterlist = CreateSelectList(goldentesters, "");
@@ -2149,6 +2229,10 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATOven(string tester)
         {
+            var url = "/WATLogic/WUXIWATOven";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             var syscfg = CfgUtility.GetSysConfig(this);
 
             var goldentesters =syscfg["WATOVEN"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -2307,6 +2391,10 @@ namespace WAT.Controllers
 
         public ActionResult WUXIWATCouponOVEN(string couponid)
         {
+            var url = "/WATLogic/WUXIWATCouponOVEN";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             ViewBag.couponid = "";
             if (!string.IsNullOrEmpty(couponid))
             { ViewBag.couponid = couponid; }

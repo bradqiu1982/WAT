@@ -422,3 +422,27 @@ CREATE TABLE WAT.dbo.WaferAPConst(
 	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[AppVal4]   DATETIME  DEFAULT ('1982-05-06 10:00:00') NOT NULL,
 );
+
+
+CREATE TABLE [dbo].[machineusermap] (
+    [machine]   NVARCHAR (300)   DEFAULT ('')  NOT NULL,
+    [username]   NVARCHAR (300)   DEFAULT ('')  NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
+);
+
+
+CREATE TABLE [dbo].[LoginLog] (
+	[Machine]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Name]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[MSG]   NVARCHAR (MAX) DEFAULT ('') NOT NULL,
+	[UpdateTime]   DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+);
+
+
+
+
+
+
+
