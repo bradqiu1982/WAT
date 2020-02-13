@@ -8,7 +8,8 @@ namespace WXLogic
     public class WXWATPassFailCoupon
     {
 
-        public static List<WXWATPassFailCoupon> GetPFCouponData(List<WXWATPassFailUnit> srcdatalist, WXSpecBinPassFail minDutSpec)
+        public static List<WXWATPassFailCoupon> GetPFCouponData(List<WXWATPassFailUnit> srcdatalist, WXSpecBinPassFail minDutSpec
+            ,bool sharedatatoallen,string CouponGroup,string RP,WXContainerInfo ctinfo)
         {
             var ret = new List<WXWATPassFailCoupon>();
             var unitdict = new Dictionary<string, WXWATPassFailUnit>();
@@ -52,6 +53,14 @@ namespace WXLogic
                     tempvm.MinVal = "";
                     tempvm.MaxVal = "";
                     tempvm.DUTCount = 0;
+                }
+
+                if (sharedatatoallen
+                   && !string.IsNullOrEmpty(CouponGroup)
+                   && ctinfo != null)
+                {
+                    WXFinEvalDispositionLog.WriteData(CouponGroup, sharedatatoallen, tempvm.UpperLimit, tempvm.LowLimit
+                        , tempvm.Eval_PN, tempvm.Bin_PN, tempvm.ParamName, kv.Value.ValList, ctinfo.ProdFam,RP);
                 }
 
                 ret.Add(tempvm);

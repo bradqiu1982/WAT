@@ -16,6 +16,7 @@ namespace WXLogic
             ret.containertype = WXEvalPN.GetLotTypeByWaferNum(ret.wafer);
             ret.lottype = ret.containertype;
             ret.ProductName = WXEvalPN.GetEvalPNByWaferNum(ret.containername, ret.wafer);
+            ret.ProdFam = WXEvalPN.GetProdFamByWaferNum(ret.wafer);
             return ret;
         }
 
@@ -75,6 +76,7 @@ namespace WXLogic
             wafer = "";
             containertype = "";
             lottype = "";
+            ProdFam = "";
         }
 
         public string containername { set; get; }
@@ -82,5 +84,6 @@ namespace WXLogic
         public string wafer { set; get; }
         public string containertype { set; get; }
         public string lottype { set; get; }
+        public string ProdFam { set; get; }
     }
 }

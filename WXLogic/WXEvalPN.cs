@@ -115,7 +115,16 @@ namespace WXLogic
             return "W";
         }
 
+        public static string GetProdFamByWaferNum(string wafernum)
+        {
+            var sql = "select Product from WAT.dbo.WXEvalPN where WaferNum = '<WaferNum>'";
+            sql = sql.Replace("<WaferNum>", wafernum);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            { return UT.O2S(line[0]); }
 
+            return "";
+        }
 
         public string WaferNum { set; get; }
         public string EvalPN { set; get; }

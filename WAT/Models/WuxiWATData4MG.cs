@@ -213,9 +213,10 @@ namespace WAT.Models
             dict.Add("@teststep", teststep);
             DBUtility.ExeLocalSqlNoRes(sql, dict);
 
-            sql = "insert into WATResult(wafer,teststep,result,failuremode) values(@wafer,@teststep,@result,@failuremode)";
+            sql = "insert into WATResult(wafer,teststep,result,failuremode,AppVal1) values(@wafer,@teststep,@result,@failuremode,@updatetime)";
             dict.Add("@result",result);
             dict.Add("@failuremode",failuremode);
+            dict.Add("@updatetime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
@@ -466,6 +467,13 @@ namespace WAT.Models
                         {
                             DieSortVM.PrepareData4WAT(wafer);
                         }
+                    }
+                }
+                else if (wafer.Length == 13)
+                {
+                    if (!Models.WXProbeData.LoaclHasData(wafer))
+                    {
+                        DieSortVM.PrepareData4WAT(wafer);
                     }
                 }
 

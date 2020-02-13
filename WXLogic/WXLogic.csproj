@@ -93,6 +93,7 @@
     <Compile Include="WXCfg.cs" />
     <Compile Include="WXContainerInfo.cs" />
     <Compile Include="WXEvalPN.cs" />
+    <Compile Include="WXFinEvalDispositionLog.cs" />
     <Compile Include="WXOriginalWATData.cs" />
     <Compile Include="WXProbeData.cs" />
     <Compile Include="WXSpecBinPassFail.cs" />

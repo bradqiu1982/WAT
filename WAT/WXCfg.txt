@@ -18,3 +18,6 @@ DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
 DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
 DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
 SHAREFOLDERPWD:::wangle@4567896
+
+PRODBIYIELDRP01:::98.5
+

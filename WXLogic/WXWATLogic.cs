@@ -18,15 +18,17 @@ namespace WXLogic
             var CouponGroup = "";
             try
             {
-                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") &&!coupongroup1.Contains("R")))
+                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") &&!coupongroup1.Contains("R") && !coupongroup1.Contains("T")))
                 { return string.Empty; }
                 else
                 {
                     var len = 0;
                     if (coupongroup1.Contains("E"))
                     { len = coupongroup1.IndexOf("E") + 3; }
-                    else
+                    else if (coupongroup1.Contains("R"))
                     { len = coupongroup1.IndexOf("R") + 3; }
+                    else if (coupongroup1.Contains("T"))
+                    { len = coupongroup1.IndexOf("T") + 3; }
 
                     if (coupongroup1.Length < len)
                     { return string.Empty; }
@@ -37,6 +39,8 @@ namespace WXLogic
             catch (Exception ex) { return string.Empty; }
             return CouponGroup;
         }
+
+
 
         public  WXWATLogic WATPassFail(string coupongroup1, string CurrentStepName)
         {
@@ -224,16 +228,22 @@ namespace WXLogic
             var failcount = WXWATPassFailUnit.GetFailCount(passfailunitdata);
             var failunitinfo = WXWATPassFailUnit.GetFailUnitWithInfo(passfailunitdata);
 
+            WXFinEvalDispositionLog.CleanFinEvalDispositionLog(CouponGroup, sharedatatoallen,RP);
             //Pass Fail Coupon
-            var watpassfailcoupondata = WXWATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
+            var watpassfailcoupondata = WXWATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]
+                ,sharedatatoallen,CouponGroup,RP,containerinfo);
 
             var failstring = WXWATPassFailCoupon.GetFailString(watpassfailcoupondata);
             var couponDutCount = WXWATPassFailCoupon.GetDutCount(watpassfailcoupondata);
             var couponSumFails = WXWATPassFailCoupon.GetSumFails(watpassfailcoupondata);
 
+            var BIYield = 100.0;
+            if (string.Compare(RP, "1") == 0)
+            { BIYield = WXWATPassFailUnit.GetDutBIYield(passfailunitdata); }
+            var BIYieldSpec = UT.O2D(cfg["PRODBIYIELDRP01"]);
 
             var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
-               , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails);
+               , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,BIYield,BIYieldSpec);
 
             if (!string.IsNullOrEmpty(AnalyzeParam))
             { logicresult.AnalyzeParamData.AddRange(AnalyzeParamData); }
@@ -419,11 +429,22 @@ namespace WXLogic
         }
 
         private static WXWATLogic RetestLogic(WXContainerInfo container, string DCDName, int rp, int shippable, int probeCount
-    , int readCount, int dutMinQty, int failcount, string failstring, int couponCount, int couponDutCount, int couponSumFails)
+    , int readCount, int dutMinQty, int failcount, string failstring, int couponCount, int couponDutCount, int couponSumFails, double BIYield,double BIYieldSpec)
         {
             var ret = new WXWATLogic();
             if (couponCount > 0)
             {
+                if (rp == 1)
+                {
+                    if (BIYield < BIYieldSpec)
+                    {
+                        ret.TestPass = false;
+                        ret.NeedRetest = true;
+                        ret.ResultReason = "Fail. BI Yield "+ BIYield.ToString()+"%";
+                        return ret;
+                    }
+                }
+
                 if (((string.Compare(container.containertype, "T", true) != 0
                     && string.Compare(container.containertype, "E", true) != 0
                     && string.Compare(container.containertype, "D", true) != 0) && shippable == 1)
@@ -971,15 +992,17 @@ namespace WXLogic
             var failunitinfo = WXWATPassFailUnit.GetFailUnitWithInfo(passfailunitdata);
 
             //Pass Fail Coupon
-            var watpassfailcoupondata = WXWATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0]);
+            var watpassfailcoupondata = WXWATPassFailCoupon.GetPFCouponData(passfailunitdata, dutminitem[0],false,null,null,null);
 
             var failstring = WXWATPassFailCoupon.GetFailString(watpassfailcoupondata);
             var couponDutCount = WXWATPassFailCoupon.GetDutCount(watpassfailcoupondata);
             var couponSumFails = WXWATPassFailCoupon.GetSumFails(watpassfailcoupondata);
 
+            var BIYield = 100.0;
+            var BIYieldSpec = 0;
 
             var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
-               , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails);
+               , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,BIYield,BIYieldSpec);
 
             if (!string.IsNullOrEmpty(AnalyzeParam))
             { logicresult.AnalyzeParamData.AddRange(AnalyzeParamData); }

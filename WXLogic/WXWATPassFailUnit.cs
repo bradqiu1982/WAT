@@ -210,6 +210,30 @@ namespace WXLogic
             return unitdict.Count;
         }
 
+        public static double GetDutBIYield(List<WXWATPassFailUnit> srcdata)
+        {
+            var allunitdict = new Dictionary<string, bool>();
+            var funitdict = new Dictionary<string, bool>();
+            foreach (var item in srcdata)
+            {
+                if (!string.IsNullOrEmpty(item.FailType) && !item.FailType.Contains("(No Meas)"))
+                {
+                    if (!funitdict.ContainsKey(item.UnitNum))
+                    { funitdict.Add(item.UnitNum, true); }
+                }//end if
+
+                if (!allunitdict.ContainsKey(item.UnitNum))
+                { allunitdict.Add(item.UnitNum, true); }
+            }//end foreach
+
+            var funitcnt = funitdict.Count;
+            var allcnt = allunitdict.Count;
+            if (allcnt != 0)
+            { return Math.Round((allcnt - funitcnt) / (double)allcnt * 100.0, 2); }
+
+            return 0;
+        }
+
         public static string GetFailUnitWithInfo(List<WXWATPassFailUnit> srcdata)
         {
             var failunit = new List<WXWATPassFailUnit>();

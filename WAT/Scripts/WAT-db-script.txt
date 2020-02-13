@@ -441,6 +441,22 @@ CREATE TABLE [dbo].[LoginLog] (
 );
 
 
+CREATE TABLE [dbo].[WXFinEvalDispositionLog](
+	[ContainerName] [NVARCHAR](200) NOT NULL,
+	[ProductName] [NVARCHAR](200) NOT NULL,
+	[ParameterName] [NVARCHAR](200) NOT NULL,
+	[UpperSpecLimit] [float] NOT NULL,
+	[LowerSpecLimit] [float] NOT NULL,
+	[TargetValue] [NVARCHAR](200) NOT NULL,
+	[ActualValue] [float]  NOT NULL,
+	[PassFail] [NVARCHAR](64)  NOT NULL,
+	[TxnDate] [datetime]  NOT NULL,
+	[ProdFam] [NVARCHAR](64)  NOT NULL,
+	[ReadPoint] [NVARCHAR](64)  NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
+)
 
 
 
