@@ -13,10 +13,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>02/22/2013 08:43:40</publishTime>
     </File>
     <File Include="bin/App_global.asax.compiled">
-      <publishTime>02/11/2020 14:29:53</publishTime>
+      <publishTime>02/26/2020 08:39:06</publishTime>
     </File>
     <File Include="bin/App_global.asax.dll">
-      <publishTime>02/11/2020 14:29:53</publishTime>
+      <publishTime>02/26/2020 08:39:05</publishTime>
     </File>
     <File Include="bin/CsvHelper.dll">
       <publishTime>01/28/2019 22:44:34</publishTime>
@@ -175,16 +175,16 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>01/28/2015 04:04:30</publishTime>
     </File>
     <File Include="bin/WAT.dll">
-      <publishTime>02/11/2020 14:29:43</publishTime>
+      <publishTime>02/26/2020 08:38:31</publishTime>
     </File>
     <File Include="bin/WebGrease.dll">
       <publishTime>09/10/2013 17:28:38</publishTime>
     </File>
     <File Include="bin/WXCfg.txt">
-      <publishTime>12/24/2019 17:24:56</publishTime>
+      <publishTime>02/13/2020 14:34:32</publishTime>
     </File>
     <File Include="bin/WXLogic.dll">
-      <publishTime>02/11/2020 13:40:19</publishTime>
+      <publishTime>02/26/2020 08:38:25</publishTime>
     </File>
     <File Include="ckeditor/adapters/jquery.js">
       <publishTime>12/27/2017 16:53:07</publishTime>
@@ -1552,7 +1552,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>09/11/2019 14:35:26</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>02/11/2020 14:29:45</publishTime>
+      <publishTime>02/26/2020 08:38:37</publishTime>
     </File>
     <File Include="Scripts/ajaxfileupload.js">
       <publishTime>06/28/2018 10:27:19</publishTime>
@@ -1771,16 +1771,16 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>05/17/2019 08:51:50</publishTime>
     </File>
     <File Include="Scripts/WAT-db-script.txt">
-      <publishTime>02/11/2020 13:29:53</publishTime>
+      <publishTime>02/24/2020 16:18:19</publishTime>
     </File>
     <File Include="Scripts/WATCfg.txt">
-      <publishTime>01/08/2020 14:24:35</publishTime>
+      <publishTime>02/18/2020 16:58:17</publishTime>
     </File>
     <File Include="Scripts/WATDataPrepare.js">
       <publishTime>11/14/2019 16:43:55</publishTime>
     </File>
     <File Include="Scripts/WATLogic.js">
-      <publishTime>02/07/2020 16:47:58</publishTime>
+      <publishTime>02/21/2020 17:06:00</publishTime>
     </File>
     <File Include="Scripts/WATsheartbeat.txt">
       <publishTime>06/28/2018 09:42:19</publishTime>
@@ -1830,6 +1830,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="Views/Main/Welcome.cshtml">
       <publishTime>02/08/2020 15:32:51</publishTime>
     </File>
+    <File Include="Views/MGTL/WATWIP.cshtml">
+      <publishTime>11/22/2019 10:57:10</publishTime>
+    </File>
+    <File Include="Views/MGTL/WUXIWATStatus.cshtml">
+      <publishTime>11/26/2019 10:56:11</publishTime>
+    </File>
     <File Include="Views/Shared/Error.cshtml">
       <publishTime>06/28/2018 09:14:37</publishTime>
     </File>
@@ -1837,7 +1843,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/28/2018 09:14:37</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
-      <publishTime>02/08/2020 15:59:45</publishTime>
+      <publishTime>02/21/2020 17:02:23</publishTime>
     </File>
     <File Include="Views/Shared/_LoginPartial.cshtml">
       <publishTime>03/08/2019 10:26:13</publishTime>
@@ -1847,6 +1853,9 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     </File>
     <File Include="Views/WATLogic/AllenWaferWAT.cshtml">
       <publishTime>08/23/2019 11:40:37</publishTime>
+    </File>
+    <File Include="Views/WATLogic/ALLENWATXY.cshtml">
+      <publishTime>02/21/2020 14:42:38</publishTime>
     </File>
     <File Include="Views/WATLogic/VerifyAllenLogic.cshtml">
       <publishTime>08/22/2019 13:13:32</publishTime>
@@ -1872,8 +1881,11 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="Views/WATLogic/WUXIWATDataManage.cshtml">
       <publishTime>12/31/2019 10:34:26</publishTime>
     </File>
+    <File Include="Views/WATLogic/WUXIWATDistribution.cshtml">
+      <publishTime>02/21/2020 15:28:40</publishTime>
+    </File>
     <File Include="Views/WATLogic/WUXIWATGoldSample.cshtml">
-      <publishTime>10/29/2019 10:06:07</publishTime>
+      <publishTime>02/18/2020 16:26:15</publishTime>
     </File>
     <File Include="Views/WATLogic/WUXIWATLogic.cshtml">
       <publishTime>11/21/2019 10:17:36</publishTime>
@@ -1900,7 +1912,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>12/05/2019 16:18:35</publishTime>
     </File>
     <File Include="WXCfg.txt">
-      <publishTime>12/24/2019 17:24:40</publishTime>
+      <publishTime>02/13/2020 14:34:33</publishTime>
     </File>
   </ItemGroup>
 </Project>

@@ -231,6 +231,7 @@
     <Compile Include="Controllers\AllenWaferController.cs" />
     <Compile Include="Controllers\DieSortController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\MGTLController.cs" />
     <Compile Include="Controllers\WaferController.cs" />
     <Compile Include="Controllers\WATLogicController.cs" />
     <Compile Include="Global.asax.cs">
@@ -869,7 +870,7 @@
     <Content Include="Views\WATLogic\WUXIWATXY.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATCoupon.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATPvsP.cshtml" />
-    <Content Include="Views\WATLogic\WUXIWATStatus.cshtml" />
+    <Content Include="Views\MGTL\WUXIWATStatus.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATGoldSample.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATOven.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATCouponOVEN.cshtml" />
@@ -877,9 +878,11 @@
     <Content Include="Views\DieSort\WaferBinSubstitute.cshtml" />
     <Content Include="Views\Main\NeomapToAllen.cshtml" />
     <Content Include="Views\Main\Prepare4WAT.cshtml" />
-    <Content Include="Views\WATLogic\WATWIP.cshtml" />
+    <Content Include="Views\MGTL\WATWIP.cshtml" />
     <Content Include="Views\DieSort\SamplePick4Ipoh.cshtml" />
     <Content Include="Views\Main\Welcome.cshtml" />
+    <Content Include="Views\WATLogic\ALLENWATXY.cshtml" />
+    <Content Include="Views\WATLogic\WUXIWATDistribution.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

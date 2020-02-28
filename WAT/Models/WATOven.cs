@@ -17,7 +17,7 @@ namespace WAT.Models
 
             var sql = @"select d.OVENTEMPERATURE,d.ImA,d.CreateTime from WAT.dbo.OvenData (nolock) d 
                         left join WAT.dbo.OvenStart (nolock) s on d.DataSet_ID = s.DataSet_ID
-                        where (s.[Plan] like '%12mA_172H%' or s.[Plan] like '%12mA_120H%') and s.SN like '%E08%' and d.PCName = @teststation
+                        where (s.[Plan] like '%12mA_128H%' or s.[Plan] like '%12mA_168H%') and s.SN like '%E08%' and d.PCName = @teststation
                         and d.CreateTime >= @startdate and d.CreateTime <= @enddate and d.rid%" + freq + @"=0 order by d.CreateTime asc";
 
             if (!string.IsNullOrEmpty(coupongroupid))
@@ -306,12 +306,12 @@ namespace WAT.Models
             {
                 var startlatetime = GetOvenLatestTime(tester,true);
                 if (string.IsNullOrEmpty(startlatetime))
-                { startlatetime = DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd HH:mm:ss"); }
+                { startlatetime = DateTime.Now.AddDays(-14).ToString("yyyy-MM-dd HH:mm:ss"); }
                 LoadOvenStartData(startlatetime, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), tester);
 
                 var datalatetime = GetOvenLatestTime(tester, false);
                 if (string.IsNullOrEmpty(datalatetime))
-                { datalatetime = DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd HH:mm:ss"); }
+                { datalatetime = DateTime.Now.AddDays(-14).ToString("yyyy-MM-dd HH:mm:ss"); }
                 LoadOvenDataData(datalatetime, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), tester);
             }
         }

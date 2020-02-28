@@ -85,7 +85,7 @@ namespace WXLogic
             else
             {
                 sql = "select EvalPN from WAT.dbo.WXEvalPN where WaferNum = '<WaferNum>' and EvalBinName = '<evalbin>'";
-                sql = sql.Replace("<WaferNum>", wafernum).Replace("<evalbin>", "E01");
+                sql = sql.Replace("<WaferNum>", wafernum).Replace("<evalbin>", "E08");
             }
             
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
@@ -95,7 +95,7 @@ namespace WXLogic
             if (evalbin.Contains("E08")|| evalbin.Contains("R08")|| evalbin.Contains("T08"))
             {
                 sql = "select EvalPN from WAT.dbo.WXEvalPN where WaferNum = '<WaferNum>' and EvalBinName = '<evalbin>'";
-                sql = sql.Replace("<WaferNum>", wafernum).Replace("<evalbin>", "E01");
+                sql = sql.Replace("<WaferNum>", wafernum).Replace("<evalbin>", "E08");
             }
             dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)

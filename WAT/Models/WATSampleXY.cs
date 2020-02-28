@@ -126,9 +126,19 @@ namespace WAT.Models
                 if (string.IsNullOrEmpty(fs))
                 { return string.Empty; }
 
-                var dieonex = WXLogic.AdminFileOperations.GetDieOneByFile(fs);
-                if (dieonex.Count == 0)
-                { return string.Empty; }
+
+                bool xy1x1 = false;
+                System.IO.FileInfo fi = new System.IO.FileInfo(fs);
+                if (wafer.Length == 9 && fi.Length > 3000000)
+                { xy1x1 = true; }
+
+                var dieonex = new List<int>();
+                if (!xy1x1)
+                {
+                    dieonex = WXLogic.AdminFileOperations.GetDieOneByFile(fs);
+                    if (dieonex.Count == 0)
+                    { return string.Empty; }
+                }
 
                 var ret = new List<object>();
                 var folderuser = syscfgdict["SHAREFOLDERUSER"];
@@ -159,7 +169,10 @@ namespace WAT.Models
                             {
                                 var ax = nd.GetAttribute("X");
                                 var y = nd.GetAttribute("Y");
-                                var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString();
+                                var x = ax;
+                                if (!xy1x1)
+                                { x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString(); }
+
                                 ret.Add(new
                                 {
                                     x = x,

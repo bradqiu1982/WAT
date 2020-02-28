@@ -460,5 +460,23 @@ CREATE TABLE [dbo].[WXFinEvalDispositionLog](
 
 
 
+CREATE TABLE [WAT].[dbo].[Eval_Specs_Chip_PassFail](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[Eval_ProductName] [nvarchar](30) NULL,
+	[Bin_Product] [nvarchar](30) NULL,
+	[DCDefName] [nvarchar](30) NULL,
+	[ParameterName] [nvarchar](50) NULL,
+	[Wafer_LL] [float] NULL,
+	[Wafer_UL] [float] NULL,
+	[DUT_LL] [float] NULL,
+	[DUT_UL] [float] NULL,
+	[Reference_value] [float] NULL,
+	[Eval_Parametric_bin] [int] NULL,
+	[min_DUT_Count] [int] NULL,
+	[Reference_value_2] [float] NULL,
+	[Reference_value_3] [float] NULL,
+	[Reference_value_4] [float] NULL
+) ON [PRIMARY]
+
 
 

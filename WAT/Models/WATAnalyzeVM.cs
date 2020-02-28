@@ -57,7 +57,7 @@ namespace WAT.Models
             var rawlist = GetWATRawParamList();
 
             var retlist = new List<string>();
-            var sql = @"select distinct left([ParameterName],len([ParameterName])-5) from [WAT].[dbo].[Eval_Specs_Bin_PassFail] where DCDefName like 'Eval_50up%' 
+            var sql = @"select distinct left([ParameterName],len([ParameterName])-5) from [WAT].[dbo].[Eval_Specs_Chip_PassFail] where DCDefName like 'Eval_50up%' 
                          and (ParameterName like '%_RP00' or ParameterName like '%_RP01' or ParameterName like '%_RP02' or ParameterName like '%_RP03') order by left([ParameterName],len([ParameterName])-5)";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
@@ -98,7 +98,7 @@ namespace WAT.Models
         {
             var wafercond = "('" + string.Join("','", wflist) + "')";
             var ret = new List<double>();
-            var sql = @"select distinct Wafer_LL,Wafer_UL from [WAT].[dbo].[Eval_Specs_Bin_PassFail] where ParameterName like '<param>%' 
+            var sql = @"select distinct Wafer_LL,Wafer_UL from [WAT].[dbo].[Eval_Specs_Chip_PassFail] where ParameterName like '<param>%' 
                         and DCDefName like 'Eval_50up%' and Eval_ProductName in (select EvalPN from  WAT.dbo.WXEvalPN where WaferNum in <wafercond> ) order by Wafer_LL,Wafer_UL desc";
 
             sql = sql.Replace("<param>",param).Replace("<wafercond>", wafercond);
@@ -107,7 +107,7 @@ namespace WAT.Models
 
             if (dbret.Count == 0)
             {
-                sql = @"select distinct Wafer_LL,Wafer_UL from [WAT].[dbo].[Eval_Specs_Bin_PassFail] where ParameterName like '<param>%' 
+                sql = @"select distinct Wafer_LL,Wafer_UL from [WAT].[dbo].[Eval_Specs_Chip_PassFail] where ParameterName like '<param>%' 
                         and DCDefName like 'Eval_50up%'";
                 sql = sql.Replace("<param>", param);
                 dbret = DBUtility.ExeLocalSqlWithRes(sql);
@@ -572,9 +572,19 @@ namespace WAT.Models
             if (string.IsNullOrEmpty(fs))
             { return ret; }
 
-            var dieonex = AdminFileOperations.GetDieOneByFile(fs);
-            if (dieonex.Count == 0)
-            { return ret; }
+            bool xy1x1 = false;
+            System.IO.FileInfo fi = new System.IO.FileInfo(fs);
+            if (wafer.Length == 9 && fi.Length > 3000000)
+            { xy1x1 = true; }
+
+            var dieonex = new List<int>();
+            if (!xy1x1)
+            {
+                dieonex = AdminFileOperations.GetDieOneByFile(fs);
+                if (dieonex.Count == 0)
+                { return ret; }
+            }
+
 
             var folderuser = syscfgdict["SHAREFOLDERUSER"];
             var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
@@ -593,7 +603,9 @@ namespace WAT.Models
                     {
                         var ax = nd.GetAttribute("X");
                         var y = nd.GetAttribute("Y");
-                        var x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString();
+                        var x = ax;
+                        if (!xy1x1)
+                        { x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString(); }
 
                         if (arraysize == 1)
                         {

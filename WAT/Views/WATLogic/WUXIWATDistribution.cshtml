@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewBag.Title = "WUXIWATDistribution";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .highcharts-container {
+        height: 920px !important;
+    }
+
+    .v-box {
+        height: 920px !important;
+    }
+
+    th.dt-center, td.dt-center {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/highcharts/annotations.js"></script>
+<script type="text/javascript" src="~/Scripts/WATLogic.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WATLOGIC.WUXIWATDIS();
+        })
+</script>
+
+<div class="row">
+    <div class="col-lg-4"></div>
+    <div class="col-lg-4"><h2>WUXI WAT Distribution</h2></div>
+    <div class="col-lg-4"></div>
+</div>
+
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-1">
+                        <label class="label label-default" style="height:2em">WAFER</label>
+                    </div>
+                    <div class="col-xs-3">
+                        <input type="text" class="form-control" id="wafernum" name="wafernum" readonly="readonly">
+                    </div>
+                    <div class="col-xs-2" style="padding-left:0">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" style="margin-left:40px;" data-toggle="tooltip" title="SHOW ALLEN WAT DISTRIBUTION" value="Search">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content" id="chartdiv" name="chartdiv">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

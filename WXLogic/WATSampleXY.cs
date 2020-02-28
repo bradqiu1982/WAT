@@ -352,7 +352,7 @@ namespace WXLogic
             return ret;
         }
 
-        private static List<WATSampleXY> LoadOGPFromLocalDB(string coupongroup, int arraysize, string wafer)
+        public static List<WATSampleXY> LoadOGPFromLocalDB(string coupongroup, int arraysize, string wafer)
         {
             var ret = new List<WATSampleXY>();
             var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
@@ -391,11 +391,63 @@ namespace WXLogic
                 var tempvm = new WATSampleXY();
                 tempvm.CouponID = snidx[0];
                 tempvm.ChannelInfo = snidx[1];
-                var X = UT.O2I(kv.Value.X.Replace("X", "").Replace("x", ""));
+                var X = UT.O2I(kv.Value.X.Replace("X", "").Replace("x", "").Replace("Y", "").Replace("y", ""));
                 if (arraysize != 1 && X % arraysize == 0)
                 { X = X - (arraysize - 1); }
                 tempvm.X = X.ToString();
-                var Y = UT.O2I(kv.Value.Y.Replace("Y", "").Replace("y", "")).ToString();
+                var Y = UT.O2I(kv.Value.Y.Replace("Y", "").Replace("y", "").Replace("X", "").Replace("x", "")).ToString();
+                tempvm.Y = Y;
+
+                ret.Add(tempvm);
+            }
+
+            return ret;
+        }
+
+        public static List<WATSampleXY> LoadOGPFromLocalDBByWafer(string coupongroup, int arraysize, string wafer)
+        {
+            var ret = new List<WATSampleXY>();
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+                        inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
+                        where f.WaferNum like '<coupongroup>%' order by SN,ImgOrder asc";
+            sql = sql.Replace("<coupongroup>", coupongroup);
+
+            var dict = new Dictionary<string, WATSampleXY>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]);
+                var imgval = UT.O2S((char)UT.O2I(line[1]));
+                var cat = UT.O2S(line[2]).ToUpper();
+                if (dict.ContainsKey(sn))
+                {
+                    if (cat.Contains("X"))
+                    { dict[sn].X += imgval; }
+                    else
+                    { dict[sn].Y += imgval; }
+                }
+                else
+                {
+                    var tempvm = new WATSampleXY();
+                    if (cat.Contains("X"))
+                    { tempvm.X += imgval; }
+                    else
+                    { tempvm.Y += imgval; }
+                    dict.Add(sn, tempvm);
+                }
+            }
+
+            foreach (var kv in dict)
+            {
+                //var snidx = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var tempvm = new WATSampleXY();
+                tempvm.CouponID = kv.Key;
+                tempvm.ChannelInfo = "0";
+                var X = UT.O2I(kv.Value.X.Replace("X", "").Replace("x", "").Replace("Y", "").Replace("y", ""));
+                if (arraysize != 1 && X % arraysize == 0)
+                { X = X - (arraysize - 1); }
+                tempvm.X = X.ToString();
+                var Y = UT.O2I(kv.Value.Y.Replace("Y", "").Replace("y", "").Replace("X", "").Replace("x", "")).ToString();
                 tempvm.Y = Y;
 
                 ret.Add(tempvm);

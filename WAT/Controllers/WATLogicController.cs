@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using WAT.Models;
 using WXLogic;
+using MathNet.Numerics.Statistics;
 
 namespace WAT.Controllers
 {
@@ -1459,6 +1460,269 @@ namespace WAT.Controllers
             }
         }
 
+
+        public ActionResult ALLENWATXY()
+        {
+            return View();
+        }
+
+        public JsonResult ALLENWATXYDATA() {
+
+            var wafernum = Request.Form["wafernum"].Trim().ToUpper();
+            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum.Replace("E", "").Replace("R", "").Replace("T", ""), this);
+
+            var allenwatdata = new List<XYVAL>();
+
+            var sql = @"select distinct X,Y from [EngrData].[insite].[Get_EVAL_Data_By_CONTAINER_NUMBER_Link_PROBE_DATA] 
+                      where Left(CONTAINER_NUMBER,9) = @wafer and (CONTAINER_NUMBER like '%E01%' 
+                      or CONTAINER_NUMBER like '%E06%' or CONTAINER_NUMBER like '%E08%') ";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafernum);
+
+            var dbret = Models.DBUtility.ExeAllenSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var tmpvm = new XYVAL();
+                tmpvm.Val = 9;
+                tmpvm.X = Models.UT.O2I(line[0]).ToString();
+                tmpvm.Y = Models.UT.O2I(line[1]).ToString();
+                allenwatdata.Add(tmpvm);
+            }
+
+            if (allenwatdata.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No data for allen wat test "
+                };
+                return ret1;
+            }
+
+            var valdict = new Dictionary<string, double>();
+            foreach (var xyval in allenwatdata)
+            {
+                var k = xyval.X + ":::" + xyval.Y;
+                if (!valdict.ContainsKey(k))
+                { valdict.Add(k, xyval.Val); }
+            }
+
+            var data = new List<List<object>>();
+            var xlist = new List<int>();
+            var ylist = new List<int>();
+            var xlistdict = new Dictionary<int, bool>();
+            var ylistdict = new Dictionary<int, bool>();
+
+            foreach (var kv in vcselxy)
+            {
+                var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var X = Models.UT.O2I(xystr[0]);
+                var Y = Models.UT.O2I(xystr[1]);
+                if (valdict.ContainsKey(kv.Key))
+                {
+                    var templist = new List<object>();
+                    templist.Add(X);
+                    templist.Add(Y);
+                    templist.Add(valdict[kv.Key]);
+                    data.Add(templist);
+                }
+                else
+                {
+                    var templist = new List<object>();
+                    templist.Add(X);
+                    templist.Add(Y);
+                    templist.Add(null);
+                    data.Add(templist);
+                }
+
+                if (!xlistdict.ContainsKey(X))
+                { xlistdict.Add(X, true); }
+                if (!ylistdict.ContainsKey(Y))
+                { ylistdict.Add(Y, true); }
+
+            }
+
+            xlist.AddRange(xlistdict.Keys);
+            ylist.AddRange(ylistdict.Keys);
+            xlist.Sort();
+            ylist.Sort();
+
+
+            var serial = new List<object>();
+            serial.Add(new
+            {
+                name = "Die Sort",
+                data = data,
+                boostThreshold = 100,
+                borderWidth = 0,
+                nullColor = "#acacac",//"#EFEFEF",
+                turboThreshold = 100
+            });
+
+
+            var id ="Allen_wat_id";
+            var title = "Allen WAT DIE Distribution by Wafer";
+            var xydata = new
+            {
+                id = id,
+                title = title,
+                serial = serial,
+                xmax = xlist[xlist.Count - 1] + 10,
+                ymax = ylist[ylist.Count - 1] + 10,
+                datamin = 1,
+                datamax = 10
+            };
+
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                xydata = xydata
+            };
+            return ret;
+        }
+
+
+        public JsonResult LoadLocalOGPWafer()
+        {
+            var waferlist = WATOGPVM.GetLocalOGPXYWafer();
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                waferlist = waferlist
+            };
+            return ret;
+        }
+
+        public ActionResult WUXIWATDistribution()
+        {
+            return View();
+        }
+
+        public JsonResult WUXIWATDistributionDATA()
+        {
+            var coupongroup = Request.Form["wafernum"].Trim().ToUpper();
+            var wafer = coupongroup.Replace("E", "").Replace("R", "").Replace("T", "");
+            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafer, this);
+
+            var wxwatdata = new List<XYVAL>();
+
+            var array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer);
+            var arraysize = Models.UT.O2I(array);
+            var xylist = WXLogic.WATSampleXY.LoadOGPFromLocalDBByWafer(coupongroup, arraysize, "");
+
+            foreach (var s in xylist)
+            {
+                var tmpvm = new XYVAL();
+                tmpvm.Val = 9;
+                tmpvm.X = Models.UT.O2I(s.X).ToString();
+                tmpvm.Y = Models.UT.O2I(s.Y).ToString();
+                wxwatdata.Add(tmpvm);
+            }
+
+            if (wxwatdata.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "No data for allen wat test "
+                };
+                return ret1;
+            }
+
+            var valdict = new Dictionary<string, double>();
+            foreach (var xyval in wxwatdata)
+            {
+                var k = xyval.X + ":::" + xyval.Y;
+                if (!valdict.ContainsKey(k))
+                { valdict.Add(k, xyval.Val); }
+            }
+
+            var data = new List<List<object>>();
+            var xlist = new List<int>();
+            var ylist = new List<int>();
+            var xlistdict = new Dictionary<int, bool>();
+            var ylistdict = new Dictionary<int, bool>();
+
+            foreach (var kv in vcselxy)
+            {
+                var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var X = Models.UT.O2I(xystr[0]);
+                var Y = Models.UT.O2I(xystr[1]);
+                if (valdict.ContainsKey(kv.Key))
+                {
+                    var templist = new List<object>();
+                    templist.Add(X);
+                    templist.Add(Y);
+                    templist.Add(valdict[kv.Key]);
+                    data.Add(templist);
+                }
+                else
+                {
+                    var templist = new List<object>();
+                    templist.Add(X);
+                    templist.Add(Y);
+                    templist.Add(null);
+                    data.Add(templist);
+                }
+
+                if (!xlistdict.ContainsKey(X))
+                { xlistdict.Add(X, true); }
+                if (!ylistdict.ContainsKey(Y))
+                { ylistdict.Add(Y, true); }
+
+            }
+
+            xlist.AddRange(xlistdict.Keys);
+            ylist.AddRange(ylistdict.Keys);
+            xlist.Sort();
+            ylist.Sort();
+
+
+            var serial = new List<object>();
+            serial.Add(new
+            {
+                name = "Die Sort",
+                data = data,
+                boostThreshold = 100,
+                borderWidth = 0,
+                nullColor = "#acacac",//"#EFEFEF",
+                turboThreshold = 100
+            });
+
+
+            var id = "Allen_wat_id";
+            var title = "WUXI WAT DIE Distribution by Wafer";
+            var xydata = new
+            {
+                id = id,
+                title = title,
+                serial = serial,
+                xmax = xlist[xlist.Count - 1] + 10,
+                ymax = ylist[ylist.Count - 1] + 10,
+                datamin = 1,
+                datamax = 10
+            };
+
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true,
+                xydata = xydata
+            };
+            return ret;
+        }
+
+
         public ActionResult WUXIWATCoupon(string param, string wafer, string rp)
         {
             var url = "/WATLogic/WUXIWATCoupon";
@@ -1963,58 +2227,9 @@ namespace WAT.Controllers
             return WUXIWATPvsPChart(xparam,yparam,wflist, xdatalist, ydatalist);
         }
 
-        public ActionResult WATTEST()
-        {
-            var url = "/WATLogic/WATTEST";
-            if (!CheckName(Request.UserHostName, url))
-            { return Jump2Welcome(url); }
 
-            return RedirectToAction("WUXIWATStatus", "WATLogic");
-        }
 
-        public ActionResult WUXIWATStatus()
-        {
-            var url = "/WATLogic/WUXIWATStatus";
-            if (!CheckName(Request.UserHostName, url))
-            { return Jump2Welcome(url); }
 
-            return View();
-        }
-
-        public JsonResult WUXIWATStatusData()
-        {
-            var wipdata = WuxiWATData4MG.GetWATStatus(this);
-
-            var ret = new JsonResult();
-            ret.MaxJsonLength = Int32.MaxValue;
-            ret.Data = new
-            {
-                wipdata = wipdata
-            };
-            return ret;
-        }
-
-        public ActionResult WATWIP()
-        {
-            var url = "/WATLogic/WATWIP";
-            if (!CheckName(Request.UserHostName, url))
-            { return Jump2Welcome(url); }
-
-            return View();
-        }
-
-        public JsonResult WATWIPDATA()
-        {
-            var wipdata = WUXIWATWIP.GetWATWIP(this);
-
-            var ret = new JsonResult();
-            ret.MaxJsonLength = Int32.MaxValue;
-            ret.Data = new
-            {
-                wipdata = wipdata
-            };
-            return ret;
-        }
 
         private List<SelectListItem> CreateSelectList(List<string> valist, string defVal)
         {
@@ -2199,6 +2414,185 @@ namespace WAT.Controllers
                     labels = labels,
                     seriallist = seriallist
                 });
+            }//end foreach
+
+            if (chartlist.Count > 0)
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = true,
+                    chartlist = chartlist
+                };
+                return ret;
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Fail to get any gold sample data for tester:" + tester
+                };
+                return ret;
+            }
+
+        }
+
+
+        public JsonResult WUXIWATGoldSamplePwrData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            var tester = Request.Form["tester"];
+            var sdate = Request.Form["sdate"];
+            var edate = Request.Form["edate"];
+            var startdate = "";
+            var enddate = "";
+            if (string.IsNullOrEmpty(sdate) || string.IsNullOrEmpty(edate))
+            {
+                startdate = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
+                enddate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                var st = Models.UT.O2T(sdate);
+                var et = Models.UT.O2T(edate);
+                if (et > st)
+                {
+                    startdate = st.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = et.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else
+                {
+                    startdate = et.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = st.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+            }
+
+            var colors = new string[] { "#2f7ed8", "#0d233a", "#8bbc21", "#910000", "#1aadce",
+                    "#492970", "#f28f43", "#77a1e5", "#c42525", "#a6c96a" };
+
+            var paramlist = syscfg["GOLDSAMPLECHPARAM"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            var rad = new System.Random(DateTime.Now.Second);
+            var chartlist = new List<object>();
+            foreach (var param in paramlist)
+            {
+                //var limits = syscfg[param + "_GLD"].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                //var ll = Models.UT.O2D(limits[0]);
+                //var ul = Models.UT.O2D(limits[1]);
+
+                var gsdict = WATGoldSample.GetGoldPwrData(tester, param, startdate, enddate);
+                if (gsdict.Count == 0)
+                { continue; }
+
+                var gidx = 0;
+                foreach (var gskv in gsdict)
+                {
+                    //get date idx dict
+                    var datelist = new List<string>();
+
+                    foreach (var dkv in gskv.Value)
+                    {
+                        if (!datelist.Contains(dkv.Key))
+                        { datelist.Add(dkv.Key); }
+                    }
+
+                    datelist.Sort(delegate (string obj1, string obj2) {
+                        var d1 = Models.UT.O2T(obj1 + " 00:00:00");
+                        var d2 = Models.UT.O2T(obj2 + " 00:00:00");
+                        return d1.CompareTo(d2);
+                    });
+
+                    var datedict = new Dictionary<string, int>();
+                    var didx = 0;
+                    foreach (var d in datelist)
+                    {
+                        datedict.Add(d, didx);
+                        didx++;
+                    }
+
+                    var seriallist = new List<object>();
+                    var valuelist = new List<double>();
+
+                    var datalist = new List<object>();
+                    var color = colors[gidx % colors.Length];
+                    gidx++;
+
+                    var datadict = gskv.Value;
+                    if (datadict.Count > 0)
+                    {
+                        foreach (var kv in datadict)
+                        {
+                            var x = datedict[kv.Key];
+                            foreach (var val in kv.Value)
+                            {
+                                valuelist.Add(val);
+                                datalist.Add(new
+                                {
+                                    x = x,
+                                    y = val
+                                });
+                            }
+                        }
+
+                        seriallist.Add(new
+                        {
+                            name = gskv.Key,
+                            color = color,
+                            data = datalist,
+                            marker = new
+                            {
+                                lineWidth = 2,
+                                fillColor = color
+                            },
+                            tooltip = new
+                            {
+                                headerFormat = "{series.name}<br>",
+                                pointFormat = "{point.y}"
+                            },
+                            turboThreshold = 800000
+                        });
+
+                        if (valuelist.Count > 10)
+                        { valuelist.RemoveAt(valuelist.Count -1); }
+
+                        var mean = Statistics.Mean(valuelist);
+                        var stddev = Math.Abs(Statistics.StandardDeviation(valuelist));
+                        var ll = mean - stddev;
+                        var ul = mean + stddev;
+                        var id = gskv.Key.Replace(" ", "_").Replace("-","_") + "_id";
+                        var title = tester + " Golden Sample "+gskv.Key+" " + param + " Distribution";
+
+                        var labels = new List<object>();
+                        labels.Add(new
+                        {
+                            format = "<table><tr><td>LL:" + Math.Round(ll,6) + "</td></tr><tr><td>HL:" + Math.Round(ul,6) + "</td></tr></table>",
+                            useHTML = true,
+                            point = new
+                            {
+                                x = 0,
+                                y = 0
+                            }
+                        });
+
+                        chartlist.Add(new
+                        {
+                            id = id,
+                            title = title,
+                            categories = datelist,
+                            lowlimit = ll,
+                            highlimit = ul,
+                            labels = labels,
+                            seriallist = seriallist
+                        });
+
+
+                    }//end if
+                }//end foreach
+
+                
             }//end foreach
 
             if (chartlist.Count > 0)
@@ -2518,22 +2912,7 @@ namespace WAT.Controllers
             return ret;
         }
 
-        public JsonResult RefreshWATWIP()
-        {
-            try
-            {
-                WuxiWATData4MG.RefreshWATStatusDaily();
-            }
-            catch (Exception ex) { }
 
-            var ret = new JsonResult();
-            ret.MaxJsonLength = Int32.MaxValue;
-            ret.Data = new
-            {
-                sucess = true
-            };
-            return ret;
-        }
 
         public JsonResult WUXIWATCouponOVENDownload()
         {

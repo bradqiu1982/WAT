@@ -1559,6 +1559,312 @@
         }
     }
 
+
+    
+    var allenwatxyfun = function ()
+    {
+        function allenwatxy(wafernum) {
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/ALLENWATXYDATA', {
+                wafernum: wafernum
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-1"></div><div class="col-xs-10">' +
+                               '<div class="v-box" id="' + output.xydata.id + '"></div>' +
+                               '</div><div class="col-xs-1"></div></div>';
+                    $('#chartdiv').append(appendstr);
+                    drawdiesortmap(output.xydata);
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var wafernum = $('#wafernum').val();
+
+            if (wafernum == '') {
+                alert('Please input your query condition!');
+                return false;
+            }
+            allenwatxy( wafernum);
+        });
+
+        var drawdiesortmap = function (line_data) {
+            var options = {
+                title: {
+                    text: line_data.title
+                },
+                chart: {
+                    type: 'heatmap',
+                    zoomType: 'xy'
+                },
+                boost: {
+                    useGPUTranslations: true,
+                    usePreallocated: true,
+                    seriesThreshold: 1
+                },
+                xAxis: {
+                    title: {
+                        text: 'X'
+                    },
+                    max: line_data.xmax
+                },
+                yAxis: {
+                    title: {
+                        text: 'Y'
+                    },
+                    max: line_data.ymax,
+                    reversed: true
+                },
+                colorAxis: {
+                    min: line_data.datamin,
+                    max: line_data.datamax,
+                    stops: [
+                    [0, '#c8c8c8'],
+                    [0.1, '#0000ff'],
+                    [0.2, '#0080ff'],
+                    [0.3, '#00ffff'],
+                    [0.4, '#00ff80'],
+                    [0.5, '#00ff00'],
+                    [0.6, '#80ff00'],
+                    [0.7, '#ffff00'],
+                    [0.8, '#ff8000'],
+                    [0.9, '#ff0000']
+                    ]
+                },
+                series: line_data.serial,
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + line_data.id).parent().toggleClass('chart-modal');
+                                $('#' + line_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(line_data.id, options);
+
+        }
+    }
+
+
+    var wuxiwatdisfun = function ()
+    {
+        $.post('/WATLogic/LoadLocalOGPWafer', {
+        }, function (output) {
+            $('#wafernum').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.waferlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#wafernum').attr('readonly', false);
+        });
+
+
+        function wuxiwatdis(wafernum) {
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATDistributionDATA', {
+                wafernum: wafernum
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+                    var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-1"></div><div class="col-xs-10">' +
+                               '<div class="v-box" id="' + output.xydata.id + '"></div>' +
+                               '</div><div class="col-xs-1"></div></div>';
+                    $('#chartdiv').append(appendstr);
+                    drawdiesortmap(output.xydata);
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            var wafernum = $('#wafernum').val();
+
+            if (wafernum == '') {
+                alert('Please input your query condition!');
+                return false;
+            }
+            wuxiwatdis(wafernum);
+        });
+
+        var drawdiesortmap = function (line_data) {
+            var options = {
+                title: {
+                    text: line_data.title
+                },
+                chart: {
+                    type: 'heatmap',
+                    zoomType: 'xy'
+                },
+                boost: {
+                    useGPUTranslations: true,
+                    usePreallocated: true,
+                    seriesThreshold: 1
+                },
+                xAxis: {
+                    title: {
+                        text: 'X'
+                    },
+                    max: line_data.xmax
+                },
+                yAxis: {
+                    title: {
+                        text: 'Y'
+                    },
+                    max: line_data.ymax,
+                    reversed: true
+                },
+                colorAxis: {
+                    min: line_data.datamin,
+                    max: line_data.datamax,
+                    stops: [
+                    [0, '#c8c8c8'],
+                    [0.1, '#0000ff'],
+                    [0.2, '#0080ff'],
+                    [0.3, '#00ffff'],
+                    [0.4, '#00ff80'],
+                    [0.5, '#00ff00'],
+                    [0.6, '#80ff00'],
+                    [0.7, '#ffff00'],
+                    [0.8, '#ff8000'],
+                    [0.9, '#ff0000']
+                    ]
+                },
+                series: line_data.serial,
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + line_data.id).parent().toggleClass('chart-modal');
+                                $('#' + line_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(line_data.id, options);
+
+        }
+    }
+
     var wuxiwatcouponfun = function () {
 
 
@@ -2036,7 +2342,7 @@
                 }
                 $.bootstrapLoading.start(options);
 
-                $.post('/WATLogic/RefreshWATWIP',
+                $.post('/MGTL/RefreshWATWIP',
                     {}, function (output) {
                         $.bootstrapLoading.end();
 
@@ -2057,7 +2363,7 @@
             }
             $.bootstrapLoading.start(options);
 
-            $.post('/WATLogic/WUXIWATStatusData',
+            $.post('/MGTL/WUXIWATStatusData',
                 { },
                 function (output) {
                     $.bootstrapLoading.end();
@@ -2186,7 +2492,7 @@
             }
             $.bootstrapLoading.start(options);
 
-            $.post('/WATLogic/WATWIPDATA',
+            $.post('/MGTL/WATWIPDATA',
                 { },
                 function (output) {
                     $.bootstrapLoading.end();
@@ -2315,6 +2621,154 @@
                 chart: {
                     zoomType: 'xy',
                     type: 'scatter'
+                },
+                title: {
+                    text: boxplot_data.title
+                },
+
+                legend: {
+                    enabled: true
+                },
+
+                xAxis: {
+                    categories: boxplot_data.categories
+                },
+
+                yAxis: {
+                    plotLines: [{
+                        value: boxplot_data.lowlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'LL',
+                            align: 'left'
+                        }
+                    }, {
+                        value: boxplot_data.highlimit,
+                        color: 'green',
+                        dashStyle: 'Dash',
+                        width: 2,
+                        label: {
+                            text: 'UL',
+                            align: 'left'
+                        }
+                    }]
+                },
+                annotations: [{
+                    labels: boxplot_data.labels,
+                    color: '#d4d4d4',
+                    draggable: 'xy'
+                }],
+                series: boxplot_data.seriallist,
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + boxplot_data.id).parent().toggleClass('chart-modal');
+                                $('#' + boxplot_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(boxplot_data.id, options);
+        }
+
+
+        function goldpwrdata(tester, sdate, edate)
+        {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATGoldSamplePwrData', {
+                tester: tester,
+                sdate: sdate,
+                edate: edate
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+
+                    $.each(output.chartlist, function (idx, val) {
+                        var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-12">' +
+                                   '<div class="v-box" id="' + val.id + '"></div>' +
+                                   '</div></div>';
+                        $('#chartdiv').append(appendstr);
+                        drawgoldpwrplot(val);
+                    });
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-pwr', function () {
+            var tester = $('#goldentesterlist').val();
+            var sdate = $('#sdate').val();
+            var edate = $('#edate').val();
+            if (tester == '')
+            {
+                alert('To review golden sample data,tester need to be selected!');
+                return false;
+            }
+            goldpwrdata(tester, sdate, edate);
+        });
+
+        var drawgoldpwrplot = function (boxplot_data) {
+            var options = {
+                chart: {
+                    zoomType: 'xy',
+                    type: 'line'
                 },
                 title: {
                     text: boxplot_data.title
@@ -2721,6 +3175,9 @@
         WUXIWATXY: function () {
             wuxiwatxyfun();
         },
+        ALLENWATXY: function () {
+            allenwatxyfun();
+        },
         WUXIWATCOUPON: function () {
             wuxiwatcouponfun();
         },
@@ -2743,6 +3200,9 @@
         WUXIWATCOUPONOVEN: function ()
         {
             wuxiwatcouponovenfun();
+        },
+        WUXIWATDIS: function () {
+            wuxiwatdisfun();
         }
 
     }

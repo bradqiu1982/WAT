@@ -90,13 +90,16 @@ namespace WAT.Models
             if (string.IsNullOrEmpty(pdfm))
             { return false; }
 
-            var sql = @"select distinct fj.EvalPartNumber,left(spec.DCDefName,len(spec.DCDefName)-2),EvalBinName,fj.[Date] from [EngrData].[insite].[FinEvalJobStartInfo] fj with (nolock)  
-                        left join [EngrData].[insite].[Eval_Specs_Bin_PassFail] spec with (nolock) on spec.Eval_ProductName = fj.EvalPartNumber
-                        where fj.Device= @pdfm and fj.EvalPartNumber is not null and spec.DCDefName is not null and [Date] in 
-						(select Max([Date]) from [EngrData].[insite].[FinEvalJobStartInfo] where device = @pdfm group by EvalBinName) order by fj.[Date] desc";
+            var sql = @"SELECT pb.productname  FROM [Insite].[Insite].[Container] c with(nolock)
+                          inner join insite.insite.product p with(nolock) on p.productid=c.productid
+                          inner join insite.insite.productbase pb with(nolock) on pb.productbaseid=p.productbaseid
+                          inner join insite.insite.productfamily pf with(nolock) on pf.productfamilyid=p.productfamilyid
+                          inner join insite.insite.factory f with(nolock) on f.factoryid=p.factoryid
+                          where f.factoryname = 'chip'
+                          AND c.containername=@wafernum";
 
             var dict = new Dictionary<string, string>();
-            dict.Add("@pdfm", pdfm);
+            dict.Add("@wafernum", wafernum);
             var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
             if (dbret.Count > 0)
             {
@@ -108,22 +111,66 @@ namespace WAT.Models
             else
             { return false; }
 
+            var templist = new List<WXEvalPN>();
+
             foreach (var line in dbret)
             {
-                var evalpn = UT.O2S(line[0]);
-                var dcdname = UT.O2S(line[1]);
-                var evalbin = UT.O2S(line[2]).ToUpper();
-                if (evalbin.Contains("E08")
-                    || evalbin.Contains("E06")
-                    || evalbin.Contains("E01"))
-                { dcdname = "Eval_50up_rp"; }
+                var pdname = UT.O2S(line[0]);
 
-                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@EvalBinName,@Product)";
+                var tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_B";
+                tempvm.DCDName = "Eval_50up_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E08";
+                templist.Add(tempvm);
+
+                tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_C";
+                tempvm.DCDName = "Eval_50up_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E06";
+                templist.Add(tempvm);
+
+                //tempvm = new WXEvalPN();
+                //tempvm.EvalPN = pdname + "_T";
+                //tempvm.DCDName = "Eval_COB_rp";
+                //tempvm.LotType = "W";
+                //tempvm.EvalBin = "E07";
+                //templist.Add(tempvm);
+
+                tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_HB";
+                tempvm.DCDName = "Eval_COB_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E10";
+                templist.Add(tempvm);
+
+                //var dcdname = UT.O2S(line[1]);
+                //var evalbin = UT.O2S(line[2]).ToUpper();
+                //if (evalbin.Contains("E08")
+                //    || evalbin.Contains("E06")
+                //    || evalbin.Contains("E01"))
+                //{ dcdname = "Eval_50up_rp"; }
+
+                //sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@EvalBinName,@Product)";
+                //dict = new Dictionary<string, string>();
+                //dict.Add("@WaferNum",wafernum);
+                //dict.Add("@EvalPN", evalpn);
+                //dict.Add("@DCDName", dcdname);
+                //dict.Add("@EvalBinName", evalbin);
+                //dict.Add("@Product", pdfm);
+                //DBUtility.ExeLocalSqlWithRes(sql, dict);
+            }
+
+            foreach (var item in templist)
+            {
+                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,LotType,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@LotType,@EvalBinName,@Product)";
                 dict = new Dictionary<string, string>();
-                dict.Add("@WaferNum",wafernum);
-                dict.Add("@EvalPN", evalpn);
-                dict.Add("@DCDName", dcdname);
-                dict.Add("@EvalBinName", evalbin);
+                dict.Add("@WaferNum", wafernum);
+                dict.Add("@EvalPN", item.EvalPN);
+                dict.Add("@DCDName", item.DCDName);
+                dict.Add("@LotType", item.LotType);
+                dict.Add("@EvalBinName", item.EvalBin);
                 dict.Add("@Product", pdfm);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
@@ -168,12 +215,12 @@ namespace WAT.Models
                 tempvm.EvalBin = "E06";
                 templist.Add(tempvm);
 
-                tempvm = new WXEvalPN();
-                tempvm.EvalPN = pdname + "_T";
-                tempvm.DCDName = "Eval_COB_rp";
-                tempvm.LotType = "W";
-                tempvm.EvalBin = "E07";
-                templist.Add(tempvm);
+                //tempvm = new WXEvalPN();
+                //tempvm.EvalPN = pdname + "_T";
+                //tempvm.DCDName = "Eval_COB_rp";
+                //tempvm.LotType = "W";
+                //tempvm.EvalBin = "E07";
+                //templist.Add(tempvm);
 
                 tempvm = new WXEvalPN();
                 tempvm.EvalPN = pdname + "_HB";
@@ -211,7 +258,7 @@ namespace WAT.Models
             else
             {
                 var allenret = PrepareAllenEvalPN(wafernum);
-                UpdateLotTypeFromAllen(wafernum);
+                //UpdateLotTypeFromAllen(wafernum);
                 if (!allenret)
                 {
                     var shermanret = PrepareShermanEvalPN(wafernum);
