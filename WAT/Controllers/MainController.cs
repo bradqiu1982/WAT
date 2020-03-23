@@ -102,6 +102,13 @@ namespace WAT.Controllers
                         BinSubstitute.RefreshBinSubstituteFromAllen();
                     }
                     catch (Exception ex) { }
+
+                    heartbeatlog("WXEvalPNRate.RefreshEVALPNRate();");
+                    try
+                    {
+                        WXEvalPNRate.RefreshEVALPNRate();
+                    }
+                    catch (Exception ex) { }
                 }
 
                 try
@@ -403,6 +410,13 @@ namespace WAT.Controllers
             var ret = new JsonResult();
             ret.Data = new { sucess = true };
             return ret;
+        }
+
+
+        public ActionResult RefreshEVALPNRate()
+        {
+            WXEvalPNRate.RefreshEVALPNRate();
+            return View("HeartBeat");
         }
 
 

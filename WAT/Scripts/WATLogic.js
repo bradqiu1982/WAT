@@ -950,7 +950,6 @@
             if (wf != '')
             { reviewdata(wf); }
         });
-
     }
 
     var watogp = function () {
@@ -2426,7 +2425,7 @@
 
                         $("#logiccontent").append(
                             '<tr>' +
-                            '<td>' + val.CouponID + '</td>' +
+                            '<td class="watanalyzebtn ' + val.HasComment + '" id="' + val.CouponID + '" myid="' + val.CouponID + '">' + val.CouponID + '</td>' +
                             '<td>' + val.VType + '</td>' +
                             '<td>' + val.VArray + '</td>' +
                             '<td>' + val.TestTime + '</td>' +
@@ -2475,6 +2474,102 @@
             if (detailinfo != '')
             { alert(detailinfo); }
         });
+
+        $('body').on('click', '#closecomment', function () {
+            $('#myeditorx').removeClass('hide').addClass('hide');
+            $('#watreport').modal('hide');
+        });
+
+        var myWATtable = null;
+        function showwatcomment(output)
+        {
+            if (myWATtable) {
+                myWATtable.destroy();
+                myWATtable = null;
+            }
+            $("#wATTableID").empty();
+
+            $.each(output.watcommentdata, function (i, val) {
+                $("#wATTableID").append(
+                            '<tr>' +
+                            '<td>' + val.comment + '</td>' +
+                            '<td>' + val.updatetime + '</td>' +
+                            '</tr>'
+                        );
+            });
+            
+            myWATtable = $('#myWATtable').DataTable({
+                'iDisplayLength': -1,
+                'aLengthMenu': [[30, 60, 100, -1],
+                [30, 60, 100, "All"]],
+                "columnDefs": [
+                    { "targets": "_all" }
+                ],
+                "aaSorting": [],
+                "order": [],
+                dom: 'lBfrtip',
+                buttons: ['copyHtml5']
+            });
+        }
+
+        $('body').on('click', '.watanalyzebtn', function () {
+            var watid = $(this).attr('myid');
+            var options = {
+                loadingTips: "正在处理数据，请稍候...",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options)
+
+            $.post('/WATLogic/LoadWATAnalyzeComment', {
+                watid:watid
+            }, function (output) {
+                showwatcomment(output);
+                $.bootstrapLoading.end();
+            });
+
+            $('#hwatid').val(watid);
+            $('modaltitle').html(watid + " WAT Analyze");
+            $('#watreport').modal('show');
+        });
+
+        $('body').on('click', '#addcomment', function () {
+
+            var watid = $('#hwatid').val();
+            $.base64.utf8encode = true;
+            var wholeval = CKEDITOR.instances.editor1.getData();
+            if (wholeval == '')
+            { return false; }
+
+            var comment = $.base64.btoa(wholeval);
+            var options = {
+                loadingTips: "正在处理数据，请稍候...",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options)
+
+            $.post('/WATLogic/AddWATAnalyzeComment', {
+                watid: watid,
+                comment: comment
+            }, function (output) {
+                showwatcomment(output);
+                CKEDITOR.instances.editor1.setData('');
+                $("#" + watid).removeClass('HasComment').addClass('HasComment');
+                $.bootstrapLoading.end();
+            });
+
+        });
+
+        $('body').on('click', '#expandeditor', function () {
+            $('#myeditorx').removeClass('hide');
+        })
 
     }
 
@@ -2783,6 +2878,8 @@
                 },
 
                 yAxis: {
+                    min: boxplot_data.min,
+                    max:boxplot_data.max,
                     plotLines: [{
                         value: boxplot_data.lowlimit,
                         color: 'green',

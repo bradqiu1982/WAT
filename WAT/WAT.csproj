@@ -278,11 +278,13 @@
     <Compile Include="Models\FileLoadedData.cs" />
     <Compile Include="Models\MachineUserMap.cs" />
     <Compile Include="Models\PassFailCoupon4Comparing.cs" />
+    <Compile Include="Models\SixInchMapFileData.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />
     <Compile Include="Models\WaferPN.cs" />
     <Compile Include="Models\WaferQUALVM.cs" />
     <Compile Include="Models\WaferReport.cs" />
+    <Compile Include="Models\WATAnalyzeComment.cs" />
     <Compile Include="Models\WATAnalyzeVM.cs" />
     <Compile Include="Models\WATApertureSize.cs" />
     <Compile Include="Models\WATGoldSample.cs" />
@@ -295,6 +297,7 @@
     <Compile Include="Models\WUXIWATWIP.cs" />
     <Compile Include="Models\WXCfg.cs" />
     <Compile Include="Models\WXEvalPN.cs" />
+    <Compile Include="Models\WXEvalPNRate.cs" />
     <Compile Include="Models\WXProbeData.cs" />
     <Compile Include="Models\WXWATIgnoreDie.cs" />
     <Compile Include="Models\WXWATTestData.cs" />
@@ -851,7 +854,6 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Shared\Lockout.cshtml" />
     <Content Include="Views\Shared\_LoginPartial.cshtml" />
-    <Content Include="userfiles\ImageUpload.ashx" />
     <Content Include="userfiles\Upload.ashx" />
     <Content Include="Views\Main\HeartBeat.cshtml" />
     <Content Include="Views\Main\Index.cshtml" />
@@ -883,6 +885,7 @@
     <Content Include="Views\Main\Welcome.cshtml" />
     <Content Include="Views\WATLogic\ALLENWATXY.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATDistribution.cshtml" />
+    <Content Include="userfiles\ImageUpload.ashx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

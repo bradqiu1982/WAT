@@ -243,7 +243,20 @@ namespace WAT.Models
                 return false;
             }
 
+            if (wafer.Length == 13)
+            {
+                return SixInchDieSort(wafer, allwffiles, ctrl, offeredpn, supply, productfm, waferarray, syscfgdict, towho, SampleCount, arraySTR, reviewfolder, desfolder);
+            }
+            else
+            {
+                return FourInchDieSort(wafer,allwffiles, ctrl, offeredpn, supply, productfm, waferarray, syscfgdict, towho, SampleCount , arraySTR, reviewfolder, desfolder);
+            }
+        }
 
+        private static bool FourInchDieSort(string wafer, List<string> allwffiles, Controller ctrl, string offeredpn, bool supply
+            ,string productfm,string waferarray,Dictionary<string,string> syscfgdict,List<string> towho,int SampleCount
+            ,string arraySTR,string reviewfolder,string desfolder)
+        {
             //get the actual wafer file
             var swaferfile = "";
             foreach (var f in allwffiles)
@@ -341,7 +354,7 @@ namespace WAT.Models
                     return false;
                 }
 
-                var selectxydict = GetSelectedXYDict(passedbinxydict, SampleCount,bin57dict);
+                var selectxydict = GetSelectedXYDict(passedbinxydict, SampleCount, bin57dict);
                 if (selectxydict.Count == 0)
                 {
                     if (!WebLog.CheckEmailRecord(wafer, "EM-SELECT"))
@@ -507,8 +520,8 @@ namespace WAT.Models
 
                 var mapfile = Path.GetFileName(waferfile);
                 //write sample X,Y database
-                StoreWaferSampleData(mapfile, wafer, selectxydict,bin57dict, arraySTR, bompn, fpn,supply);
-                
+                StoreWaferSampleData(mapfile, wafer, selectxydict, bin57dict, arraySTR, bompn, fpn, supply);
+
                 //write wafer related data
                 var allselectdict = new Dictionary<string, string>();
                 foreach (var s in selectxydict)
@@ -521,8 +534,90 @@ namespace WAT.Models
 
             }
             catch (Exception ex) { return false; }
+
             return true;
         }
+
+        private static bool SixInchDieSort(string wafer, List<string> allwffiles, Controller ctrl, string offeredpn, bool supply
+            , string productfm, string waferarray, Dictionary<string, string> syscfgdict, List<string> towho, int SampleCount
+            , string arraySTR, string reviewfolder, string desfolder)
+        {
+            //get the actual wafer file
+
+            var smapfile = SixInchMapFileData.LoadMapFileData(wafer);
+
+            if (smapfile.BaseArrayCoordinate.Count == 0)
+            {
+                WebLog.Log(wafer, "DIESORT", " map file does not exist: " + wafer);
+                return false;
+            }
+
+            try
+            {
+                var bomdesc = "";
+                var bompn = "";
+                var fpn = "";
+                var product = "";
+
+                if (smapfile.BinArrayCoordinate.Count == 0)
+                {
+                    if (!WebLog.CheckEmailRecord(wafer, "EM-PASSBIN"))
+                    {
+                        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + wafer + " FATAL ERROR", towho, "Detail: Fail to get good bin xy dict");
+                        new System.Threading.ManualResetEvent(false).WaitOne(300);
+                    }
+
+                    WebLog.Log(wafer, "DIESORT", "fail to convert :" + wafer + ", fail to get good bin xy dict");
+                    return false;
+                }
+
+                var selectxydict = smapfile.GetSampleDict(SampleCount);
+                if (selectxydict.Count == 0)
+                {
+                    if (!WebLog.CheckEmailRecord(wafer, "EM-SELECT"))
+                    {
+                        EmailUtility.SendEmail(ctrl, "DIE SORT SOURCE FILE " + wafer + " FATAL ERROR", towho, "Detail: Fail to get sample xy dict");
+                        new System.Threading.ManualResetEvent(false).WaitOne(300);
+                    }
+
+                    WebLog.Log(wafer, "DIESORT", "fail to convert :" + wafer + ", fail to get sample xy dict");
+                    return false;
+                }
+
+                var reviewfile = Path.Combine(reviewfolder, wafer+".xml");
+                var diesortnewfile = Path.Combine(desfolder, wafer + ".xml");
+                if (ExternalDataCollector.FileExist(ctrl, reviewfile))
+                { ExternalDataCollector.FileDelete(ctrl, reviewfile); }
+                if (ExternalDataCollector.FileExist(ctrl, diesortnewfile))
+                { ExternalDataCollector.FileDelete(ctrl, diesortnewfile); }
+                smapfile.GenerateMapFile(selectxydict, reviewfile, diesortnewfile);
+
+                var bin57dict = new Dictionary<string, string>();
+                //write sample X,Y database
+                StoreWaferSampleData(wafer, wafer, selectxydict, bin57dict, arraySTR, bompn, fpn, supply);
+
+                //write wafer related data
+                var allselectdict = new Dictionary<string, string>();
+                foreach (var s in selectxydict)
+                { allselectdict.Add(s.Key, s.Value); }
+                var passedbinxydict = new Dictionary<string, string>();
+                foreach (var bc in smapfile.BinArrayCoordinate)
+                {
+                    var key = UT.O2S(bc.X) + ":::" + UT.O2S(bc.Y);
+                    if (!passedbinxydict.ContainsKey(key))
+                    { passedbinxydict.Add(key,bc.Bin.ToString()); }
+                }
+
+                StoreWaferPassBinData(wafer, wafer, allselectdict, passedbinxydict, arraySTR, bompn, fpn, bomdesc, product);
+
+                FileLoadedData.UpdateLoadedFile(wafer, "WAFER");
+            }
+            catch (Exception ex) { return false; }
+
+            return true;
+        }
+
+
 
         public static string ConvertBinMapFileData(string wf, string fbin, string tbin, Controller ctrl)
         {
@@ -639,7 +734,7 @@ namespace WAT.Models
         }
 
 
-        private static void CleanWaferSrcData(string fs)
+        public static void CleanWaferSrcData(string fs)
         {
             var sql = "delete from WaferSrcData where MAPFILE = @MAPFILE";
             var dict = new Dictionary<string, string>();
@@ -647,7 +742,7 @@ namespace WAT.Models
             DBUtility.ExeLocalSqlNoRes(sql,dict);
         }
 
-        private static void StoreWaferSrcData(string MAPFILE, string WAFER, string BinCode
+        public static void StoreWaferSrcData(string MAPFILE, string WAFER, string BinCode
             , string BinCount, string BinQuality, string BinDescription, string Pick, string Yield,string LayoutId,string BinRate)
         {
             var sql = @"insert into WaferSrcData(MAPFILE,WAFER,BinCode,BinCount,BinQuality,BinDescription,Pick,Yield,LayoutId,BinRate,UpdateTime) 

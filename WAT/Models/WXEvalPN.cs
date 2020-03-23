@@ -90,6 +90,8 @@ namespace WAT.Models
             if (string.IsNullOrEmpty(pdfm))
             { return false; }
 
+            var array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafernum);
+
             var sql = @"SELECT pb.productname  FROM [Insite].[Insite].[Container] c with(nolock)
                           inner join insite.insite.product p with(nolock) on p.productid=c.productid
                           inner join insite.insite.productbase pb with(nolock) on pb.productbaseid=p.productbaseid
@@ -164,7 +166,7 @@ namespace WAT.Models
 
             foreach (var item in templist)
             {
-                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,LotType,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@LotType,@EvalBinName,@Product)";
+                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,LotType,EvalBinName,Product,AppVal1) values(@WaferNum,@EvalPN,@DCDName,@LotType,@EvalBinName,@Product,@array)";
                 dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum", wafernum);
                 dict.Add("@EvalPN", item.EvalPN);
@@ -172,6 +174,7 @@ namespace WAT.Models
                 dict.Add("@LotType", item.LotType);
                 dict.Add("@EvalBinName", item.EvalBin);
                 dict.Add("@Product", pdfm);
+                dict.Add("@array", array);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
 
@@ -183,6 +186,8 @@ namespace WAT.Models
             var pdfm = GetProductFamilyFromSherman(wafernum);
             if (string.IsNullOrEmpty(pdfm))
             { return false; }
+
+            var array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafernum);
 
             var sql = "delete from WAT.dbo.WXEvalPN where WaferNum=@WaferNum";
             var dict = new Dictionary<string, string>();
@@ -232,7 +237,7 @@ namespace WAT.Models
 
             foreach (var item in templist)
             {
-                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,LotType,EvalBinName,Product) values(@WaferNum,@EvalPN,@DCDName,@LotType,@EvalBinName,@Product)";
+                sql = @"insert into WAT.dbo.WXEvalPN(WaferNum,EvalPN,DCDName,LotType,EvalBinName,Product,AppVal1) values(@WaferNum,@EvalPN,@DCDName,@LotType,@EvalBinName,@Product,@array)";
                 dict = new Dictionary<string, string>();
                 dict.Add("@WaferNum", wafernum);
                 dict.Add("@EvalPN", item.EvalPN);
@@ -240,10 +245,37 @@ namespace WAT.Models
                 dict.Add("@LotType", item.LotType);
                 dict.Add("@EvalBinName", item.EvalBin);
                 dict.Add("@Product", pdfm);
+                dict.Add("@array", array);
                 DBUtility.ExeLocalSqlWithRes(sql, dict);
             }
 
             return true;
+        }
+
+        public static string GetLocalWaferArray(string wafer)
+        {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafer);
+
+            var sql = "select top 1 AppVal1 from [WAT].[dbo].[WXEvalPN] where [WaferNum] = @WaferNum";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            var array = "";
+            if (dbret.Count > 0)
+            { array = UT.O2S(dbret[0][0]); }
+
+            if (!string.IsNullOrEmpty(array))
+            { return array; }
+            else
+            {
+                array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer);
+                if (!string.IsNullOrEmpty(array))
+                {
+                    dict.Add("@array", array);
+                    sql = "update [WAT].[dbo].[WXEvalPN] set AppVal1 = @array where wafernum = @WaferNum";
+                    DBUtility.ExeLocalSqlNoRes(sql, dict);
+                }
+                return array;
+            }
         }
 
         public static bool PrepareEvalPN(string wafernum)

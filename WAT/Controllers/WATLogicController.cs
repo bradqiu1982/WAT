@@ -1610,9 +1610,21 @@ namespace WAT.Controllers
             var wafer = coupongroup.Replace("E", "").Replace("R", "").Replace("T", "");
             var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafer, this);
 
+            if (vcselxy.Count == 0)
+            {
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    sucess = false,
+                    msg = "WAFER "+wafer+" HAS NO MAP FILE!"
+                };
+                return ret1;
+            }
+
             var wxwatdata = new List<XYVAL>();
 
-            var array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer);
+            var array = Models.WXEvalPN.GetLocalWaferArray(wafer);//WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer);
             var arraysize = Models.UT.O2I(array);
             var xylist = WXLogic.WATSampleXY.LoadOGPFromLocalDBByWafer(coupongroup, arraysize, "");
 
@@ -2015,7 +2027,7 @@ namespace WAT.Controllers
                 var highlimit = paramlimit[1];
                 if (newparam.ToUpper().Contains("PO_LD_W_dB_".ToUpper()))
                 {
-                    lowlimit = -1.0; highlimit = 0.2;
+                    lowlimit = -1.0; highlimit = 1;
                 }
                 if (newparam.ToUpper().Contains("THOLD_A_rd_".ToUpper()))
                 {
@@ -2475,7 +2487,7 @@ namespace WAT.Controllers
                     "#492970", "#f28f43", "#77a1e5", "#c42525", "#a6c96a" };
 
             var paramlist = syscfg["GOLDSAMPLECHPARAM"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            var rad = new System.Random(DateTime.Now.Second);
+
             var chartlist = new List<object>();
             foreach (var param in paramlist)
             {
@@ -2490,6 +2502,9 @@ namespace WAT.Controllers
                 var gidx = 0;
                 foreach (var gskv in gsdict)
                 {
+                    if (gskv.Value.Count < 5)
+                    { continue; }
+
                     //get date idx dict
                     var datelist = new List<string>();
 
@@ -2560,9 +2575,13 @@ namespace WAT.Controllers
 
                         var mean = Statistics.Mean(valuelist);
                         var stddev = Math.Abs(Statistics.StandardDeviation(valuelist));
-                        var ll = mean - stddev;
-                        var ul = mean + stddev;
-                        var id = gskv.Key.Replace(" ", "_").Replace("-","_") + "_id";
+                        var ll = mean - 3.0 * stddev;
+                        var ul = mean + 3.0 * stddev;
+
+                        var min = mean - 4.0 * stddev;
+                        var max = mean + 4.0 * stddev;
+
+                        var id = gskv.Key.Replace(" ", "_").Replace("-","_") +"_"+param.Replace(" ","").Replace("-","_").Replace(".","").Replace(":","")+ "_id";
                         var title = tester + " Golden Sample "+gskv.Key+" " + param + " Distribution";
 
                         var labels = new List<object>();
@@ -2584,6 +2603,8 @@ namespace WAT.Controllers
                             categories = datelist,
                             lowlimit = ll,
                             highlimit = ul,
+                            min = min,
+                            max = max,
                             labels = labels,
                             seriallist = seriallist
                         });
@@ -2962,6 +2983,43 @@ namespace WAT.Controllers
             ret.Data = new
             {
                 url = url
+            };
+            return ret;
+        }
+
+
+        public JsonResult LoadWATAnalyzeComment()
+        {
+            var watid = Request.Form["watid"];
+            var watcommentdata = WATAnalyzeComment.GetComment(watid);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                watcommentdata = watcommentdata
+            };
+            return ret;
+        }
+
+        public JsonResult AddWATAnalyzeComment()
+        {
+            var watid = Request.Form["watid"];
+            var bcomment = Request.Form["comment"];
+
+            string dummyData = bcomment.Trim().Replace(" ", "+");
+            if (dummyData.Length % 4 > 0)
+            { dummyData = dummyData.PadRight(dummyData.Length + 4 - dummyData.Length % 4, '='); }
+            var bytes = Convert.FromBase64String(dummyData);
+            var comment = System.Text.Encoding.UTF8.GetString(bytes);
+
+            WATAnalyzeComment.AddComment(watid, comment);
+
+            var watcommentdata = WATAnalyzeComment.GetComment(watid);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                watcommentdata = watcommentdata
             };
             return ret;
         }

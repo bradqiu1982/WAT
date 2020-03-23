@@ -104,13 +104,13 @@ namespace WAT.Models
 
         private static bool MatchSpec(Dictionary<string, BinSubstitute> srcdict, Dictionary<string, BinSubstitute> tdict)
         {
-            foreach (var skv in srcdict)
+            foreach (var tkv in tdict)
             {
-                if (tdict.ContainsKey(skv.Key))
+                if (srcdict.ContainsKey(tkv.Key))
                 {
-                    if (string.Compare(skv.Value.FilterType,tdict[skv.Key].FilterType,true) == 0
-                        && tdict[skv.Key].LowLimit >= skv.Value.LowLimit
-                        && tdict[skv.Key].HighLimit <= skv.Value.HighLimit)
+                    if (string.Compare(tkv.Value.FilterType, srcdict[tkv.Key].FilterType,true) == 0
+                        && srcdict[tkv.Key].LowLimit >= tkv.Value.LowLimit
+                        && srcdict[tkv.Key].HighLimit <= tkv.Value.HighLimit)
                     { }
                     else
                     { return false; }
@@ -164,17 +164,22 @@ namespace WAT.Models
             {
                 var tkey = md[0].Product + ":::" + md[0].Bin;
                 var skey = md[1].Product + ":::" + md[1].Bin;
-                if (pndict.ContainsKey(tkey) && pndict.ContainsKey(skey))
+                if (pndict.ContainsKey(tkey))
                 {
                     md[0].BinFam = pndict[tkey].BinFam;
                     md[0].BinPN = pndict[tkey].BinPN;
+                }
+
+                if (pndict.ContainsKey(skey))
+                {
                     md[1].BinFam = pndict[skey].BinFam;
                     md[1].BinPN = pndict[skey].BinPN;
-                    var tmplist = new List<BinSubstitute>();
-                    tmplist.Add(md[0]);
-                    tmplist.Add(md[1]);
-                    ret.Add(tmplist);
                 }
+
+                var tmplist = new List<BinSubstitute>();
+                tmplist.Add(md[0]);
+                tmplist.Add(md[1]);
+                ret.Add(tmplist);
             }
 
             foreach (var md in ret)
@@ -186,33 +191,32 @@ namespace WAT.Models
 
         private static void StoreBinSubstitute(List<BinSubstitute> data)
         {
-            var FromDevice = data[0].Product;
-            var FromBinFam = data[0].BinFam;
-            var FromBin = data[0].Bin;
-            var FromBinPN = data[0].BinPN;
+            var FromDevice = data[1].Product;
+            var FromBinFam = data[1].BinFam;
+            var FromBin = data[1].Bin;
+            var FromBinPN = data[1].BinPN;
 
-            var ToDevice = data[1].Product;
-            var ToBinFam = data[1].BinFam;
-            var ToBin = data[1].Bin;
-            var ToBinPN = data[1].BinPN;
+            var ToDevice = data[0].Product;
+            var ToBinFam = data[0].BinFam;
+            var ToBin = data[0].Bin;
+            var ToBinPN = data[0].BinPN;
 
-            if (HasData(FromBinFam, FromBin))
+            if (!HasData(FromBinFam, FromBin, ToBinFam, ToBin))
             {
-                UpdateData( FromDevice,  FromBinFam,  FromBin,  FromBinPN
-              ,  ToDevice,  ToBinFam,  ToBin,  ToBinPN); }
-            else
-            {
-                InsertData( FromDevice, FromBinFam, FromBin, FromBinPN
-            , ToDevice, ToBinFam, ToBin, ToBinPN);
+                InsertData(FromDevice, FromBinFam, FromBin, FromBinPN
+                , ToDevice, ToBinFam, ToBin, ToBinPN);
             }
         }
 
-        private static bool HasData(string FromBinFam,string FromBin)
+        private static bool HasData(string FromBinFam,string FromBin, string ToBinFam, string ToBin)
         {
-            var sql = "select FromBinFam,FromBin from WAT.dbo.WATBINSubstitute where FromBinFam = @FromBinFam and FromBin = @FromBin";
+            var sql = "select FromBinFam,FromBin from WAT.dbo.WATBINSubstitute where FromBinFam = @FromBinFam and FromBin = @FromBin and ToBinFam = @ToBinFam and ToBin = @ToBin";
             var dict = new Dictionary<string, string>();
             dict.Add("@FromBinFam", FromBinFam);
             dict.Add("@FromBin", FromBin);
+            dict.Add("@ToBinFam", ToBinFam);
+            dict.Add("@ToBin", ToBin);
+
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             if (dbret.Count > 0)
             { return true; }

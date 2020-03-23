@@ -387,10 +387,16 @@ namespace WXLogic
 
             foreach (var kv in dict)
             {
+                if (!kv.Key.Contains(":::"))
+                { continue; }
+                if (kv.Value.X.Contains("XXXX") || kv.Value.Y.Contains("YYYY"))
+                { continue; }
+
                 var snidx = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                 var tempvm = new WATSampleXY();
                 tempvm.CouponID = snidx[0];
                 tempvm.ChannelInfo = snidx[1];
+
                 var X = UT.O2I(kv.Value.X.Replace("X", "").Replace("x", "").Replace("Y", "").Replace("y", ""));
                 if (arraysize != 1 && X % arraysize == 0)
                 { X = X - (arraysize - 1); }
@@ -439,10 +445,14 @@ namespace WXLogic
 
             foreach (var kv in dict)
             {
+                if (kv.Value.X.Contains("XXXX") || kv.Value.Y.Contains("YYYY"))
+                { continue; }
+
                 //var snidx = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
                 var tempvm = new WATSampleXY();
                 tempvm.CouponID = kv.Key;
                 tempvm.ChannelInfo = "0";
+
                 var X = UT.O2I(kv.Value.X.Replace("X", "").Replace("x", "").Replace("Y", "").Replace("y", ""));
                 if (arraysize != 1 && X % arraysize == 0)
                 { X = X - (arraysize - 1); }

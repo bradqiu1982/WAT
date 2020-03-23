@@ -480,3 +480,23 @@ CREATE TABLE [WAT].[dbo].[Eval_Specs_Chip_PassFail](
 
 
 
+CREATE TABLE [WAT].[dbo].[WATAnalyzeComment](
+	[watid] [NVARCHAR](200) NOT NULL,
+	[commentid] [NVARCHAR](200) NOT NULL,
+	[comment] [NVARCHAR](MAX) NOT NULL,
+	[updatetime] [datetime]  NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
+)
+create index watanaidx on [WAT].[dbo].[WATAnalyzeComment]([watid])
+
+
+CREATE TABLE [WAT].[dbo].[WXEvalPNRate](
+	[EvalPN] [NVARCHAR](200) NOT NULL,
+	[RealRate] [NVARCHAR](200) NOT NULL,
+	[TreatRate] [NVARCHAR](200) NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
+)

@@ -421,6 +421,8 @@ namespace WAT.Models
                 }
             }
 
+            var commentdict = WATAnalyzeComment.GetAllWATid();
+
             foreach (var kv in dictdata)
             {
                 var tmplist = kv.Value;
@@ -430,11 +432,20 @@ namespace WAT.Models
                 });
                 var tempvm = tmplist[0];
                 GetWATTestResult(tempvm);
-                tempvm.VArray = WXLogic.WATSampleXY.GetArrayFromAllenSherman(tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T",""));
+                tempvm.VArray = WXEvalPN.GetLocalWaferArray(tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T",""));
+                if (commentdict.ContainsKey(tempvm.CouponID))
+                { tempvm.HasComment = "HasComment"; }
                 ret.Add(tempvm);
             }
 
             GetVcselType(ret,ctrl);
+
+            ret.Sort(delegate (WuxiWATData4MG obj1, WuxiWATData4MG obj2)
+            {
+                var d1 = UT.O2T(obj1.TestTime);
+                var d2 = UT.O2T(obj2.TestTime);
+                return d2.CompareTo(d1);
+            });
 
             return ret;
         }
@@ -564,6 +575,8 @@ namespace WAT.Models
             DIS = 0;
             WOT = 0;
             DLA = 0;
+
+            HasComment = "";
         }
 
 
@@ -611,6 +624,8 @@ namespace WAT.Models
             DIS = 0;
             WOT = 0;
             DLA = 0;
+
+            HasComment = "";
         }
 
         public string CouponID { set; get; }
@@ -658,5 +673,6 @@ namespace WAT.Models
         public int DIS { set; get; }
         public int WOT { set; get; }
         public int DLA { set; get; }
+        public string HasComment { set; get; }
     }
 }
