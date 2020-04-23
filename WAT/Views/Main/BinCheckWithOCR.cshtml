@@ -1,0 +1,61 @@
+﻿
+@{
+    ViewBag.Title = "BinCheckWithOCR";
+    Layout = "~/Views/Shared/_Layout4Product.cshtml";
+}
+
+<style type="text/css">
+    th.dt-center, td.dt-center {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/mapfilewithocr.js"></script>
+<script type="text/javascript">
+        $(function(){
+            MAPOCR.mapocrinit();
+        })
+</script>
+
+<style type="text/css">
+    .CFD3 {
+        background-color: lightsalmon !important;
+    }
+</style>
+
+<div class="row form-group">
+    <div class="col-xs-4"></div>
+    <div class="col-xs-4"><h1>Bin Check With OCR</h1></div>
+    <div class="col-xs-4"></div>
+</div>
+
+<div class="row form-group">
+    <div class="col-xs-1"></div>
+    <div class="col-xs-2"><input class="form-control" type="text" value="Wafer Number" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="wafernum" name="wafernum" readonly></div>
+    <div class="col-xs-2"><input class="form-control" type="text" value="OCR LOT" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="lotnum" name="lotnum" readonly></div>
+    <div class="col-xs-1"><button class="btn btn-success" id="btn-check" name="btn-check">Check</button></div>
+</div>
+
+<div class="row form-group">
+    <div style="margin-top:20px">
+        <table class="table table-hover  table-condensed table-striped" id="wafertable" style="margin-top:1%">
+            <caption class="tb-caption">WAFER BIN INFORMATION</caption>
+            <thead id="waferhead">
+                <tr>
+                    <th>Wafer</th>
+                    <th>Lot Num</th>
+                    <th>OCR FILE</th>
+                    <th>XYImg</th>
+                    <th>X</th>
+                    <th>Y</th>
+                    <th>BIN</th>
+                </tr>
+            </thead>
+            <tbody id="wafercontent"></tbody>
+        </table>
+    </div>
+</div>
+
+

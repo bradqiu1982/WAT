@@ -25,7 +25,8 @@ namespace WAT.Controllers
         [HttpGet]
         public string GetWaferCoordinate(string WAFERNUM)
         {
-            return WATSampleXY.GetWATSampleSingletCoordination(WAFERNUM);
+            return string.Empty;
+            //return WATSampleXY.GetWATSampleSingletCoordination(WAFERNUM);
         }
     }
 }

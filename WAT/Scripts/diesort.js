@@ -234,12 +234,14 @@
                 $("#waferhead").append(
                         '<tr>' +
                             '<th>Wafer</th>' +
-                            '<th>BIN</th>' +
-                            '<th>Count</th>' +
-                            '<th>Test</th>' +
+                            '<th>From Device</th>' +
+                            '<th>From BIN</th>' +
+                            '<th>To BIN</th>' +
+                            //'<th>Count</th>' +
+                            //'<th>Test</th>' +
                             //'<th>Finisar PN</th>' +
-                            '<th>Array</th>' +
-                            '<th>Desc</th>' +
+                            //'<th>Array</th>' +
+                            //'<th>Desc</th>' +
                          '</tr>'
                     );
 
@@ -247,12 +249,14 @@
                     $("#wafercontent").append(
                         '<tr>' +
                             '<td>' + val.Wafer + '</td>' +
-                            '<td>' + val.BIN + '</td>' +
-                            '<td>' + val.Count + '</td>' +
-                            '<td>' + val.Test + '</td>' +
+                            '<td>' + val.FromDevice + '</td>' +
+                            '<td>' + val.FromBin + '</td>' +
+                            '<td>' + val.ToBin + '</td>' +
+                            //'<td>' + val.Count + '</td>' +
+                            //'<td>' + val.Test + '</td>' +
                             //'<td>' + val.FPN + '</td>' +
-                            '<td>' + val.Array + '</td>' +
-                            '<td>' + val.Desc + '</td>' +
+                            //'<td>' + val.Array + '</td>' +
+                            //'<td>' + val.Desc + '</td>' +
                         '</tr>'
                         );
                 });
@@ -283,13 +287,13 @@
                             '<th>Wafer</th>' +
                             '<th>BIN</th>' +
                             '<th>Count</th>' +
-                            '<th>Unsorted PN</th>' +
-                            '<th>Uninspect PN</th>' +
-                            '<th>Bom PN</th>' +
-                            '<th>PN BIN</th>' +
+                            //'<th>Unsorted PN</th>' +
+                            //'<th>Uninspect PN</th>' +
+                            //'<th>Bom PN</th>' +
+                            //'<th>PN BIN</th>' +
                             //'<th>Finisar PN</th>' +
-                            '<th>Array</th>' +
-                            '<th>Desc</th>' +
+                            //'<th>Array</th>' +
+                            //'<th>Desc</th>' +
                          '</tr>'
                     );
 
@@ -299,13 +303,13 @@
                             '<td>' + val.Wafer + '</td>' +
                             '<td>' + val.BIN + '</td>' +
                             '<td>' + val.Count + '</td>' +
-                            '<td>' + val.UnsortedPN + '</td>' +
-                            '<td>' + val.UninspectPN + '</td>' +
-                            '<td>' + val.BomPN + '</td>' +
-                            '<td>' + val.PNBIN + '</td>' +
+                            //'<td>' + val.UnsortedPN + '</td>' +
+                            //'<td>' + val.UninspectPN + '</td>' +
+                            //'<td>' + val.BomPN + '</td>' +
+                            //'<td>' + val.PNBIN + '</td>' +
                             //'<td>' + val.FPN + '</td>' +
-                            '<td>' + val.Array + '</td>' +
-                            '<td>' + val.Desc + '</td>' +
+                            //'<td>' + val.Array + '</td>' +
+                            //'<td>' + val.Desc + '</td>' +
                         '</tr>'
                         );
                 });
@@ -655,7 +659,38 @@
                     $.bootstrapLoading.end();
 
                     if (output.MSG == '') {
-                        alert('PICK SAMPLE 4 IPOH SUCCESSFULLY');
+                        alert('PICK BIN SAMPLE 4 IPOH SUCCESSFULLY');
+                    }
+                    else {
+                        alert(output.MSG);
+                    }
+                });
+            }
+        });
+    }
+
+    var picke014ipohfun = function () {
+
+        $('body').on('click', '#btn-pick', function () {
+            var wafer = $('#wafernum').val();
+            if (wafer != '') {
+                var options = {
+                    loadingTips: "loading data......",
+                    backgroundColor: "#aaa",
+                    borderColor: "#fff",
+                    opacity: 0.8,
+                    borderColor: "#fff",
+                    TipsColor: "#000",
+                }
+                $.bootstrapLoading.start(options);
+
+                $.post('/DieSort/E01SamplePick4IpohData', {
+                    wafer: wafer
+                }, function (output) {
+                    $.bootstrapLoading.end();
+
+                    if (output.MSG == '') {
+                        alert('PICK E01 SAMPLE 4 IPOH SUCCESSFULLY');
                     }
                     else {
                         alert(output.MSG);
@@ -684,6 +719,9 @@
         },
         PICK4IPOH: function () {
             pick4ipohfun();
+        },
+        PICKE014IPOH: function () {
+            picke014ipohfun();
         }
     }
 }();

@@ -13,7 +13,7 @@ namespace WAT.Models
 
     public class DieSortVM
     {
-        public static List<string> GetAllWaferFile(Controller ctrl)
+        public static List<string> GetAllWaferFile(Controller ctrl,string prodfam=null)
         {
             if (ctrl != null)
             {
@@ -25,9 +25,12 @@ namespace WAT.Models
 
             var syscfgdict = CfgUtility.GetSysConfig(ctrl);
             var srcfolder = syscfgdict["DIESORTFOLDER"];
+            if (!string.IsNullOrEmpty(prodfam))
+            { srcfolder = srcfolder + "\\" + prodfam; }
+
             var allwafermapfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, srcfolder);
 
-            if (ctrl != null)
+            if (ctrl != null && string.IsNullOrEmpty(prodfam))
             {
                 if (ctrl.HttpContext.Cache != null)
                 {
@@ -1539,77 +1542,27 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<object> SampleData4Plan(string wafer)
+        public static List<object> waferBinSubstitude(string wafer)
         {
-            var dict = new Dictionary<string, string>();
-            dict.Add("@wafer", wafer);
-
-            var array = "";
-            var pdesc = "";
-            var fpn = "";
-            var sql = "select top 1 parray,pdesc,fpn from [WAT].[dbo].[WaferPassBinData] where wafer = @wafer";
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
-            {
-                array = UT.O2S(line[0]);
-                pdesc = UT.O2S(line[1]);
-                fpn = UT.O2S(line[2]);
-            }
-
-            var binlist = new List<string>();
-            sql = "select distinct bin from [WAT].[dbo].[WaferSampleData] where wafer = @wafer and bin <> '57X'";
-            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
-            {
-                binlist.Add(UT.O2S(line[0]));
-            }
-
-            var watcount = 0;
-            sql = "select count(*) from [WAT].[dbo].[WaferSampleData] where wafer = @wafer and bin <> '57X'";
-            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
-            {
-                watcount = UT.O2I(line[0]);
-            }
-
-            var hastcount = 0;
-            sql = "select count(*) from [WAT].[dbo].[WaferSampleData] where wafer = @wafer and bin = '57X'";
-            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
-            {
-                hastcount = UT.O2I(line[0]);
-            }
-
             var ret = new List<object>();
 
-            if (watcount > 0)
-            {
-                ret.Add(new {
-                    Wafer = wafer,
-                    BIN = string.Join(",",binlist),
-                    Count = watcount,
-                    Test = "WAT",
-                    FPN = fpn,
-                    Array = array,
-                    Desc = pdesc
-                });
-
-            }
-
-            if (hastcount > 0)
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+           
+            var sql = @" select distinct FromDevice,FromBin,ToBin FROM [WAT].[dbo].[WATBINSubstitute] where FromDevice in(
+                        	select distinct Product FROM [WAT].[dbo].[WXEvalPN] where WaferNum = @wafer)";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
             {
                 ret.Add(new
                 {
                     Wafer = wafer,
-                    BIN = "57X",
-                    Count = hastcount,
-                    Test = "HASTbDH",
-                    FPN = fpn,
-                    Array = array,
-                    Desc = pdesc
+                    FromDevice = UT.O2S(line[0]),
+                    FromBin = UT.O2S(line[1]),
+                    ToBin = UT.O2S(line[2])
                 });
             }
-
+           
             return ret;
         }
 
@@ -1636,25 +1589,17 @@ namespace WAT.Models
             var localpndata = AllenVcselPNs.GetMapFromLocal(ctrl);
 
             var ret = new List<object>();
-            var sql = "select wafer,bin,bincount,parray,pdesc,fpn from [WAT].[dbo].[WaferPassBinData] where wafer = @wafer";
+            var sql = "select wafer,bincode,bincount from [WAT].[dbo].[WaferSrcData] where WAFER = @wafer and BinQuality = 'Pass'";
             var dict = new Dictionary<string, string>();
             dict.Add("@wafer", wafer);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
-                var pns = AllenVcselPNs.GetPNsFromAllen(wafer, UT.O2S(line[1]), localpndata);
                 ret.Add(new
                 {
                     Wafer = UT.O2S(line[0]),
                     BIN = UT.O2S(line[1]),
-                    Count = UT.O2I(line[2]),
-                    UnsortedPN = pns.UnsortedPN,
-                    UninspectPN = pns.UninspectPN,
-                    BomPN = pns.BomPN,
-                    PNBIN = pns.PNBIN,
-                    FPN = UT.O2S(line[5]),
-                    Array = UT.O2S(line[3]),
-                    Desc = UT.O2S(line[4])
+                    Count = UT.O2I(line[2])
                 });
             }
             return ret;
@@ -1797,6 +1742,242 @@ namespace WAT.Models
                 if(bincode.Contains("55")
                     ||bincode.Contains("57")
                     ||bincode.Contains("59"))
+                passbinlist.Add(bincode);
+            }
+            if (passbinlist.Count == 0)
+            { return new Dictionary<string, string>(); }
+
+            var ret = new Dictionary<string, string>();
+            var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+            foreach (XmlElement nd in bincodelist)
+            {
+                if (passbinlist.Contains(nd.InnerText))
+                {
+                    var k = nd.GetAttribute("X") + ":::" + nd.GetAttribute("Y");
+                    if (!ret.ContainsKey(k))
+                    { ret.Add(k, nd.InnerText); }
+                }
+            }
+            return ret;
+        }
+
+        public static string PickE01Sample4Ipoh(string wafer, Controller ctrl)
+        {
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+
+            var productfm = "";
+            if (wafer.Length == 13)
+            {
+                productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                if (string.IsNullOrEmpty(productfm))
+                { return "fail to to get product family by wafer " + wafer; }
+            }
+            else
+            {
+                productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+                if (string.IsNullOrEmpty(productfm))
+                {
+                    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                    if (string.IsNullOrEmpty(productfm))
+                    { return "fail to to get product family by wafer " + wafer; }
+                }
+            }
+
+            var allwffiles = DieSortVM.GetAllWaferFile(ctrl, productfm);
+
+            //get the actual wafer file
+            var swaferfile = "";
+            foreach (var f in allwffiles)
+            {
+                var uf = f.ToUpper();
+                if (uf.Contains(productfm.ToUpper()) && uf.Contains(wafer.ToUpper()))
+                {
+                    swaferfile = f;
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(swaferfile))
+            {
+                foreach (var f in allwffiles)
+                {
+                    var uf = f.ToUpper();
+                    if (uf.Contains(wafer.ToUpper()))
+                    {
+                        swaferfile = f;
+                        break;
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(swaferfile))
+            {
+                return "map file does not exist";
+            }
+
+
+            var waferfile = ExternalDataCollector.DownloadShareFile(swaferfile, ctrl);
+            if (waferfile == null)
+            { return "fail to download map file"; }
+
+            try
+            {
+                //get modify information
+                var doc = new XmlDocument();
+                doc.Load(waferfile);
+                var namesp = doc.DocumentElement.GetAttribute("xmlns");
+                doc = StripNamespace(doc);
+                XmlElement root = doc.DocumentElement;
+
+                var passedbinxydict = GetIPOHE01PassedBinXYDict(root);
+                if (passedbinxydict.Count == 0)
+                { return "fail to get any good bin"; }
+
+                var bin1dict = new Dictionary<string, string>();
+                var bin2dict = new Dictionary<string, string>();
+                GetIPOHSelectedXYDict(passedbinxydict, bin1dict, bin2dict
+                    , UT.O2I(syscfgdict["IPOHE01CNT"]), 0);
+                if (bin1dict.Count == 0)
+                {
+                    return "fail to get sample";
+                }
+
+                var allbincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                foreach (XmlElement nd in allbincodelist)
+                {
+                    var binnum = UT.O2I(nd.InnerText);
+                    if ((binnum >= 30 && binnum <= 39))
+                    { }
+                    else
+                    {
+                        nd.InnerText = "99";
+                    }
+                }
+
+                foreach (var kv in bin1dict)
+                {
+                    var xystr = kv.Key.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (XmlElement nd in root.SelectNodes("//BinCode[@X='" + xystr[0] + "' and @Y='" + xystr[1] + "']"))
+                    {
+                        nd.InnerText = "1";
+                    }
+                }
+
+                var desfolder = syscfgdict["DIESORTSHARE"];
+                doc.DocumentElement.SetAttribute("xmlns", namesp);
+                var savename = Path.Combine(desfolder, Path.GetFileNameWithoutExtension(waferfile) + "_IPOHE01" + Path.GetExtension(waferfile));
+                if (ExternalDataCollector.FileExist(ctrl, savename))
+                { ExternalDataCollector.FileDelete(ctrl, savename); }
+                doc.Save(savename);
+
+            }
+            catch (Exception ex) { return ex.Message; }
+
+            return string.Empty;
+        }
+
+        public static string GetAllBinFromMapFile(string wafer,Dictionary<string,string> bindict, Controller ctrl)
+        {
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+
+            var productfm = WXEvalPN.GetLocalProductFam(wafer);
+            var allwffiles = DieSortVM.GetAllWaferFile(ctrl);
+            var arraysize = WXEvalPN.GetLocalWaferArray(wafer);
+
+            //if (wafer.Length == 13)
+            //{
+            //    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+            //    if (string.IsNullOrEmpty(productfm))
+            //    { return "fail to to get product family by wafer " + wafer; }
+            //}
+            //else
+            //{
+            //    productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+            //    if (string.IsNullOrEmpty(productfm))
+            //    {
+            //        productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+            //        if (string.IsNullOrEmpty(productfm))
+            //        { return "fail to to get product family by wafer " + wafer; }
+            //    }
+            //}
+
+            //get the actual wafer file
+            var swaferfile = "";
+            long filesize = 0;
+            var flist = new List<string>();
+            foreach (var f in allwffiles)
+            {
+                var uf = f.ToUpper();
+                if (uf.Contains(wafer.ToUpper()))
+                {
+                    flist.Add(uf);
+                }
+            }
+
+            foreach (var f in flist)
+            {
+                System.IO.FileInfo fi = new System.IO.FileInfo(f);
+                if (fi.Length > filesize)
+                {
+                    swaferfile = f;
+                    filesize = fi.Length;
+                }
+            }
+
+            if (string.IsNullOrEmpty(swaferfile))
+            {
+                return "map file does not exist";
+            }
+
+
+            var waferfile = ExternalDataCollector.DownloadShareFile(swaferfile, ctrl);
+            if (waferfile == null)
+            { return "fail to download map file"; }
+
+            try
+            {
+                //get modify information
+                var doc = new XmlDocument();
+                doc.Load(waferfile);
+                var namesp = doc.DocumentElement.GetAttribute("xmlns");
+                doc = StripNamespace(doc);
+                XmlElement root = doc.DocumentElement;
+
+                var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                foreach (XmlElement nd in bincodelist)
+                {
+                    var x = nd.GetAttribute("X");
+                    var y = nd.GetAttribute("Y");
+                    var k = x + ":::" + y;
+                    if (!bindict.ContainsKey(k))
+                    { bindict.Add(k, nd.InnerText); }
+                }//end foreach
+            }catch (Exception ex) { return ex.Message; }
+
+            return string.Empty;
+        }
+
+        public static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
+        {
+            var new_x = ((arrayx - DIE_ONE_X
+                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
+                + DIE_ONE_FIELD_MIN_X;
+            if (Array_Count != 1)
+            { return (int)Math.Round(new_x, 0) - 1; }
+            else
+            { return (int)Math.Round(new_x, 0); }
+        }
+
+        private static Dictionary<string, string> GetIPOHE01PassedBinXYDict(XmlElement root)
+        {
+            var passbinnodes = root.SelectNodes("//BinDefinition[@BinQuality='Pass' and @BinCode and @Pick='true']");
+            if (passbinnodes.Count == 0)
+            { return new Dictionary<string, string>(); }
+
+            var passbinlist = new List<string>();
+            foreach (XmlElement nd in passbinnodes)
+            {
+                var bincode = nd.GetAttribute("BinCode");
                 passbinlist.Add(bincode);
             }
             if (passbinlist.Count == 0)

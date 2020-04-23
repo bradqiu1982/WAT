@@ -281,7 +281,8 @@ namespace WXLogic
             if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
                 && logicresult.TestPass
                 && (CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("E01"))
-                && string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0
+                && (string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0 
+                || string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL1JUDGEMENT") == 0)
                 && string.IsNullOrEmpty(AnalyzeParam)
                 && AllowToMoveMapFile)
             {
@@ -289,7 +290,7 @@ namespace WXLogic
                 {
                     using (NativeMethods cv = new NativeMethods("brad.qiu", "china", cfg["SHAREFOLDERPWD"]))
                     {
-                        MoveOriginalMapFile(containerinfo.wafer, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
+                        MoveOriginalMapFile(containerinfo.wafer,containerinfo.ProdFam, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
                     }
                 }
                 catch (Exception ex) { }
@@ -390,12 +391,19 @@ namespace WXLogic
             }
         }
 
-        private static void MoveOriginalMapFile(string wafer, string orgfolder, string PCT100folder)
+        private static void MoveOriginalMapFile(string wafer,string product, string orgfolder, string PCT100folder)
         {
             try
             {
+                var existfiles = Directory.GetFiles(PCT100folder);
+                foreach (var efs in existfiles)
+                {
+                    if (efs.ToUpper().Contains(wafer.ToUpper()))
+                    { return; }
+                }
+
                 var filedict = new Dictionary<string, string>();
-                var nofolderfiles = Directory.GetFiles(orgfolder);
+                var nofolderfiles = Directory.GetFiles(orgfolder+"\\"+product);
                 foreach (var f in nofolderfiles)
                 {
                     var uf = f.ToUpper();
@@ -403,17 +411,17 @@ namespace WXLogic
                     { filedict.Add(uf, f); }
                 }
 
-                var folders = Directory.GetDirectories(orgfolder);
-                foreach (var fd in folders)
-                {
-                    var fs = Directory.GetFiles(fd);
-                    foreach (var f in fs)
-                    {
-                        var uf = f.ToUpper();
-                        if (!filedict.ContainsKey(uf))
-                        { filedict.Add(uf, f); }
-                    }
-                }
+                //var folders = Directory.GetDirectories(orgfolder);
+                //foreach (var fd in folders)
+                //{
+                //    var fs = Directory.GetFiles(fd);
+                //    foreach (var f in fs)
+                //    {
+                //        var uf = f.ToUpper();
+                //        if (!filedict.ContainsKey(uf))
+                //        { filedict.Add(uf, f); }
+                //    }
+                //}
 
                 foreach (var kv in filedict)
                 {
@@ -1048,7 +1056,7 @@ namespace WXLogic
                 {
                     using (NativeMethods cv = new NativeMethods("brad.qiu", "china", cfg["SHAREFOLDERPWD"]))
                     {
-                        MoveOriginalMapFile(containerinfo.wafer, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
+                        MoveOriginalMapFile(containerinfo.wafer, containerinfo.ProdFam, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
                     }
                 }
                 catch (Exception ex) { }

@@ -278,6 +278,29 @@ namespace WAT.Models
             }
         }
 
+        public static string GetLocalProductFam(string wafer)
+        {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafer);
+
+            var sql = "select top 1 Product from [WAT].[dbo].[WXEvalPN] where [WaferNum] = @WaferNum";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            var product = "";
+            if (dbret.Count > 0)
+            { product = UT.O2S(dbret[0][0]); }
+
+            if (!string.IsNullOrEmpty(product))
+            { return product; }
+            else
+            {
+                PrepareEvalPN(wafer);
+                dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+                if (dbret.Count > 0)
+                { product = UT.O2S(dbret[0][0]); }
+                return product;
+            }
+        }
+
         public static bool PrepareEvalPN(string wafernum)
         {
             if (wafernum.Length == 13)

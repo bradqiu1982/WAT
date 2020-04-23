@@ -277,6 +277,7 @@
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
     <Compile Include="Models\MachineUserMap.cs" />
+    <Compile Include="Models\OGPSNXYVM.cs" />
     <Compile Include="Models\PassFailCoupon4Comparing.cs" />
     <Compile Include="Models\SixInchMapFileData.cs" />
     <Compile Include="Models\UT.cs" />
@@ -777,6 +778,7 @@
     <Content Include="Scripts\highcharts\annotations.js" />
     <Content Include="Scripts\highcharts\groupcategories_styles.css" />
     <Content Include="Scripts\highcharts\grouped-categories.js" />
+    <Content Include="Scripts\mapfilewithocr.js" />
     <Content Include="Scripts\WATDataPrepare.js" />
     <Content Include="WXCfg.txt" />
     <None Include="Properties\PublishProfiles\watpublish.pubxml" />
@@ -886,6 +888,10 @@
     <Content Include="Views\WATLogic\ALLENWATXY.cshtml" />
     <Content Include="Views\WATLogic\WUXIWATDistribution.cshtml" />
     <Content Include="userfiles\ImageUpload.ashx" />
+    <Content Include="Views\Main\PrepareBinMap.cshtml" />
+    <Content Include="Views\DieSort\E01SamplePick4Ipoh.cshtml" />
+    <Content Include="Views\Main\BinCheckWithOCR.cshtml" />
+    <Content Include="Views\Shared\_Layout4Product.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

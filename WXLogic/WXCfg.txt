@@ -19,5 +19,5 @@ DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PRO
 DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
 SHAREFOLDERPWD:::wangle@4567897
 
-PRODBIYIELDRP01:::98.5
+PRODBIYIELDRP01:::97
 

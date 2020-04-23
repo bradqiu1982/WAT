@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using WAT.Models;
 using WXLogic;
 using System.Web.Routing;
+using System.IO;
 
 namespace WAT.Controllers
 {
@@ -315,6 +316,20 @@ namespace WAT.Controllers
                 }
             }
 
+            foreach (var wf in wflist)
+            {
+                var maxtimes = 0;
+                while (true)
+                {
+                    if (Models.WXProbeData.AllenHasData(wf))
+                    { break; }
+                    new System.Threading.ManualResetEvent(false).WaitOne(5000);
+                    maxtimes++;
+                    if (maxtimes > 24)
+                    { break; }
+                }
+            }
+
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
@@ -419,6 +434,193 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult PrepareBinMap()
+        {
+            return View();
+        }
+
+        public JsonResult PrepareBinMapFile()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var marks = Request.Form["marks"];
+            List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var wfdatalist = new List<object>();
+            foreach (var wf in wflist)
+            {
+                var evalpn = WXLogic.WXEvalPN.GetProdFamByWaferNum(wf);
+                if (string.IsNullOrEmpty(evalpn))
+                {
+                    DieSortVM.PrepareEvalPN(wf);
+                    evalpn = WXLogic.WXEvalPN.GetProdFamByWaferNum(wf);
+                }
+
+                if (string.IsNullOrEmpty(evalpn))
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = "NG"
+                    });
+                }
+                else
+                {
+                    var folderuser = syscfg["SHAREFOLDERUSER"];
+                    var folderdomin = syscfg["SHAREFOLDERDOMIN"];
+                    var folderpwd = syscfg["SHAREFOLDERPWD"];
+
+                    var ok = false;
+                    try
+                    {
+                        using (WAT.Models.NativeMethods cv = new WAT.Models.NativeMethods(folderuser, folderdomin, folderpwd))
+                        {
+                            ok = MoveOriginalMapFile(wf, evalpn, syscfg["DIESORTFOLDER"], syscfg["DIESORT100PCT"]);
+                        }
+                    }
+                    catch (Exception ex) { ok = false; }
+
+                    if (ok)
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wf,
+                            stat = "OK"
+                        });
+                    }
+                    else
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wf,
+                            stat = "NG"
+                        });
+                    }
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist
+            };
+            return ret;
+        }
+
+        private bool MoveOriginalMapFile(string wafer, string product, string orgfolder, string PCT100folder)
+        {
+            try
+            {
+                var existfiles = Directory.GetFiles(PCT100folder);
+                foreach (var efs in existfiles)
+                {
+                    if (efs.ToUpper().Contains(wafer.ToUpper()))
+                    { return true; }
+                }
+
+                var filedict = new Dictionary<string, string>();
+                var nofolderfiles = Directory.GetFiles(orgfolder + "\\" + product);
+                foreach (var f in nofolderfiles)
+                {
+                    var uf = f.ToUpper();
+                    if (!filedict.ContainsKey(uf))
+                    { filedict.Add(uf, f); }
+                }
+
+                foreach (var kv in filedict)
+                {
+                    if (kv.Key.Contains(wafer.ToUpper()))
+                    {
+                        var desfile = Path.Combine(PCT100folder, Path.GetFileName(kv.Value));
+                        System.IO.File.Copy(kv.Value, desfile, true);
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex) { }
+
+            return false;
+        }
+
+
+        public ActionResult BinCheckWithOCR()
+        { return View(); }
+
+        public JsonResult BinCheckWithOCRData()
+        {
+            //wafer for mapfile,lotnum for OCR
+
+            var wf = Request.Form["wafer"];
+            var lotnum = Request.Form["lotnum"];
+            var wafer = wf.Split(new string[] { "E", "T", "R" }, StringSplitOptions.RemoveEmptyEntries)[0];
+
+            var ocrlist = new List<OGPSNXYVM>();
+
+            var bindict = new Dictionary<string, string>();
+            var MSG = "";
+            MSG = DieSortVM.GetAllBinFromMapFile(wafer,bindict, this);
+            if (bindict.Count > 0)
+            {
+                var ocrdata = OGPSNXYVM.GetLocalOGPXYSNDict(lotnum).Values.ToList();
+                if (ocrdata.Count == 0)
+                { MSG = "No OCR coordinate data!"; }
+                foreach (var item in ocrdata)
+                {
+                    var key = (Models.UT.O2I(item.X.Replace("X", "").Replace("x", "")) + ":::" + Models.UT.O2I(item.Y.Replace("Y", "").Replace("y", "")));
+                    if (bindict.ContainsKey(key))
+                    {
+                        item.Bin = bindict[key];
+                    }
+                    item.Product = lotnum;
+                    ocrlist.Add(item);
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                ocrlist = ocrlist,
+                MSG = MSG
+            };
+            return ret;
+
+        }
+
+        public JsonResult GetWXWATWafer()
+        {
+            var couponidlistx = new List<string>();
+            var dbret = WuxiWATData4MG.GetWUXIWATWaferStepData();
+            foreach (var line in dbret)
+            {
+                var wafer = Models.UT.O2S(line[0]);
+                if (wafer.Length > 1)
+                { wafer = wafer.Substring(0, wafer.Length - 1); }
+                else
+                { continue; }
+                if (!couponidlistx.Contains(wafer))
+                {
+                    couponidlistx.Add(wafer);
+                }
+            }
+            var ret = new JsonResult();
+            ret.Data = new
+            {
+                couponidlist = couponidlistx
+            };
+            return ret;
+        }
+
+        public JsonResult GetWXOCRWafer()
+        {
+            var couponidlistx = WATOGPVM.GetLocalOGPXYWafer();
+            var ret = new JsonResult();
+            ret.Data = new
+            {
+                couponidlist = couponidlistx
+            };
+            return ret;
+        }
 
     }
 }

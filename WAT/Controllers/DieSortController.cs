@@ -204,7 +204,7 @@ namespace WAT.Controllers
         public JsonResult LoadWaferData4Plan()
         {
             var wafernum = Request.Form["wafernum"];
-            var sampledata = DieSortVM.SampleData4Plan(wafernum);
+            var sampledata = DieSortVM.waferBinSubstitude(wafernum);
             var waferorgdata = DieSortVM.OrgData4Plan(wafernum,this);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
@@ -349,6 +349,22 @@ namespace WAT.Controllers
         public JsonResult SamplePick4IpohData() {
             var wafer = Request.Form["wafer"];
             var MSG = DieSortVM.PickSample4Ipoh(wafer,this);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                MSG = MSG
+            };
+            return ret;
+        }
+
+        public ActionResult E01SamplePick4Ipoh()
+        { return View(); }
+
+        public JsonResult E01SamplePick4IpohData()
+        {
+            var wafer = Request.Form["wafer"];
+            var MSG = DieSortVM.PickE01Sample4Ipoh(wafer, this);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new

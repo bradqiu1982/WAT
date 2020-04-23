@@ -320,14 +320,16 @@ namespace WAT.Controllers
             var r100 = Request.Form["r100"];
 
             var wxlogic = new WXLogic.WXWATLogic();
-            wxlogic.AllowToMoveMapFile = false;
+            
             var ret = new WXLogic.WXWATLogic();
             if(r100.Contains("FALSE"))
             {
+                wxlogic.AllowToMoveMapFile = true;
                 ret = wxlogic.WATPassFail(couponid, jstepname);
             }
             else
             {
+                wxlogic.AllowToMoveMapFile = false;
                 ret = wxlogic.WATPassFail100(couponid, jstepname);
             }
 

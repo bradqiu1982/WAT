@@ -333,7 +333,7 @@ namespace WAT.Models
         }
 
 
-        private static List<List<object>> GetWUXIWATWaferStepData()
+        public static List<List<object>> GetWUXIWATWaferStepData()
         {
             var sql = @"select distinct left(Containername,10),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
                          where len(Containername) = 20 and Containername not like '17%' and (Containername like '%E08%' 
