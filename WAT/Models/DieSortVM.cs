@@ -1586,22 +1586,69 @@ namespace WAT.Models
 
         public static List<object> OrgData4Plan(string wafer,Controller ctrl)
         {
-            var localpndata = AllenVcselPNs.GetMapFromLocal(ctrl);
-
+            //var localpndata = AllenVcselPNs.GetMapFromLocal(ctrl);
             var ret = new List<object>();
-            var sql = "select wafer,bincode,bincount from [WAT].[dbo].[WaferSrcData] where WAFER = @wafer and BinQuality = 'Pass'";
-            var dict = new Dictionary<string, string>();
-            dict.Add("@wafer", wafer);
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
+
+            if (wafer.Length == 13)
             {
-                ret.Add(new
+                var sql = "select wafer,bin,bincount from [WAT].[dbo].[WaferPassBinData] where WAFER = @wafer";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@wafer", wafer);
+                var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+                foreach (var line in dbret)
                 {
-                    Wafer = UT.O2S(line[0]),
-                    BIN = UT.O2S(line[1]),
-                    Count = UT.O2I(line[2])
-                });
+                    ret.Add(new
+                    {
+                        Wafer = UT.O2S(line[0]),
+                        BIN = UT.O2S(line[1]),
+                        Count = UT.O2I(line[2])
+                    });
+                }
             }
+            else
+            {
+                var srcdict = new Dictionary<string, int>();
+                var sql = "select wafer,bincode,bincount from [WAT].[dbo].[WaferSrcData] where WAFER = @wafer and BinQuality = 'Pass'";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@wafer", wafer);
+                var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+                foreach (var line in dbret)
+                {
+                    var bin = UT.O2S(line[1]);
+                    var cnt = UT.O2I(line[2]);
+                    if (!srcdict.ContainsKey(bin))
+                    { srcdict.Add(bin, cnt); }
+                }
+
+                var sampdict = new Dictionary<string, int>();
+                sql = "select bin,count(bin) from [WAT].[dbo].[WaferSampleData] where WAFER = @wafer group by bin";
+                dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+                foreach (var line in dbret)
+                {
+                    var bin = UT.O2S(line[0]);
+                    var cnt = UT.O2I(line[1]);
+                    if (!sampdict.ContainsKey(bin))
+                    { sampdict.Add(bin, cnt); }
+                }
+
+                foreach (var skv in srcdict)
+                {
+                    var bin = skv.Key;
+                    var cnt = skv.Value;
+                    if (sampdict.ContainsKey(bin))
+                    {
+                        cnt = cnt - sampdict[bin];
+                    }
+                    ret.Add(new
+                    {
+                        Wafer = wafer,
+                        BIN = bin,
+                        Count = cnt
+                    });
+                }
+            }
+
+
             return ret;
         }
 

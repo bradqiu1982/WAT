@@ -548,32 +548,83 @@ namespace WAT.Controllers
 
         public JsonResult BinCheckWithOCRData()
         {
-            //wafer for mapfile,lotnum for OCR
+            //wafer for probe bin number,lotnum for OCR
+            var wrongbinlist = new List<List<string>>();
 
-            var wf = Request.Form["wafer"];
-            var lotnum = Request.Form["lotnum"];
+            var wf = Request.Form["wafer"].Trim();
+            var lotnum = Request.Form["lotnum"].Trim();
             var wafer = wf.Split(new string[] { "E", "T", "R" }, StringSplitOptions.RemoveEmptyEntries)[0];
 
             var ocrlist = new List<OGPSNXYVM>();
 
-            var bindict = new Dictionary<string, string>();
             var MSG = "";
-            MSG = DieSortVM.GetAllBinFromMapFile(wafer,bindict, this);
+            var ocrdata = OGPSNXYVM.GetLocalOGPXYSNDict(lotnum).Values.ToList();
+            if (ocrdata.Count == 0)
+            { MSG = "No OCR coordinate data!"; }
+
+            var bindict = Models.WXProbeData.GetBinDictByWafer(wafer, ocrdata);
+
+            //MSG = DieSortVM.GetAllBinFromMapFile(wafer,bindict, this);
+            if (bindict.Count == 0)
+            {  MSG = "Fail to get bin info from Sherman database"; }
+
             if (bindict.Count > 0)
             {
-                var ocrdata = OGPSNXYVM.GetLocalOGPXYSNDict(lotnum).Values.ToList();
-                if (ocrdata.Count == 0)
-                { MSG = "No OCR coordinate data!"; }
+
                 foreach (var item in ocrdata)
                 {
+                    var templine = new List<string>();
                     var key = (Models.UT.O2I(item.X.Replace("X", "").Replace("x", "")) + ":::" + Models.UT.O2I(item.Y.Replace("Y", "").Replace("y", "")));
                     if (bindict.ContainsKey(key))
                     {
                         item.Bin = bindict[key];
+                        var bin = Models.UT.O2I(item.Bin);
+                        if (bin < 50 || bin > 59)
+                        {
+                            templine.Add(wafer);
+                            templine.Add(lotnum);
+                            templine.Add(item.X);
+                            templine.Add(item.Y);
+                            templine.Add(item.Bin);
+                        }
                     }
+                    else
+                    {
+                        templine.Add(wafer);
+                        templine.Add(lotnum);
+                        templine.Add(item.X);
+                        templine.Add(item.Y);
+                        templine.Add("-1");
+                    }
+
                     item.Product = lotnum;
                     ocrlist.Add(item);
+
+                    if (templine.Count > 0) {
+                        wrongbinlist.Add(templine);
+                    }
+
                 }
+            }
+
+            if (wrongbinlist.Count > 0)
+            {
+                var syscfgdict = CfgUtility.GetSysConfig(this);
+                var towho = syscfgdict["DIESORTWARINGLIST"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                var alllines = new List<List<string>>();
+                var title = new List<string>();
+                title.Add("WAFER");
+                title.Add("Lotnum");
+                title.Add("X");
+                title.Add("Y");
+                title.Add("Bin");
+                alllines.Add(title);
+                alllines.AddRange(wrongbinlist);
+
+                var content = EmailUtility.CreateTableHtml("Hi All", "this the wrong bin check email", "", alllines);
+                EmailUtility.SendEmail(this,wafer +" BIN Check",towho,content);
+                new System.Threading.ManualResetEvent(false).WaitOne(1000);
             }
 
             var ret = new JsonResult();

@@ -203,7 +203,7 @@ namespace WAT.Controllers
 
         public JsonResult LoadWaferData4Plan()
         {
-            var wafernum = Request.Form["wafernum"];
+            var wafernum = Request.Form["wafernum"].Trim();
             var sampledata = DieSortVM.waferBinSubstitude(wafernum);
             var waferorgdata = DieSortVM.OrgData4Plan(wafernum,this);
             var ret = new JsonResult();
@@ -374,6 +374,97 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult WATSamplePick()
+        {
+            return View();
+        }
+
+        public JsonResult WATSamplePickData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            var marks = Request.Form["marks"];
+            List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var wfdatalist = new List<object>();
+            var allfile = ExternalDataCollector.DirectoryEnumerateFiles(this, syscfg["DIESORTSHARE"]);
+
+            var existwf = new List<string>();
+            foreach (var wf in wflist)
+            {
+                foreach (var f in allfile)
+                {
+                    if (f.Contains(wf))
+                    {
+                        existwf.Add(wf);
+                    }//end if
+                }//end foreach
+            }//end foreach
+
+            var probewf = new List<string>();
+            foreach (var wf in wflist)
+            {
+                if (existwf.Contains(wf))
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = "SAMPLE MAP FILE EXIST"
+                    });
+                }
+                else
+                {
+                    probewf.Add(wf);
+                }
+            }
+
+            if (probewf.Count > 0)
+            {
+                Models.WXProbeData.PrepareNeoMapData2Allen(probewf);
+            }//end if
+
+            var samplewf = new List<string>();
+            foreach (var wf in probewf)
+            {
+                if (Models.WXProbeData.AllenHasData(wf))
+                { samplewf.Add(wf); }
+                else
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = "FAIL,NO PROBE DATA"
+                    });
+                }
+            }
+
+            var allfiles = DieSortVM.GetAllWaferFile(this);
+            foreach (var wf in samplewf)
+            {
+                if (DieSortVM.SolveANewWafer(wf, allfiles, this, "", false))
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = "OK"
+                    });
+                }
+                else
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = "FAIL,No SAMPLE MAP FILE GENERATED"
+                    });
+                }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist
+            };
+            return ret;
+        }
     }
 
 }

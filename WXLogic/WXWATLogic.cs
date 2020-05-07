@@ -131,7 +131,7 @@ namespace WXLogic
                 if (arraynum == 1)
                 { necessarynum = 4; }
                 else if (arraynum == 4)
-                { necessarynum = 10; }
+                { necessarynum = 8; }
                 else if (arraynum == 12)
                 { necessarynum = 30; }
 

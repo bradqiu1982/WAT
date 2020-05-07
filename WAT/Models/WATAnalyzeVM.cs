@@ -147,8 +147,12 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<double> GetWATSpecLimit(string param, List<string> wflist)
+        public static List<double> GetWATSpecLimit(string param, List<string> wflist_)
         {
+            var wflist = new List<string>();
+            foreach (var wf in wflist_)
+            { wflist.Add(wf.Split(new string[] { "E","R","T"},StringSplitOptions.RemoveEmptyEntries)[0]); }
+
             var limit = getWATSpecLimit_(param, wflist);
             if (limit.Count == 0)
             { limit = getWATSpecLimit_(param.ToUpper().Split(new[] { "_REF" }, StringSplitOptions.RemoveEmptyEntries)[0],wflist); }

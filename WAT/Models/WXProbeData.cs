@@ -31,6 +31,37 @@ namespace WAT.Models
             return ret;
         }
 
+        public static Dictionary<string,string> GetBinDictByWafer(string WaferNum,List<OGPSNXYVM> ocrdata)
+        {
+            var ret = new Dictionary<string, string>();
+            if (WaferNum.Length == 13)
+            {
+                return GetShermanBinDict(WaferNum, ocrdata);
+            }
+            else
+            {
+                var tmplist = new List<string>();
+                tmplist.Add(WaferNum);
+                Models.WXProbeData.PrepareNeoMapData2Allen(tmplist);
+
+                var sql = @"select distinct Xcoord,Ycoord,[bin #] FROM [EngrData].[dbo].[Wuxi_WAT_VR_Report] where waferid = @WaferID  order by [bin #] desc";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@WaferID", WaferNum);
+                var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+                foreach (var line in dbret)
+                {
+                    var x = UT.O2I(line[0]);
+                    var y = UT.O2I(line[1]);
+                    var bin = UT.O2S(line[2]);
+                    var k = x.ToString() + ":::" + y.ToString();
+                    if (!ret.ContainsKey(k))
+                    { ret.Add(k, bin); }
+                }
+            }
+
+            return ret;
+        }
+
         public static bool AllenHasData(string WaferNum)
         {
             var sql = @"select top 1 [Xcoord],[Ycoord],[Ith],[SeriesR],[SlopEff] from [EngrData].[dbo].[Wuxi_WAT_VR_Report] 
@@ -79,6 +110,7 @@ namespace WAT.Models
 
             var xidx = 14;
             var yidx = 15;
+            
             var iidx = 22;
             var sridx = 21;
             var slidx = 23;
@@ -136,6 +168,125 @@ namespace WAT.Models
             return ret;
         }
 
+        private static Dictionary<string,string> GetShermanBinDict(string WaferNum, List<OGPSNXYVM> ocrdata)
+        {
+            var ret = new Dictionary<string, string>();
+            var arraybindict = new Dictionary<string, string>();
+
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WAFER_NUMBER", WaferNum);
+            dict.Add("@DATA_SET_TYPE_NAME", "Final Bins AVI Merged");
+            dict.Add("@Include_Units_IN_Col_Headers", "1");
+            dict.Add("@Passing_Dies_Only", "0");
+            dict.Add("@Sample_Quantity", "-1");
+            dict.Add("@Comma_Delimited_TEST_NAMES_To_Return", "RT.Ith");
+            var dbret = DBUtility.ExeShermanStoreProcedureWithRes("Get_Latest_PROBE_DATA_For_Wafer", dict);
+
+            var xidx = 14;
+            var yidx = 15;
+            var bidx = 16;
+
+
+            var pdidx = 8;
+            var pdfam = "";
+
+            var ridx = 0;
+            foreach (var line in dbret)
+            {
+                if (ridx == 0)
+                {
+                    ridx++;
+                    var colname1 = UT.O2S(line[0]).ToUpper();
+                    if (colname1.Contains("DATA_SET_ID"))
+                    {
+                        var colidx = 0;
+                        foreach (var item in line)
+                        {
+                            var cname = UT.O2S(item).ToUpper();
+                            if (string.Compare(cname, "X",true) == 0)
+                            { xidx = colidx; }
+                            if (string.Compare(cname, "Y",true) == 0)
+                            { yidx = colidx; }
+                            if (cname.Contains("BIN_NUMBER"))
+                            {
+                                bidx = colidx;
+                            }
+                            if (cname.Contains("PRODUCT_FAMILY"))
+                            {
+                                pdidx = colidx;
+                            }
+                            colidx++;
+                        }
+                        continue;
+                    }
+                }
+
+                if (line[xidx] == DBNull.Value || line[yidx] == DBNull.Value
+                    || line[bidx] == DBNull.Value)
+                { continue; }
+
+                var x = UT.O2I(line[xidx]);
+                var y = UT.O2I(line[yidx]);
+                var bin = UT.O2S(line[bidx]);
+                pdfam = UT.O2S(line[pdidx]);
+
+                var k = x.ToString() + ":::" + y.ToString();
+                if (!arraybindict.ContainsKey(k))
+                { arraybindict.Add(k, bin); }
+            }
+
+            var xlist = new List<string>();
+            var ylist = new List<string>();
+            foreach (var item in ocrdata)
+            {
+                xlist.Add(item.X.ToString());
+                ylist.Add(item.Y.ToString());
+            }
+            var xcount = xlist.Count;
+
+            var xcond = string.Join(",", xlist);
+            var ycond = string.Join(",", ylist);
+
+            dict = new Dictionary<string, string>();
+            dict.Add("@Comma_Delimited_Xs", xcond.ToUpper().Replace("X","").Replace("Y",""));
+            dict.Add("@Comma_Delimited_Ys", ycond.ToUpper().Replace("X", "").Replace("Y", ""));
+            dict.Add("@Array_Product_Family", pdfam);
+            dbret = DBUtility.ExeShermanStoreProcedureWithRes("Get_Eval_Array_Coords_From_Singlets", dict);
+
+            var idx = 0;
+            ridx = 0;
+            xidx = 1;
+            yidx = 2;
+            foreach (var line in dbret)
+            {
+                if (ridx == 0)
+                {
+                    var colidx = 0;
+                    foreach (var item in line)
+                    {
+                        var cname = UT.O2S(item).ToUpper();
+                        if (string.Compare(cname, "ArrayX", true) == 0)
+                        { xidx = colidx; }
+                        if (string.Compare(cname, "ArrayY", true) == 0)
+                        { yidx = colidx; }
+                        colidx++;
+                    }
+                    ridx++;
+                    continue;
+                }
+
+                var akey = UT.O2I(line[xidx]).ToString() + ":::" + UT.O2I(line[yidx]).ToString();
+                if (arraybindict.ContainsKey(akey) && idx < xcount)
+                {
+                    var skey = UT.O2I(xlist[idx].ToUpper().Replace("X", "").Replace("Y", "")) + ":::" + UT.O2I(ylist[idx].ToUpper().Replace("X", "").Replace("Y", ""));
+                    if (!ret.ContainsKey(skey))
+                    { ret.Add(skey, arraybindict[akey]); }
+                }
+                idx++;
+            }
+            return ret;
+        }
+
         public static bool PrepareProbeData(string WaferNum)
         {
             var srclist = new List<WXProbeData>();
@@ -184,6 +335,42 @@ namespace WAT.Models
             {
                 return false;
             }
+        }
+
+        public static void PrepareNeoMapData2Allen(List<string > probewf)
+        {
+            var waitprobe = false;
+            foreach (var wf in probewf)
+            {
+                if (wf.Length == 9)
+                {
+                    if (!Models.WXProbeData.AllenHasData(wf))
+                    {
+                        Models.WXProbeData.AddProbeTrigge2Allen(wf);
+                        waitprobe = true;
+                    }
+                }
+            }
+
+            foreach (var wf in probewf)
+            {
+                if (waitprobe && wf.Length == 9)
+                {
+                    var maxtimes = 0;
+                    while (true)
+                    {
+                        if (Models.WXProbeData.AllenHasData(wf))
+                        { break; }
+                        new System.Threading.ManualResetEvent(false).WaitOne(5000);
+                        maxtimes++;
+                        if (maxtimes > 24)
+                        { break; }
+                    }//end while
+                }//end if
+            }//end foreach
+
+            if (waitprobe)
+            { new System.Threading.ManualResetEvent(false).WaitOne(30000); }
         }
 
         public WXProbeData()

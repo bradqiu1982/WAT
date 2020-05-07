@@ -496,7 +496,18 @@ namespace WAT.Controllers
 
         public JsonResult LoadOGPWafer()
         {
-            var waferlist = WATOGPVM.GetAllOGPWafers(this);
+            var waferlist = new List<string>();
+
+            var dbret = WuxiWATData4MG.GetWUXIWATWaferStepData();
+            foreach (var line in dbret)
+            {
+                var wafer = Models.UT.O2S(line[0]);
+                if (wafer.Length > 1 && !waferlist.Contains(wafer))
+                {
+                    waferlist.Add(wafer);
+                }
+            }
+
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
@@ -618,9 +629,8 @@ namespace WAT.Controllers
         {
             var wafer = Request.Form["wafer"];
             var cdclist = new List<string>();
-            cdclist.Add("E08");
-            cdclist.Add("E07");
-            cdclist.Add("E10");
+            cdclist.Add("08");
+            cdclist.Add("10");
 
             var steplist = new List<string>();
             steplist.Add("POSTBIJUDGEMENT");

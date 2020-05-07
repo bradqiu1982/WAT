@@ -288,6 +288,7 @@
     <Compile Include="Models\WATAnalyzeComment.cs" />
     <Compile Include="Models\WATAnalyzeVM.cs" />
     <Compile Include="Models\WATApertureSize.cs" />
+    <Compile Include="Models\WATCapacity.cs" />
     <Compile Include="Models\WATGoldSample.cs" />
     <Compile Include="Models\WATOGPVM.cs" />
     <Compile Include="Models\WATOven.cs" />
@@ -892,6 +893,7 @@
     <Content Include="Views\DieSort\E01SamplePick4Ipoh.cshtml" />
     <Content Include="Views\Main\BinCheckWithOCR.cshtml" />
     <Content Include="Views\Shared\_Layout4Product.cshtml" />
+    <Content Include="Views\DieSort\WATSamplePick.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
