@@ -18,6 +18,7 @@ DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
 DIESORTSHARE:::\\wux-engsys01.china.ads.finisar.com\DieSortingNew
 PDSHAREFOLDER:::\\wux-engsys01.china.ads.finisar.com\PDShareFolder
 DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
+DIESORTIPOH:::\\wux-engsys01.china.ads.finisar.com\DieSortIpoh
 
 DIESORTSAMPLE1X1_4INCH:::980
 DIESORTSAMPLE1X2_4INCH:::660
@@ -37,9 +38,10 @@ DIESORTSAMPLEBIN57X4:::60
 DIESORTSAMPLEBIN57X8:::60
 DIESORTSAMPLEBIN57X12:::40
 
-IPOHBIN1CNT:::65
-IPOHBIN2CNT:::60
+##IPOHBIN1CNT:::65
+##IPOHBIN2CNT:::60
 IPOHE01CNT:::110
+IPOHE07CNT:::50
 
 WAFERQUALREPORT:::\\wux-engsys01.china.ads.finisar.com
 

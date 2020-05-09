@@ -363,7 +363,7 @@ namespace WAT.Controllers
 
         public JsonResult E01SamplePick4IpohData()
         {
-            var wafer = Request.Form["wafer"];
+            var wafer = Request.Form["wafer"].Trim();
             var MSG = DieSortVM.PickE01Sample4Ipoh(wafer, this);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;

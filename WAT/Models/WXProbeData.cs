@@ -44,7 +44,11 @@ namespace WAT.Models
                 tmplist.Add(WaferNum);
                 Models.WXProbeData.PrepareNeoMapData2Allen(tmplist);
 
-                var sql = @"select distinct Xcoord,Ycoord,[bin #] FROM [EngrData].[dbo].[Wuxi_WAT_VR_Report] where waferid = @WaferID  order by [bin #] desc";
+                var sql = @"select distinct b.Xcoord,b.Ycoord,b.[bin #] FROM [EngrData].[dbo].[Wuxi_WAT_VR_Report] b
+                            left join (select waferid,Xcoord,Ycoord,max([EntryTime]) as maxtime from [EngrData].[dbo].[Wuxi_WAT_VR_Report] where waferid = @WaferID group by waferid,Xcoord,Ycoord) c
+                            on b.waferid = c.waferid and b.[EntryTime] = c.maxtime and b.Xcoord = c.Xcoord and b.Ycoord = c.Ycoord
+                            where b.waferid = @WaferID and c.waferid is not null";
+
                 var dict = new Dictionary<string, string>();
                 dict.Add("@WaferID", WaferNum);
                 var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);

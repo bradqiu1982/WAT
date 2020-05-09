@@ -2653,6 +2653,206 @@ namespace WAT.Controllers
 
         }
 
+        //WUXIWATGoldSampleDttData
+        public JsonResult WUXIWATGoldSampleDttData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+            var tester = Request.Form["tester"];
+            var sdate = Request.Form["sdate"];
+            var edate = Request.Form["edate"];
+            var startdate = "";
+            var enddate = "";
+            if (string.IsNullOrEmpty(sdate) || string.IsNullOrEmpty(edate))
+            {
+                startdate = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
+                enddate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            else
+            {
+                var st = Models.UT.O2T(sdate);
+                var et = Models.UT.O2T(edate);
+                if (et > st)
+                {
+                    startdate = st.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = et.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+                else
+                {
+                    startdate = et.ToString("yyyy-MM-dd") + " 00:00:00";
+                    enddate = st.ToString("yyyy-MM-dd") + " 23:59:59";
+                }
+            }
+
+            var colors = new string[] { "#2f7ed8", "#0d233a", "#8bbc21", "#910000", "#1aadce",
+                    "#492970", "#f28f43", "#77a1e5", "#c42525", "#a6c96a" };
+
+            var paramlist = syscfg["GOLDSAMPLECHPARAM"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+            var chartlist = new List<object>();
+            foreach (var param in paramlist)
+            {
+                //var limits = syscfg[param + "_GLD"].Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                //var ll = Models.UT.O2D(limits[0]);
+                //var ul = Models.UT.O2D(limits[1]);
+
+                var gsdict = WATGoldSample.GetGoldPwrData(tester, param, startdate, enddate);
+                if (gsdict.Count == 0)
+                { continue; }
+
+                var gidx = 0;
+                foreach (var gskv in gsdict)
+                {
+                    var datadict = gskv.Value;
+                    if (datadict.Count < 5)
+                    { continue; }
+
+                    //get date idx dict
+                    var datelist = new List<string>();
+
+                    foreach (var dkv in datadict)
+                    {
+                        if (!datelist.Contains(dkv.Key))
+                        { datelist.Add(dkv.Key); }
+                    }
+
+                    datelist.Sort(delegate (string obj1, string obj2) {
+                        var d1 = Models.UT.O2T(obj1 + " 00:00:00");
+                        var d2 = Models.UT.O2T(obj2 + " 00:00:00");
+                        return d1.CompareTo(d2);
+                    });
+
+                    var tenvals = new List<double>();
+                    var idx = 0;
+                    foreach (var d in datelist)
+                    {
+                        if (datadict[d].Count > 0)
+                        { tenvals.Add(datadict[d][0]); }
+                        idx++;
+                        if (idx > 9)
+                        { break; }
+                    }
+                    var dtt = tenvals.Average();
+
+                    var datedict = new Dictionary<string, int>();
+                    var didx = 0;
+                    foreach (var d in datelist)
+                    {
+                        datedict.Add(d, didx);
+                        didx++;
+                    }
+
+                    var seriallist = new List<object>();
+                    //var valuelist = new List<double>();
+
+                    var datalist = new List<object>();
+                    var color = colors[gidx % colors.Length];
+                    gidx++;
+
+                    
+                    if (datadict.Count > 0)
+                    {
+                        foreach (var kv in datadict)
+                        {
+                            var x = datedict[kv.Key];
+                            foreach (var val in kv.Value)
+                            {
+                                //valuelist.Add(val);
+                                datalist.Add(new
+                                {
+                                    x = x,
+                                    y = (val-dtt)
+                                });
+                            }
+                        }
+
+                        seriallist.Add(new
+                        {
+                            name = gskv.Key,
+                            color = color,
+                            data = datalist,
+                            marker = new
+                            {
+                                lineWidth = 2,
+                                fillColor = color
+                            },
+                            tooltip = new
+                            {
+                                headerFormat = "{series.name}<br>",
+                                pointFormat = "{point.y}"
+                            },
+                            turboThreshold = 800000
+                        });
+
+                        //if (valuelist.Count > 10)
+                        //{ valuelist.RemoveAt(valuelist.Count - 1); }
+
+                        //var mean = Statistics.Mean(valuelist);
+                        //var stddev = Math.Abs(Statistics.StandardDeviation(valuelist));
+                        //var ll = mean - 3.0 * stddev;
+                        //var ul = mean + 3.0 * stddev;
+
+                        //var min = mean - 4.0 * stddev;
+                        //var max = mean + 4.0 * stddev;
+
+                        var id = gskv.Key.Replace(" ", "_").Replace("-", "_") + "_" + param.Replace(" ", "").Replace("-", "_").Replace(".", "").Replace(":", "") + "_id";
+                        var title = tester + " Golden Sample " + gskv.Key + " " + param + " Distribution";
+
+                        //var labels = new List<object>();
+                        //labels.Add(new
+                        //{
+                        //    format = "<table><tr><td>LL:" + Math.Round(ll, 6) + "</td></tr><tr><td>HL:" + Math.Round(ul, 6) + "</td></tr></table>",
+                        //    useHTML = true,
+                        //    point = new
+                        //    {
+                        //        x = 0,
+                        //        y = 0
+                        //    }
+                        //});
+
+                        chartlist.Add(new
+                        {
+                            id = id,
+                            title = title,
+                            categories = datelist,
+                            //lowlimit = ll,
+                            //highlimit = ul,
+                            //min = min,
+                            //max = max,
+                            //labels = labels,
+                            seriallist = seriallist
+                        });
+
+
+                    }//end if
+                }//end foreach
+
+
+            }//end foreach
+
+            if (chartlist.Count > 0)
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = true,
+                    chartlist = chartlist
+                };
+                return ret;
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "Fail to get any gold sample data for tester:" + tester
+                };
+                return ret;
+            }
+
+        }
 
         public ActionResult WUXIWATOven(string tester)
         {

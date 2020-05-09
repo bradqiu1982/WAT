@@ -2386,7 +2386,7 @@
                             '<th>WOT</th>' +
                             '<th>DIS</th>' +
                             '<th>LPW</th>' +
-                            //'<th>DLA</th>' +
+                            '<th>DLA</th>' +
                             '<th>RAWData</th>' +
                             '<th>WATLogic</th>' +
                             '<th>PowerOnCoupon</th>' +
@@ -2435,7 +2435,7 @@
                              '<td>' + val.WOT + '</td>' +
                              '<td>' + val.DIS + '</td>' +
                              '<td>' + val.LPW + '</td>' +
-                             //'<td>' + val.DLA + '</td>' +
+                             '<td>' + val.DLA + '</td>' +
                              //'<td class="FAILUREDETIAL" detailinfo="' + val.FailureStr + '">'
                              //+ val.FailureShortStr + '</td>' +
                              rawdatalink +
@@ -2905,6 +2905,153 @@
                     color: '#d4d4d4',
                     draggable: 'xy'
                 }],
+                series: boxplot_data.seriallist,
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + boxplot_data.id).parent().toggleClass('chart-modal');
+                                $('#' + boxplot_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(boxplot_data.id, options);
+        }
+
+
+        function golddttdata(tester, sdate, edate) {
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/WATLogic/WUXIWATGoldSampleDttData', {
+                tester: tester,
+                sdate: sdate,
+                edate: edate
+            }, function (output) {
+                $.bootstrapLoading.end();
+
+                if (output.sucess) {
+                    $('#chartdiv').empty();
+
+                    $.each(output.chartlist, function (idx, val) {
+                        var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-12">' +
+                                   '<div class="v-box" id="' + val.id + '"></div>' +
+                                   '</div></div>';
+                        $('#chartdiv').append(appendstr);
+                        drawdttplot(val);
+                    });
+                }
+                else {
+                    $('#chartdiv').empty();
+                    alert(output.msg);
+                }
+            });
+        }
+
+        $('body').on('click', '#btn-dtt', function () {
+            var tester = $('#goldentesterlist').val();
+            var sdate = $('#sdate').val();
+            var edate = $('#edate').val();
+            if (tester == '') {
+                alert('To review golden sample data,tester need to be selected!');
+                return false;
+            }
+            golddttdata(tester, sdate, edate);
+        });
+
+        var drawdttplot = function (boxplot_data) {
+            var options = {
+                chart: {
+                    zoomType: 'xy',
+                    type: 'line'
+                },
+                title: {
+                    text: boxplot_data.title
+                },
+
+                legend: {
+                    enabled: true
+                },
+
+                xAxis: {
+                    categories: boxplot_data.categories
+                },
+                yAxis: {
+                //    min: boxplot_data.min,
+                //    max: boxplot_data.max,
+                //    plotLines: [{
+                //        value: boxplot_data.lowlimit,
+                //        color: 'green',
+                //        dashStyle: 'Dash',
+                //        width: 2,
+                //        label: {
+                //            text: 'LL',
+                //            align: 'left'
+                //        }
+                //    }, {
+                //        value: boxplot_data.highlimit,
+                //        color: 'green',
+                //        dashStyle: 'Dash',
+                //        width: 2,
+                //        label: {
+                //            text: 'UL',
+                //            align: 'left'
+                //        }
+                //    }]
+                },
+                //annotations: [{
+                //    labels: boxplot_data.labels,
+                //    color: '#d4d4d4',
+                //    draggable: 'xy'
+                //}],
                 series: boxplot_data.seriallist,
                 exporting: {
                     menuItemDefinitions: {

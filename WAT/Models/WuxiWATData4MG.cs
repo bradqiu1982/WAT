@@ -321,7 +321,7 @@ namespace WAT.Models
                         else
                             tempvm.WOT = 1;
                     }
-                    else if (kvs[0].Contains("DLAM"))
+                    else if (kvs[0].Contains("DELAM"))
                     {
                         if (kvs.Length >= 2)
                             tempvm.DLA = UT.O2I(kvs[1]);
