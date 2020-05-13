@@ -25,12 +25,18 @@ namespace WAT.Controllers
 
         private bool CheckName(string ip, string url)
         {
+            if (ip.Contains("127.0.0.1"))
+            { return true; }
+
             var machinename = MachineUserMap.GetUserMachineName(ip);
             if (machinename.Count == 0)
             { return false; }
             else
             {
                 MachineUserMap.LoginLog(machinename[0], machinename[1], url);
+                if (machinename[0].Trim().Length == 0)
+                { return false; }
+
                 return true;
             }
         }

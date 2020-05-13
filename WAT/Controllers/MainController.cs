@@ -436,6 +436,10 @@ namespace WAT.Controllers
 
         public ActionResult PrepareBinMap()
         {
+            var url = "/Main/PrepareBinMap";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 

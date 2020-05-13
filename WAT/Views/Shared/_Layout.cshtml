@@ -119,14 +119,14 @@
                                     </li>
                                 </ul>
                             </li>
-                            <li class="dropdown">
+                            @*<li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">BurnIn<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li>
                                         @Html.ActionLink("Wafer QUAL", "WaferQUAL", "Wafer")
                                     </li>
                                 </ul>
-                            </li>
+                            </li>*@
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">WAT<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
@@ -173,6 +173,23 @@
                                     </li>
                                     <li>
                                         @Html.ActionLink("WUXI WAT OVEN By Coupon", "WUXIWATCouponOVEN", "WATLogic")
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Planning<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        @Html.ActionLink("Wafer Info", "Wafer4Planning", "DieSort")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("WUXI Sample Pick", "watsamplepick", "DieSort")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("IPOH E01 Sample Pick", "E01SamplePick4Ipoh", "DieSort")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("BINNING NOWATinWX", "preparebinmap", "main")
                                     </li>
                                 </ul>
                             </li>

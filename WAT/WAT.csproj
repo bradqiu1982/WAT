@@ -229,6 +229,7 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AllenWaferController.cs" />
+    <Compile Include="Controllers\DashBoardController.cs" />
     <Compile Include="Controllers\DieSortController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\MGTLController.cs" />
@@ -781,6 +782,7 @@
     <Content Include="Scripts\highcharts\grouped-categories.js" />
     <Content Include="Scripts\mapfilewithocr.js" />
     <Content Include="Scripts\WATDataPrepare.js" />
+    <Content Include="Scripts\WWDS.js" />
     <Content Include="WXCfg.txt" />
     <None Include="Properties\PublishProfiles\watpublish.pubxml" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker.css.map" />
@@ -894,6 +896,10 @@
     <Content Include="Views\Main\BinCheckWithOCR.cshtml" />
     <Content Include="Views\Shared\_Layout4Product.cshtml" />
     <Content Include="Views\DieSort\WATSamplePick.cshtml" />
+    <Content Include="Views\DashBoard\WeeklyCapacityDS.cshtml" />
+    <Content Include="Views\DashBoard\WeeklyYieldDS.cshtml" />
+    <Content Include="Views\DashBoard\WUXIWATWIPDS.cshtml" />
+    <Content Include="Views\Shared\_Layout4DashBoard.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

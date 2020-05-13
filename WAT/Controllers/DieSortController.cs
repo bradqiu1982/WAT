@@ -3,12 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using WAT.Models;
 
 namespace WAT.Controllers
 {
     public class DieSortController : Controller
     {
+        private ActionResult Jump2Welcome(string url)
+        {
+            var dict = new RouteValueDictionary();
+            dict.Add("url", url);
+            return RedirectToAction("Welcome", "Main", dict);
+        }
+
+        private bool CheckName(string ip, string url)
+        {
+            var machinename = MachineUserMap.GetUserMachineName(ip);
+            if (machinename.Count == 0)
+            { return false; }
+            else
+            {
+                MachineUserMap.LoginLog(machinename[0], machinename[1], url);
+                return true;
+            }
+        }
+
         public JsonResult LoadSortedFiles()
         {
             var filetype = "WAFER";
@@ -359,7 +379,13 @@ namespace WAT.Controllers
         }
 
         public ActionResult E01SamplePick4Ipoh()
-        { return View(); }
+        {
+            var url = "/DieSort/E01SamplePick4Ipoh";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
+            return View();
+        }
 
         public JsonResult E01SamplePick4IpohData()
         {
@@ -376,6 +402,10 @@ namespace WAT.Controllers
 
         public ActionResult WATSamplePick()
         {
+            var url = "/DieSort/WATSamplePick";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
             return View();
         }
 

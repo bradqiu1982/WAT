@@ -501,6 +501,45 @@ namespace WAT.Models
             return ret;
         }
 
+        public static Dictionary<string, string> GetPassFailWaferDict()
+        {
+            var ret = new Dictionary<string, string>();
+
+            var sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL2JUDGEMENT'";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]).ToUpper();
+                var passfail = UT.O2S(line[1]).ToUpper();
+
+                if (!ret.ContainsKey(wf))
+                {
+                    if (passfail.Contains("PASS"))
+                    { ret.Add(wf, "PASS"); }
+                    else if (passfail.Contains("GREAT THAN"))
+                    { ret.Add(wf, "PENDING"); }
+                    else
+                    { ret.Add(wf, "FAIL"); }
+                }
+            }
+
+            sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL1JUDGEMENT'";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]).ToUpper();
+                var passfail = UT.O2S(line[1]).ToUpper();
+
+                if (!ret.ContainsKey(wf))
+                {
+                    if (!passfail.Contains("PASS") && !passfail.Contains("GREAT THAN"))
+                    { ret.Add(wf, "FAIL"); }
+                }
+            }
+
+            return ret;
+        }
+
         public WuxiWATData4MG(WXLogic.WXOriginalWATData item, Dictionary<string, WXLogic.WXProbeData> probedict
             ,Dictionary<string,string> specdict,Dictionary<string,WXWATIgnoreDie> ignoredict)
         {
