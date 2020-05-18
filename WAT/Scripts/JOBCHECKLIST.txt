@@ -1,0 +1,7 @@
+﻿# project checkitemid checkitem markneed
+WATTEST:1:GOLDEN SAMPLE 已经测试，数据无异常:FALSE
+WATTEST:2:目前待进炉COUPON板数量:TRUE
+WATTEST:3:所有炉子无异常:FALSE
+WATTEST:4:技术员知道 HTOL1 失败要暂停发通知:FALSE
+WATTEST:5:测试人员知道选择站点看随工单:FALSE
+WATTEST:6:测试人员了解板子出炉后要等到冷却到常温再测试:FALSE

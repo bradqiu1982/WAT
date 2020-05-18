@@ -1,0 +1,41 @@
+﻿
+@{
+    ViewBag.Title = "WATJobCheck";
+    Layout = "~/Views/Shared/_Layout4Product.cshtml";
+}
+
+
+<script type="text/javascript" src="~/Scripts/JobCheckList.js"></script>
+<script type="text/javascript">
+        $(function(){
+            JOBCHECK.WATCHECK();
+        })
+</script>
+
+<style type="text/css">
+    th.dt-center, td.dt-center {
+        text-align: center;
+        font-size: 12px !important;
+    }
+
+    td.DONE {
+        background-color: limegreen !important;
+    }
+
+    td.PENDING {
+        cursor:pointer;
+        background-color:coral!important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div style="margin-left:-60px;">
+            <table class="table table-hover  table-condensed table-striped cell-border" id="wafertable" style="margin-top:2%">
+                <caption class="tb-caption">WUXI WAT CHECK LIST</caption>
+                <thead id="waferhead"></thead>
+                <tbody id="wafercontent"></tbody>
+            </table>
+        </div>
+    </div>
+</div>

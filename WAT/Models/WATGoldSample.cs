@@ -19,6 +19,22 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<string> GetTodaysWATTesterList()
+        {
+            var datetimenow = DateTime.Now.ToString("yyyy-MM-dd");
+            var start = datetimenow + " 00:00:00";
+            var end = datetimenow + " 23:59:59";
+
+            var ret = new List<string>();
+            var sql = "select distinct TestStation from insite.dbo.ProductionResult where Containername like 'GS%' and TestTimeStamp > '"+start+ "' and TestTimeStamp < '"+end+"'";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                ret.Add(UT.O2S(line[0]));
+            }
+            return ret;
+        }
+
         public static Dictionary<string, Dictionary<string, List<double>>> GetGoldData(string teststation, string param, string startdate, string enddate)
         {
             var ret = new Dictionary<string,Dictionary<string, List<double>>>();

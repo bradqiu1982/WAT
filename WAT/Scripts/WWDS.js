@@ -405,7 +405,7 @@
             $.post('/DashBoard/WUXIWATWIPDSDATA', {
 
             }, function (output) {
-                $.bootstrapLoading.end();
+
 
                 if (wafertable) {
                     wafertable.destroy();
@@ -447,6 +447,7 @@
                     buttons: ['copyHtml5', 'csv', 'excelHtml5']
                 });
 
+                $.bootstrapLoading.end();
             })
         }
 
@@ -454,6 +455,132 @@
             searchdata();
         });
 
+    }
+
+    var CAPPredict = function ()
+    {
+        function searchdata() {
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DashBoard/WATCapPredictDATA', {
+
+            }, function (output) {
+
+                $('.v-content1').empty();
+                var appendstr = '<div class="row" style="margin-top:10px!important"><div class="col-xs-1"></div><div class="col-xs-10" style="height: 410px;">' +
+                              '<div class="v-box" id="' + output.chartdata.id + '"></div>' +
+                              '</div><div class="col-xs-1"></div></div>';
+                $('.v-content1').append(appendstr);
+                drawcolumn(output.chartdata);
+                $.bootstrapLoading.end();
+            })
+        }
+
+        $(function () {
+            searchdata();
+        });
+
+        var drawcolumn = function (col_data) {
+            var options = {
+                chart: {
+                    zoomType: 'xy',
+                    type: 'column'
+                },
+                title: {
+                    text: col_data.title
+                },
+                xAxis: {
+                    categories: col_data.xAxis
+                },
+                legend: {
+                    enabled: true,
+                },
+                yAxis: [{
+                    title: {
+                        text: 'SLOT'
+                    },
+                    stackLabels: {
+                        enabled: true,
+                        style: {
+                            fontWeight: 'bold',
+                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                        }
+                    }
+                }],
+                tooltip: {
+                    headerFormat: '',
+                    pointFormatter: function () {
+                        return (this.y == 0) ? '' : '<span>' + this.series.name + '</span>: <b>' + this.y + '</b><br/>';
+                    },
+                    shared: true
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal'
+                    }
+                },
+                series: col_data.data,
+                exporting: {
+                    menuItemDefinitions: {
+                        fullscreen: {
+                            onclick: function () {
+                                $('#' + col_data.id).parent().toggleClass('chart-modal');
+                                $('#' + col_data.id).highcharts().reflow();
+                            },
+                            text: 'Full Screen'
+                        },
+                        datalabel: {
+                            onclick: function () {
+                                var labelflag = !this.series[0].options.dataLabels.enabled;
+                                $.each(this.series, function (idx, val) {
+                                    var opt = val.options;
+                                    opt.dataLabels.enabled = labelflag;
+                                    val.update(opt);
+                                })
+                            },
+                            text: 'Data Label'
+                        },
+                        copycharts: {
+                            onclick: function () {
+                                var svg = this.getSVG({
+                                    chart: {
+                                        width: this.chartWidth,
+                                        height: this.chartHeight
+                                    }
+                                });
+                                var c = document.createElement('canvas');
+                                c.width = this.chartWidth;
+                                c.height = this.chartHeight;
+                                canvg(c, svg);
+                                var dataURL = c.toDataURL("image/png");
+                                //var imgtag = '<img src="' + dataURL + '"/>';
+
+                                var img = new Image();
+                                img.src = dataURL;
+
+                                copyImgToClipboard(img);
+                            },
+                            text: 'copy 2 clipboard'
+                        }
+                    },
+                    buttons: {
+                        contextButton: {
+                            menuItems: ['fullscreen', 'datalabel', 'copycharts', 'printChart', 'separator', 'downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG']
+                        }
+                    }
+                }
+            };
+            Highcharts.chart(col_data.id, options);
+        }
     }
 
     return {
@@ -465,7 +592,9 @@
         },
         WIPInit: function () {
             WXWIP();
+        },
+        CapPredictInit: function () {
+            CAPPredict();
         }
-
     }
 }();

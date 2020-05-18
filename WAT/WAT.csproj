@@ -277,6 +277,7 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\JobCheckVM.cs" />
     <Compile Include="Models\MachineUserMap.cs" />
     <Compile Include="Models\OGPSNXYVM.cs" />
     <Compile Include="Models\PassFailCoupon4Comparing.cs" />
@@ -291,6 +292,7 @@
     <Compile Include="Models\WATApertureSize.cs" />
     <Compile Include="Models\WATCapacity.cs" />
     <Compile Include="Models\WATGoldSample.cs" />
+    <Compile Include="Models\WATJobCheckVM.cs" />
     <Compile Include="Models\WATOGPVM.cs" />
     <Compile Include="Models\WATOven.cs" />
     <Compile Include="Models\WATSampleXY.cs" />
@@ -780,6 +782,8 @@
     <Content Include="Scripts\highcharts\annotations.js" />
     <Content Include="Scripts\highcharts\groupcategories_styles.css" />
     <Content Include="Scripts\highcharts\grouped-categories.js" />
+    <Content Include="Scripts\JobCheckList.js" />
+    <Content Include="Scripts\JOBCHECKLIST.txt" />
     <Content Include="Scripts\mapfilewithocr.js" />
     <Content Include="Scripts\WATDataPrepare.js" />
     <Content Include="Scripts\WWDS.js" />
@@ -900,6 +904,8 @@
     <Content Include="Views\DashBoard\WeeklyYieldDS.cshtml" />
     <Content Include="Views\DashBoard\WUXIWATWIPDS.cshtml" />
     <Content Include="Views\Shared\_Layout4DashBoard.cshtml" />
+    <Content Include="Views\DashBoard\WATCapPredict.cshtml" />
+    <Content Include="Views\DashBoard\WATJobCheck.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

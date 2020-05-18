@@ -183,6 +183,7 @@
     {
         var wafertable = null;
         var wfdatatable = null;
+        var wfsrctable = null;
 
         $.post('/DieSort/LoadSortedWafers', {
         }, function (output) {
@@ -275,6 +276,47 @@
                 });
 
 
+
+                if (wfsrctable) {
+                    wfsrctable.destroy();
+                    wfsrctable = null;
+                }
+                $("#wfsrchead").empty();
+                $("#wfsrccontent").empty();
+
+                $("#wfsrchead").append(
+                        '<tr>' +
+                            '<th>Wafer</th>' +
+                            '<th>BIN</th>' +
+                            '<th>Count</th>' +
+                         '</tr>'
+                    );
+
+                $.each(output.wafersrcdata, function (i, val) {
+                    $("#wfsrccontent").append(
+                        '<tr>' +
+                            '<td>' + val.Wafer + '</td>' +
+                            '<td>' + val.BIN + '</td>' +
+                            '<td>' + val.Count + '</td>' +
+                        '</tr>'
+                        );
+                });
+
+                wfsrctable = $('#wfsrctable').DataTable({
+                    'iDisplayLength': 20,
+                    'aLengthMenu': [[20, 50, 100, -1],
+                    [20, 50, 100, "All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
+
+
+
                 if (wfdatatable) {
                     wfdatatable.destroy();
                     wfdatatable = null;
@@ -297,7 +339,7 @@
                          '</tr>'
                     );
 
-                $.each(output.waferorgdata, function (i, val) {
+                $.each(output.waferbindata, function (i, val) {
                     $("#wfdatacontent").append(
                         '<tr>' +
                             '<td>' + val.Wafer + '</td>' +

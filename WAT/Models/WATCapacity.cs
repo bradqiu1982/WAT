@@ -19,14 +19,14 @@ namespace WAT.Models
             var sql = @"select left(c.containername,10) as wafer,min(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                       left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,9)
                       left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_VCSEL_Pre_Burn_in_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null
+                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_VCSEL_Post_Burn_in_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null
                       group by left(c.containername,10),r.RealRate,ep.AppVal1  order by mintime asc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
                 var tempvm = new WATCapacity();
                 tempvm.Wafer = UT.O2S(line[0]).ToUpper();
-                tempvm.WFDate = UT.O2T(line[1]);
+                tempvm.WFDate = UT.O2T(line[1]).AddHours(-23);
                 tempvm.VType = UT.O2S(line[2]);
                 ret.Add(tempvm);
             }
@@ -34,14 +34,14 @@ namespace WAT.Models
             sql = @"select left(c.containername,14) as wafer,min(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                   left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,13)
                   left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_VCSEL_Pre_Burn_in_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null
+                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_VCSEL_Post_Burn_in_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null
                   group by left(c.containername,14),r.RealRate,ep.AppVal1  order by mintime asc";
             dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
                 var tempvm = new WATCapacity();
                 tempvm.Wafer = UT.O2S(line[0]).ToUpper();
-                tempvm.WFDate = UT.O2T(line[1]);
+                tempvm.WFDate = UT.O2T(line[1]).AddHours(-23);
                 tempvm.VType = UT.O2S(line[2]);
                 ret.Add(tempvm);
             }
@@ -125,6 +125,7 @@ namespace WAT.Models
             Pass = "PENDING";
             WKStr = "";
             Step = "";
+            OvenSlot = 10;
         }
         public string Wafer { set; get; }
         public DateTime WFDate { set; get; }
@@ -134,5 +135,6 @@ namespace WAT.Models
 
         public string WKStr { set; get; }
         public string Step { set; get; }
+        public int OvenSlot { set; get; }
     }
 }

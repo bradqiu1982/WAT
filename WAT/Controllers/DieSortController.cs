@@ -225,13 +225,16 @@ namespace WAT.Controllers
         {
             var wafernum = Request.Form["wafernum"].Trim();
             var sampledata = DieSortVM.waferBinSubstitude(wafernum);
-            var waferorgdata = DieSortVM.OrgData4Plan(wafernum,this);
+            var waferbindata = DieSortVM.BinData4Plan(wafernum);
+            var wafersrcdata = DieSortVM.SrcData4Plan(wafernum);
+
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
             {
                 sampledata = sampledata,
-                waferorgdata = waferorgdata
+                waferbindata = waferbindata,
+                wafersrcdata = wafersrcdata
             };
 
             return ret;

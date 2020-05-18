@@ -72,6 +72,19 @@ namespace WAT.Models
             return 0;
         }
 
+        public static int O2I_Check(object obj)
+        {
+            if (obj != null)
+            {
+                try
+                {
+                    return Convert.ToInt32(obj);
+                }
+                catch (Exception ex) { return -1; }
+            }
+            return -1;
+        }
+
         public static double O2D(object obj)
         {
             if (obj != null)

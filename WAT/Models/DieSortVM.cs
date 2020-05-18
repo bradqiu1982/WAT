@@ -1584,9 +1584,8 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<object> OrgData4Plan(string wafer,Controller ctrl)
+        public static List<object> BinData4Plan(string wafer)
         {
-            //var localpndata = AllenVcselPNs.GetMapFromLocal(ctrl);
             var ret = new List<object>();
 
             if (wafer.Length == 13)
@@ -1648,6 +1647,28 @@ namespace WAT.Models
                 }
             }
 
+
+            return ret;
+        }
+
+        public static List<object> SrcData4Plan(string wafer)
+        {
+            var ret = new List<object>();
+
+            var srcdict = new Dictionary<string, int>();
+            var sql = "select wafer,bincode,bincount from [WAT].[dbo].[WaferSrcData] where WAFER = @wafer and BinQuality = 'Pass'";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                ret.Add(new
+                {
+                    Wafer = UT.O2S(line[0]),
+                    BIN = UT.O2S(line[1]),
+                    Count = UT.O2I(line[2])
+                });
+            }
 
             return ret;
         }

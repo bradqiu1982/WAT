@@ -1,0 +1,56 @@
+﻿
+@{
+    ViewBag.Title = "WATCapPredict";
+    Layout = "~/Views/Shared/_Layout4DashBoard.cshtml";
+}
+
+
+<script type="text/javascript" src="~/Scripts/WWDS.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WWDS.CapPredictInit();
+        })
+</script>
+
+<style type="text/css">
+    th.dt-center, td.dt-center {
+        text-align: center;
+        font-size: 10px !important;
+    }
+
+
+    highcharts-root {
+        border-width: 1px;
+        border-style: solid;
+        border-width: 1px;
+    }
+
+    .v-box {
+        height: 400px;
+        align-items: center;
+        /*border: 1px solid #888;*/
+    }
+
+    .v-lengend {
+        padding-left: 5%;
+    }
+
+    .highcharts-container {
+        border-width: 1px;
+        border-style: solid;
+        border-color: #aaa;
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="row" style="margin-top:10px;">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+            </div>
+            <div class="v-content1">
+            </div>
+        </div>
+    </div>
+</div>
