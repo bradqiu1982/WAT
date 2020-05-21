@@ -64,13 +64,15 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<JobCheckVM> GetAllCheckVM(string pj)
+        public static List<JobCheckVM> GetAllCheckVM(string pj,string startdate)
         {
             var ret = new List<JobCheckVM>();
 
             var dict = new Dictionary<string, string>();
             dict.Add("@Project", pj);
-            var sql = "select Project,CheckItemID,CheckItem,Mark,MarkNeed,Status,CheckID,CheckMan,CheckDate from JobCheckVM where Project=@Project order by CheckDate asc,CheckItemID asc";
+            dict.Add("@CheckDate", startdate);
+
+            var sql = "select Project,CheckItemID,CheckItem,Mark,MarkNeed,Status,CheckID,CheckMan,CheckDate from JobCheckVM where Project=@Project and CheckDate >= @CheckDate order by CheckDate asc,CheckItemID asc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
 
             foreach (var line in dbret)

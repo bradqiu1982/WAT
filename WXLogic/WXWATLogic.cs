@@ -120,11 +120,13 @@ namespace WXLogic
             
             var waferarray = WATSampleXY.GetArrayFromAllenSherman(containerinfo.wafer);
 
+            var couponlist = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
+
             if (!string.IsNullOrEmpty(waferarray)
                 && (CouponGroup.Contains("E08") || CouponGroup.Contains("R08")|| CouponGroup.Contains("T08"))
                 && string.IsNullOrEmpty(AnalyzeParam))
             {
-                var couponcount = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
+                var couponcount = couponlist.Count;
 
                 var necessarynum = 0;
                 var arraynum = UT.O2I(waferarray);
@@ -278,9 +280,36 @@ namespace WXLogic
             logicresult.DataTables.Add(watpassfailcoupondata);
             logicresult.DataTables.Add(failmodes);
 
+            //if ((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08"))
+            //    && string.IsNullOrEmpty(AnalyzeParam))
+            //{
+            //    //try {
+            //    //    var workflow = cfg["WATWORKFLOW"];
+            //    //    var scrapstep = cfg["MOVENEXT_SCRAP"];
+            //    //    var nextstep = cfg["MOVENEXT_RP" + RP];
+            //    //    var cpgrouplist = new List<string>();
+            //    //    cpgrouplist.Add(CouponGroup.Substring(0, CouponGroup.Length - 2));
+            //    //    var currentstep = nextstep;
+            //    //    if (cfg.ContainsKey("MOVENEXT_RP" + (UT.O2I(RP) - 1)))
+            //    //    { currentstep = cfg["MOVENEXT_RP" + (UT.O2I(RP) - 1)]; }
+            //    //    if (logicresult.ScrapIt)
+            //    //    {
+            //    //        WATMES.MESMove(cpgrouplist, workflow, scrapstep, failmodestr);
+            //    //    }
+            //    //    else if (logicresult.TestPass)
+            //    //    {
+            //    //        WATMES.MESMove(cpgrouplist, workflow, nextstep, testname+" pass");
+            //    //    }
+            //    //    else
+            //    //    {
+            //    //        WATMES.MESMove(cpgrouplist, workflow, currentstep,logicresult.ResultReason);
+            //    //    }
+            //    //} catch (Exception ex) { }
+            //}
+
             if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
                 && logicresult.TestPass
-                && (CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("E01"))
+                && (CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08") || CouponGroup.Contains("E01"))
                 && (string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0 
                 || string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL1JUDGEMENT") == 0)
                 && string.IsNullOrEmpty(AnalyzeParam)

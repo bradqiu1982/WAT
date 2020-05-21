@@ -1,0 +1,56 @@
+﻿
+@{
+    ViewBag.Title = "AllenBinInfo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    th, td {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/WATDataPrepare.js"></script>
+<script type="text/javascript">
+    $(function(){
+        WATDATAPAREPARE.ALLENBININFO();
+    })
+</script>
+
+<div class="row" style="height:90%!important">
+    <div class="col-xs-3 mark-lists">
+        <div class="marks-title">
+            <span>Input Wafer Number</span>
+        </div>
+        <textarea class="form-control marks" id="marks"></textarea>
+        <div class="marks-submit">
+            <div class="total-marks label-danger col-xs-3" id="total-marks">0</div>
+            <div class="col-xs-4">
+                <input type="button" class="btn btn-warning btn-marks-clean" id="btn-marks-clean" value="清除">
+            </div>
+            <div class="marks-op col-xs-4 ">
+                <input type="button" class="btn btn-success btn-marks-submit" id="btn-marks-submit" value="提交">
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-9 mark-detail">
+        <div class="mark-detail-op">
+        </div>
+        <table class="table  table-condensed  cell-border" id="mywafertable">
+            <caption class="tb-caption">ALLEN WAFER BIN Info</caption>
+            <thead>
+                <tr>
+                    <th>WAFER</th>
+                    <th>Product</th>
+                    <th>BIN54</th>
+                    <th>BIN55</th>
+                    <th>BIN56</th>
+                    <th>BIN57</th>
+                    <th>BIN58</th>
+                    <th>BIN59</th>
+                </tr>
+            </thead>
+            <tbody id="WaferTableID"></tbody>
+        </table>
+    </div>
+</div>

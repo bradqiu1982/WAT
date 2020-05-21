@@ -244,22 +244,21 @@ namespace WXLogic
             return ret;
         }
 
-        public static int GetCurrentRPTestedCoupon(string coupongroup,int rp)
+        public static List<string> GetCurrentRPTestedCoupon(string coupongroup,int rp)
         {
             var teststep = RP2TestName(rp);
-            var retdict = new Dictionary<string, bool>();
+            var ret = new List<string>();
             var sql = @"select distinct Containername from insite.dbo.ProductionResult 
                         where Containername like '<coupongroup>%' and TestStep = '<TestStep>' and Len(Containername) > 15 ";
             sql = sql.Replace("<coupongroup>",coupongroup).Replace("<TestStep>",teststep);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
-                var couponid = UT.O2S(line[0]).Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0];
-                if (!retdict.ContainsKey(couponid))
-                { retdict.Add(couponid, true); }
+                var couponid = UT.O2S(line[0]).Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+                if (!ret.Contains(couponid))
+                { ret.Add(couponid); }
             }
-
-            return retdict.Count;
+            return ret;
         }
 
         ////THIS FUNCTION NEED TO BE UPDATE

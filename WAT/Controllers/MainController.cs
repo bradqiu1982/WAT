@@ -65,6 +65,8 @@ namespace WAT.Controllers
         {
             try
             {
+                var syscfg = CfgUtility.GetSysConfig(this);
+
                 var heartbeatinprocess = Server.MapPath("~/userfiles") + "\\" + "InHeartBeatProcess";
                 if (System.IO.File.Exists(heartbeatinprocess))
                 {
@@ -115,6 +117,24 @@ namespace WAT.Controllers
                 try
                 {
                     WATOven.RefreshDailyOvenData(this);
+                }
+                catch (Exception ex) { }
+
+                try
+                {
+                    var onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 13:00:00");
+                    var threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 15:00:00");
+                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
+                    {
+                        if (!WATJobCheckVM.WATCheckDone())
+                        {
+                            var msg = "Todays WAT JOB CHECKING is not done:\r\n";
+                            msg += "http://wuxinpi.china.ads.finisar.com:9090/DashBoard/WATJOBCheck";
+                            var towho = syscfg["WATJOBCHECKLIST"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                            EmailUtility.SendEmail(this, "WAT JOB CHECK IS NOT DONE", towho, msg);
+                            new System.Threading.ManualResetEvent(false).WaitOne(500);
+                        }
+                    }
                 }
                 catch (Exception ex) { }
 
@@ -676,6 +696,51 @@ namespace WAT.Controllers
             };
             return ret;
         }
+
+        public ActionResult AllenBinInfo()
+        {
+            return View();
+        }
+
+        public JsonResult ALLENBinData()
+        {
+            var datalist = new List<object>();
+
+            var marks = Request.Form["marks"];
+            List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var wfcond = "('" + string.Join("','", wflist) + "')";
+            var sql = @" select b.wafer_id,b.prodfam,b.DS,b.[Good -54],b.[Good -55] ,b.[GOOD -56] ,b.[GOOD -57],b.[GOOD -58],b.[GOOD -59] from [Insite].[insite].[100PCT_BIN] b
+                        left join (select wafer_id,max(ds) as maxtime from [Insite].[insite].[100PCT_BIN] where wafer_id in <wfcond> group by wafer_id) c
+                         on b.wafer_id = c.wafer_id and b.DS = c.maxtime
+                         where b.wafer_id in  <wfcond>
+                         and c.wafer_id is not null";
+            sql = sql.Replace("<wfcond>", wfcond);
+            var dbret = Models.DBUtility.ExeAllenSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                datalist.Add(new
+                {
+                    wafer = Models.UT.O2S(line[0]),
+                    product = Models.UT.O2S(line[1]),
+                    bin54 = Models.UT.O2S(line[3]),
+                    bin55 = Models.UT.O2S(line[4]),
+                    bin56 = Models.UT.O2S(line[5]),
+                    bin57 = Models.UT.O2S(line[6]),
+                    bin58 = Models.UT.O2S(line[7]),
+                    bin59 = Models.UT.O2S(line[8])
+                });
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                datalist = datalist
+            };
+            return ret;
+        }
+
+
 
     }
 }

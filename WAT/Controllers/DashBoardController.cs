@@ -797,6 +797,9 @@ namespace WAT.Controllers
             if (testerlist.Count == 0)
             { return "Golden sample have not been tested today!"; }
 
+            if (testerlist.Count < 2)
+            { return "Golden sample need to be tested at all tester!"; }
+
             var startdate = DateTime.Now.AddMonths(-1).ToString("yyyy-MM-dd HH:mm:ss");
             var enddate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -948,6 +951,28 @@ namespace WAT.Controllers
             };
             return ret;
         }
+
+        public ActionResult WATCheckHistory()
+        { return View(); }
+
+        public JsonResult WATCheckHistoryData()
+        {
+            var sdate = Request.Form["sdate"];
+            if (string.IsNullOrEmpty(sdate))
+            { sdate = DateTime.Now.AddDays(-14).ToString("yyyy-MM-dd") + " 00:00:00"; }
+            else
+            { sdate = DateTime.Parse(sdate).ToString("yyyy-MM-dd") + " 00:00:00"; }
+            
+            var jobchecklist = WATJobCheckVM.GetWATCheckVM(sdate);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                jobchecklist = jobchecklist
+            };
+            return ret;
+        }
+
 
     }
     

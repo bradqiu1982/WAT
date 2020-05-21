@@ -95,9 +95,89 @@
 
     }
 
+
+    var watcheckhistory = function () {
+        $('.date').datepicker({ autoclose: true, viewMode: "days", minViewMode: "days", pickerPosition: "bottom-left" });
+        var wafertable = null;
+
+        function searchdata() {
+            var sdate = $('#sdate').val();
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DashBoard/WATCheckHistoryData', {
+                sdate:sdate
+            }, function (output) {
+
+                if (wafertable) {
+                    wafertable.destroy();
+                    wafertable = null;
+                }
+                $("#waferhead").empty();
+                $("#wafercontent").empty();
+
+                var appstr = '<tr>';
+                appstr += '<th>CHECK ID</th>';
+                appstr += '<th>ITEM</th>';
+                appstr += '<th>MARK</th>';
+                appstr += '<th>Checker</th>';
+                appstr += '<th>Check Date</th>';
+                appstr += '</tr>';
+                $("#waferhead").append(appstr);
+
+                $.each(output.jobchecklist, function (i, val) {
+                    appstr = '<tr class="' + val.Status + '">';
+                    appstr += '<td>' + val.CheckItemID + '</td>';
+                    appstr += '<td>' + val.CheckItem + '</td>';
+                    appstr += '<td>' + val.Mark + '</td>';
+                    appstr += '<td>' + val.CheckMan + '</td>';
+                    appstr += '<td>' + val.CheckDate + '</td>';
+                    appstr += '</tr>';
+                    $("#wafercontent").append(appstr);
+                });
+
+                wafertable = $('#wafertable').DataTable({
+                    'iDisplayLength': -1,
+                    'aLengthMenu': [[-1],
+                    ["All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all" }
+                    ],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
+
+                $.bootstrapLoading.end();
+            })
+        }
+
+        $(function () {
+            searchdata();
+        });
+
+
+        $('body').on('click', '#btn-search', function () {
+            searchdata();
+        });
+
+    }
+
     return {
         WATCHECK: function () {
             watjobcheck();
+        },
+        WATCHECKHISTORY: function () {
+            watcheckhistory();
         }
+
     }
 }();

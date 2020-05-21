@@ -83,7 +83,7 @@ WATCAPACITY:::2020-01-01:10,2020-05-07:12
 1x4SLOT:::14
 1x12SLOT:::43
 
-WATJOBCHECKLIST:::brad.qiu@finisar.com;tyler.zhang@finisar.com;mick.wang@finisar.com;jintao.yao@finisar.com;sean.huang@finisar.com
+WATJOBCHECKLIST:::brad.qiu@finisar.com;tyler.zhang@finisar.com;mick.wang@finisar.com;jintao.yao@finisar.com;sean.huang@finisar.com;lance.chen@finisar.com
 
 
 

@@ -66,6 +66,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ActiveMEDLL">
+      <HintPath>..\packages\ActiveMEDLL.dll</HintPath>
+    </Reference>
     <Reference Include="MathNet.Numerics, Version=4.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.1.0\lib\net40\MathNet.Numerics.dll</HintPath>
       <Private>True</Private>
@@ -81,6 +84,9 @@
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="WATMoveDLL">
+      <HintPath>..\packages\WATMoveDLL.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminFileOperations.cs" />
@@ -89,6 +95,7 @@
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UT.cs" />
+    <Compile Include="WATMES.cs" />
     <Compile Include="WATSampleXY.cs" />
     <Compile Include="WXCfg.cs" />
     <Compile Include="WXContainerInfo.cs" />
