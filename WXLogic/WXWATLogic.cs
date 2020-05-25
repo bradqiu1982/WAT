@@ -280,32 +280,33 @@ namespace WXLogic
             logicresult.DataTables.Add(watpassfailcoupondata);
             logicresult.DataTables.Add(failmodes);
 
-            //if ((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08"))
-            //    && string.IsNullOrEmpty(AnalyzeParam))
-            //{
-            //    //try {
-            //    //    var workflow = cfg["WATWORKFLOW"];
-            //    //    var scrapstep = cfg["MOVENEXT_SCRAP"];
-            //    //    var nextstep = cfg["MOVENEXT_RP" + RP];
-            //    //    var cpgrouplist = new List<string>();
-            //    //    cpgrouplist.Add(CouponGroup.Substring(0, CouponGroup.Length - 2));
-            //    //    var currentstep = nextstep;
-            //    //    if (cfg.ContainsKey("MOVENEXT_RP" + (UT.O2I(RP) - 1)))
-            //    //    { currentstep = cfg["MOVENEXT_RP" + (UT.O2I(RP) - 1)]; }
-            //    //    if (logicresult.ScrapIt)
-            //    //    {
-            //    //        WATMES.MESMove(cpgrouplist, workflow, scrapstep, failmodestr);
-            //    //    }
-            //    //    else if (logicresult.TestPass)
-            //    //    {
-            //    //        WATMES.MESMove(cpgrouplist, workflow, nextstep, testname+" pass");
-            //    //    }
-            //    //    else
-            //    //    {
-            //    //        WATMES.MESMove(cpgrouplist, workflow, currentstep,logicresult.ResultReason);
-            //    //    }
-            //    //} catch (Exception ex) { }
-            //}
+            if ((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08"))
+                && string.IsNullOrEmpty(AnalyzeParam))
+            {
+                try
+                {
+                    var workflow = cfg["WATWORKFLOW"];
+                    var scrapstep = cfg["MOVENEXT_SCRAP"];
+                    var nextstep = cfg["MOVENEXT_RP" + RP];
+                    var curtstep = cfg["MOVECRT_RP" + RP];
+
+                    var cpgrouplist = new List<string>();
+                    cpgrouplist.Add(CouponGroup.Substring(0, CouponGroup.Length - 2));
+                    if (logicresult.ScrapIt)
+                    {
+                        WATMES.MESMove(cpgrouplist, workflow, scrapstep, failmodestr);
+                    }
+                    else if (logicresult.TestPass)
+                    {
+                        WATMES.MESMove(cpgrouplist, workflow, nextstep, testname + " pass");
+                    }
+                    else
+                    {
+                        WATMES.MESMove(cpgrouplist, workflow, curtstep, logicresult.ResultReason);
+                    }
+                }
+                catch (Exception ex) { }
+            }
 
             if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
                 && logicresult.TestPass

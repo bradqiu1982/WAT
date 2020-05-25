@@ -6,17 +6,20 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <_PublishTargetUrl>E:\WAT</_PublishTargetUrl>
+    <_PublishTargetUrl>E:\WAT_new</_PublishTargetUrl>
   </PropertyGroup>
   <ItemGroup>
+    <File Include="bin/ActiveMEDLL.dll">
+      <publishTime>05/19/2020 09:32:35</publishTime>
+    </File>
     <File Include="bin/Antlr3.Runtime.dll">
       <publishTime>02/22/2013 08:43:40</publishTime>
     </File>
     <File Include="bin/App_global.asax.compiled">
-      <publishTime>02/26/2020 08:39:06</publishTime>
+      <publishTime>05/21/2020 14:21:51</publishTime>
     </File>
     <File Include="bin/App_global.asax.dll">
-      <publishTime>02/26/2020 08:39:05</publishTime>
+      <publishTime>05/21/2020 14:21:51</publishTime>
     </File>
     <File Include="bin/CsvHelper.dll">
       <publishTime>01/28/2019 22:44:34</publishTime>
@@ -175,16 +178,19 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>01/28/2015 04:04:30</publishTime>
     </File>
     <File Include="bin/WAT.dll">
-      <publishTime>02/26/2020 08:38:31</publishTime>
+      <publishTime>05/21/2020 14:21:04</publishTime>
+    </File>
+    <File Include="bin/WATMoveDLL.dll">
+      <publishTime>05/19/2020 09:32:39</publishTime>
     </File>
     <File Include="bin/WebGrease.dll">
       <publishTime>09/10/2013 17:28:38</publishTime>
     </File>
     <File Include="bin/WXCfg.txt">
-      <publishTime>02/13/2020 14:34:32</publishTime>
+      <publishTime>05/21/2020 10:13:54</publishTime>
     </File>
     <File Include="bin/WXLogic.dll">
-      <publishTime>02/26/2020 08:38:25</publishTime>
+      <publishTime>05/21/2020 14:20:55</publishTime>
     </File>
     <File Include="ckeditor/adapters/jquery.js">
       <publishTime>12/27/2017 16:53:07</publishTime>
@@ -1552,7 +1558,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>09/11/2019 14:35:26</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>02/26/2020 08:38:37</publishTime>
+      <publishTime>05/21/2020 14:21:13</publishTime>
     </File>
     <File Include="Scripts/ajaxfileupload.js">
       <publishTime>06/28/2018 10:27:19</publishTime>
@@ -1663,7 +1669,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>03/25/2019 14:45:58</publishTime>
     </File>
     <File Include="Scripts/diesort.js">
-      <publishTime>01/13/2020 16:51:18</publishTime>
+      <publishTime>05/14/2020 13:44:20</publishTime>
     </File>
     <File Include="Scripts/exporting.js">
       <publishTime>03/12/2019 10:05:09</publishTime>
@@ -1697,6 +1703,12 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     </File>
     <File Include="Scripts/highcharts/grouped-categories.js">
       <publishTime>10/24/2019 17:34:35</publishTime>
+    </File>
+    <File Include="Scripts/JobCheckList.js">
+      <publishTime>05/19/2020 09:59:41</publishTime>
+    </File>
+    <File Include="Scripts/JOBCHECKLIST.txt">
+      <publishTime>05/18/2020 12:01:51</publishTime>
     </File>
     <File Include="Scripts/jquery-1.12.4.min.js">
       <publishTime>06/28/2018 10:24:38</publishTime>
@@ -1737,6 +1749,9 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="Scripts/jquery.validate.unobtrusive.min.js">
       <publishTime>06/28/2018 09:14:31</publishTime>
     </File>
+    <File Include="Scripts/mapfilewithocr.js">
+      <publishTime>04/22/2020 11:02:55</publishTime>
+    </File>
     <File Include="Scripts/modernizr-2.6.2.js">
       <publishTime>06/28/2018 09:14:30</publishTime>
     </File>
@@ -1771,28 +1786,49 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>05/17/2019 08:51:50</publishTime>
     </File>
     <File Include="Scripts/WAT-db-script.txt">
-      <publishTime>02/24/2020 16:18:19</publishTime>
+      <publishTime>05/18/2020 13:37:13</publishTime>
     </File>
     <File Include="Scripts/WATCfg.txt">
-      <publishTime>02/18/2020 16:58:17</publishTime>
+      <publishTime>05/21/2020 08:56:07</publishTime>
     </File>
     <File Include="Scripts/WATDataPrepare.js">
-      <publishTime>11/14/2019 16:43:55</publishTime>
+      <publishTime>05/20/2020 10:17:52</publishTime>
     </File>
     <File Include="Scripts/WATLogic.js">
-      <publishTime>02/21/2020 17:06:00</publishTime>
+      <publishTime>05/08/2020 16:50:52</publishTime>
     </File>
     <File Include="Scripts/WATsheartbeat.txt">
       <publishTime>06/28/2018 09:42:19</publishTime>
     </File>
+    <File Include="Scripts/WWDS.js">
+      <publishTime>05/15/2020 15:25:12</publishTime>
+    </File>
     <File Include="Scripts/_references.js">
-      <publishTime>11/14/2019 15:03:38</publishTime>
+      <publishTime>05/18/2020 14:27:56</publishTime>
     </File>
     <File Include="userfiles/ImageUpload.ashx">
-      <publishTime>03/08/2019 10:26:12</publishTime>
+      <publishTime>03/13/2020 17:09:53</publishTime>
     </File>
     <File Include="userfiles/Upload.ashx">
       <publishTime>03/08/2019 10:26:12</publishTime>
+    </File>
+    <File Include="Views/DashBoard/WATCapPredict.cshtml">
+      <publishTime>05/15/2020 14:22:25</publishTime>
+    </File>
+    <File Include="Views/DashBoard/WATCheckHistory.cshtml">
+      <publishTime>05/19/2020 10:48:34</publishTime>
+    </File>
+    <File Include="Views/DashBoard/WATJobCheck.cshtml">
+      <publishTime>05/18/2020 15:30:19</publishTime>
+    </File>
+    <File Include="Views/DashBoard/WeeklyCapacityDS.cshtml">
+      <publishTime>05/13/2020 17:18:53</publishTime>
+    </File>
+    <File Include="Views/DashBoard/WeeklyYieldDS.cshtml">
+      <publishTime>05/13/2020 17:18:53</publishTime>
+    </File>
+    <File Include="Views/DashBoard/WUXIWATWIPDS.cshtml">
+      <publishTime>05/15/2020 12:26:02</publishTime>
     </File>
     <File Include="Views/DieSort/CompareDieSortedMapFile.cshtml">
       <publishTime>03/19/2019 08:49:56</publishTime>
@@ -1803,17 +1839,29 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="Views/DieSort/DownLoadPDMapFile.cshtml">
       <publishTime>11/05/2019 11:21:48</publishTime>
     </File>
+    <File Include="Views/DieSort/E01SamplePick4Ipoh.cshtml">
+      <publishTime>05/09/2020 15:45:33</publishTime>
+    </File>
     <File Include="Views/DieSort/ReviewDieSortedMapFile.cshtml">
       <publishTime>10/10/2019 08:38:22</publishTime>
     </File>
     <File Include="Views/DieSort/SamplePick4Ipoh.cshtml">
-      <publishTime>01/08/2020 14:05:56</publishTime>
+      <publishTime>04/21/2020 11:47:56</publishTime>
     </File>
     <File Include="Views/DieSort/Wafer4Planning.cshtml">
-      <publishTime>07/09/2019 14:28:08</publishTime>
+      <publishTime>05/14/2020 13:47:18</publishTime>
     </File>
     <File Include="Views/DieSort/WaferBinSubstitute.cshtml">
       <publishTime>11/11/2019 15:35:09</publishTime>
+    </File>
+    <File Include="Views/DieSort/WATSamplePick.cshtml">
+      <publishTime>05/09/2020 16:32:10</publishTime>
+    </File>
+    <File Include="Views/Main/AllenBinInfo.cshtml">
+      <publishTime>05/20/2020 10:13:03</publishTime>
+    </File>
+    <File Include="Views/Main/BinCheckWithOCR.cshtml">
+      <publishTime>04/22/2020 11:05:50</publishTime>
     </File>
     <File Include="Views/Main/HeartBeat.cshtml">
       <publishTime>06/28/2018 10:08:17</publishTime>
@@ -1827,6 +1875,9 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     <File Include="Views/Main/Prepare4WAT.cshtml">
       <publishTime>11/15/2019 15:04:50</publishTime>
     </File>
+    <File Include="Views/Main/PrepareBinMap.cshtml">
+      <publishTime>04/17/2020 14:16:14</publishTime>
+    </File>
     <File Include="Views/Main/Welcome.cshtml">
       <publishTime>02/08/2020 15:32:51</publishTime>
     </File>
@@ -1834,7 +1885,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>11/22/2019 10:57:10</publishTime>
     </File>
     <File Include="Views/MGTL/WUXIWATStatus.cshtml">
-      <publishTime>11/26/2019 10:56:11</publishTime>
+      <publishTime>03/13/2020 16:06:41</publishTime>
     </File>
     <File Include="Views/Shared/Error.cshtml">
       <publishTime>06/28/2018 09:14:37</publishTime>
@@ -1843,7 +1894,13 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/28/2018 09:14:37</publishTime>
     </File>
     <File Include="Views/Shared/_Layout.cshtml">
-      <publishTime>02/21/2020 17:02:23</publishTime>
+      <publishTime>05/21/2020 08:59:51</publishTime>
+    </File>
+    <File Include="Views/Shared/_Layout4DashBoard.cshtml">
+      <publishTime>05/19/2020 10:18:20</publishTime>
+    </File>
+    <File Include="Views/Shared/_Layout4Product.cshtml">
+      <publishTime>04/21/2020 12:24:03</publishTime>
     </File>
     <File Include="Views/Shared/_LoginPartial.cshtml">
       <publishTime>03/08/2019 10:26:13</publishTime>
@@ -1885,7 +1942,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>02/21/2020 15:28:40</publishTime>
     </File>
     <File Include="Views/WATLogic/WUXIWATGoldSample.cshtml">
-      <publishTime>02/18/2020 16:26:15</publishTime>
+      <publishTime>05/08/2020 16:13:49</publishTime>
     </File>
     <File Include="Views/WATLogic/WUXIWATLogic.cshtml">
       <publishTime>11/21/2019 10:17:36</publishTime>
@@ -1909,10 +1966,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/28/2018 09:14:13</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>12/05/2019 16:18:35</publishTime>
+      <publishTime>05/11/2020 08:22:52</publishTime>
     </File>
     <File Include="WXCfg.txt">
-      <publishTime>02/13/2020 14:34:33</publishTime>
+      <publishTime>05/21/2020 10:13:54</publishTime>
     </File>
   </ItemGroup>
 </Project>
