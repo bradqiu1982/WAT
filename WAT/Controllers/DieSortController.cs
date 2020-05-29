@@ -416,9 +416,19 @@ namespace WAT.Controllers
         {
             var syscfg = CfgUtility.GetSysConfig(this);
             var marks = Request.Form["marks"];
-            List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            List<string> allwflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
             var wfdatalist = new List<object>();
             var allfile = ExternalDataCollector.DirectoryEnumerateFiles(this, syscfg["DIESORTSHARE"]);
+
+            var idx = 0;
+            var wflist = new List<string>();
+            foreach (var item in allwflist)
+            {
+                wflist.Add(item);
+                idx++;
+                if (idx > 10)
+                { break; }
+            }
 
             var existwf = new List<string>();
             foreach (var wf in wflist)
