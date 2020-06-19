@@ -89,6 +89,23 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public JsonResult RefreshWATWIPToday()
+        {
+            try
+            {
+                WuxiWATData4MG.QuickRefreshTodaysWAT();
+            }
+            catch (Exception ex) { }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                sucess = true
+            };
+            return ret;
+        }
+
         public ActionResult WATWIP()
         {
             var url = "/MGTL/WATWIP";

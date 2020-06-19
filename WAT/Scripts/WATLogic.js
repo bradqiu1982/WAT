@@ -2350,6 +2350,28 @@
             }
         };
 
+        $.fn.dataTable.ext.buttons.refreshtoday = {
+            text: 'Today',
+            action: function (e, dt, node, config) {
+                var options = {
+                    loadingTips: "loading data......",
+                    backgroundColor: "#aaa",
+                    borderColor: "#fff",
+                    opacity: 0.8,
+                    borderColor: "#fff",
+                    TipsColor: "#000",
+                }
+                $.bootstrapLoading.start(options);
+
+                $.post('/MGTL/RefreshWATWIPToday',
+                    {}, function (output) {
+                        $.bootstrapLoading.end();
+
+                        window.location.reload(true);
+                    });
+            }
+        };
+
         var wuxistat = function () {
 
             var options = {
@@ -2377,7 +2399,7 @@
                     $("#logichead").append(
                             '<tr>' +
                             '<th>CouponID</th>' +
-                            '<th>VType</th>' +
+                            '<th>Prod</th>' +
                             '<th>Array</th>' +
                             '<th>TestTime</th>' +
                             '<th>TestStep</th>' +
@@ -2459,7 +2481,7 @@
                         "aaSorting": [],
                         "order": [],
                         dom: 'lBfrtip',
-                        buttons: ['copyHtml5', 'csv', 'excelHtml5', 'refreshstatus']
+                        buttons: ['copyHtml5', 'csv', 'excelHtml5', 'refreshstatus', 'refreshtoday']
                     });
                 });
         }
@@ -2568,7 +2590,10 @@
         });
 
         $('body').on('click', '#expandeditor', function () {
-            $('#myeditorx').removeClass('hide');
+            if ($('#myeditorx').hasClass('hide')) {
+                $('#myeditorx').removeClass('hide');
+            }
+            else { $('#myeditorx').addClass('hide'); }
         })
 
     }
