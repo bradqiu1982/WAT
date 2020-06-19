@@ -7,7 +7,7 @@ namespace WXLogic
 {
     public class WXSpecBinPassFail
     {
-        public static List<WXSpecBinPassFail> GetAllSpec()
+        public static List<WXSpecBinPassFail> GetAllSpec(Dictionary<string,string> cfg)
         {
             var ret = new List<WXSpecBinPassFail>();
 
@@ -26,7 +26,15 @@ namespace WXLogic
                 tempvm.WUL = UT.O2S(line[5]);
                 tempvm.DTLL = UT.O2S(line[6]);
                 tempvm.DTUL = UT.O2S(line[7]);
-                tempvm.minDUT = (int)(UT.O2I(line[8])*0.8);
+                if (cfg.ContainsKey(tempvm.Eval_PN + "_DUTRATE"))
+                {
+                    tempvm.minDUT = (int)(UT.O2D(cfg[tempvm.Eval_PN + "_DUTRATE"])*UT.O2I(line[8]));
+                }
+                else
+                {
+                    tempvm.minDUT = (int)(UT.O2I(line[8])*0.9);
+                }
+                
 
                 tempvm.Ref1 = UT.O2S(line[9]);
                 tempvm.Ref2 = UT.O2S(line[10]);
