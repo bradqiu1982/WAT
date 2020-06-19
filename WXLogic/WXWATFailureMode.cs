@@ -53,6 +53,40 @@ namespace WXLogic
             return ret;
         }
 
+        public static void StoreFailMode(string wafer, string RP, List<WXWATFailureMode> modes)
+        {
+            var sql = "delete from [WAT].[dbo].[WXWATFailureMode] where Wafer = @wafer and RP = @RP";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+            dict.Add("@RP", RP);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+
+            sql = @"insert into [WAT].[dbo].[WXWATFailureMode](Wafer,RP,UnitNum,X,Y,DPO,DPO_rd,DIth,BVR,DVF,PWR,DPOvsDITHcheck,DPO_LL,DVF_UL,Failure) 
+                    values(@Wafer,@RP,@UnitNum,@X,@Y,@DPO,@DPO_rd,@DIth,@BVR,@DVF,@PWR,@DPOvsDITHcheck,@DPO_LL,@DVF_UL,@Failure)";
+            foreach (var m in modes)
+            {
+                if (!m.Failure.Contains("PASS"))
+                {
+                    dict = new Dictionary<string, string>();
+                    dict.Add("@wafer", wafer);
+                    dict.Add("@RP", RP);
+                    dict.Add("@UnitNum", m.UnitNum);
+                    dict.Add("@X", m.X);
+                    dict.Add("@Y", m.Y);
+                    dict.Add("@DPO", m.DPO);
+                    dict.Add("@DPO_rd", m.DPO_rd.ToString());
+                    dict.Add("@DIth", m.DIth.ToString());
+                    dict.Add("@BVR", m.BVR.ToString());
+                    dict.Add("@DVF", m.DVF.ToString());
+                    dict.Add("@PWR", m.PWR);
+                    dict.Add("@DPOvsDITHcheck", m.DPOvsDITHcheck.ToString());
+                    dict.Add("@DPO_LL", m.DPO_LL);
+                    dict.Add("@DVF_UL", m.DVF_UL);
+                    dict.Add("@Failure", m.Failure);
+                    DBUtility.ExeLocalSqlNoRes(sql, dict);
+                }//END IF
+            }//END FOREACH
+        }
 
         public string ContainerName { set; get; }
         public string UnitNum { set; get; }

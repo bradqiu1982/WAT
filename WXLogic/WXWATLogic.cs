@@ -100,7 +100,7 @@ namespace WXLogic
             }
 
             //SPEC
-            var allspec = WXSpecBinPassFail.GetAllSpec();
+            var allspec = WXSpecBinPassFail.GetAllSpec(cfg);
             var dutminitem = WXSpecBinPassFail.GetMinDUT(containerinfo.ProductName, DCDName, allspec);
             if (dutminitem.Count == 0)
             {
@@ -279,6 +279,12 @@ namespace WXLogic
 
             logicresult.DataTables.Add(watpassfailcoupondata);
             logicresult.DataTables.Add(failmodes);
+
+            if ((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08"))
+                && string.IsNullOrEmpty(AnalyzeParam))
+            {
+                WXWATFailureMode.StoreFailMode(CouponGroup, RP, failmodes);
+            }
 
             if ((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08"))
                 && string.IsNullOrEmpty(AnalyzeParam))
@@ -862,7 +868,7 @@ namespace WXLogic
             }
 
             //SPEC
-            var allspec = WXSpecBinPassFail.GetAllSpec();
+            var allspec = WXSpecBinPassFail.GetAllSpec(cfg);
             var dutminitem = WXSpecBinPassFail.GetMinDUT(containerinfo.ProductName, DCDName, allspec);
             if (dutminitem.Count == 0)
             {
