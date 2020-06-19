@@ -1,12 +1,13 @@
-﻿@{
-    ViewBag.Title = "WeeklyYieldDS";
+﻿
+@{
+    ViewBag.Title = "WATRTYield";
     Layout = "~/Views/Shared/_Layout4DashBoard.cshtml";
 }
 
 <script type="text/javascript" src="~/Scripts/WWDS.js"></script>
 <script type="text/javascript">
         $(function(){
-            WWDS.YieldInit();
+            WWDS.RTYieldInit();
         })
 </script>
 
@@ -37,11 +38,11 @@
     }
 
     tr.PASS {
-        background-color:limegreen!important;
+        background-color: limegreen !important;
     }
 
     tr.FAIL {
-        background-color:darksalmon!important;
+        background-color: darksalmon !important;
     }
 
     .highcharts-container {
@@ -80,7 +81,7 @@
             <div class="v-content">
                 <div style="margin-left:-90px;margin-top:25px">
                     <table class="table table-hover  table-condensed table-striped" id="wafertable" style="margin-top:2%">
-                        <caption class="tb-caption">WUXI WAT WEEKLY YIELD</caption>
+                        <caption class="tb-caption">WUXI WAT REALTIME YIELD</caption>
                         <thead id="waferhead"></thead>
                         <tbody id="wafercontent"></tbody>
                     </table>
@@ -107,5 +108,6 @@
         </div>
     </div>
 </div>
+
 
 

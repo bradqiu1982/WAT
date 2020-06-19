@@ -325,6 +325,21 @@ namespace WAT.Models
             return true;
         }
 
+        public static Dictionary<string, string> GetWaferProdfamDict()
+        {
+            var ret = new Dictionary<string, string>();
+            var sql = @"select distinct wafernum,product from [WAT].[dbo].[WXEvalPN] where product <> ''";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]);
+                var prodfam = UT.O2S(line[1]);
+                if (!ret.ContainsKey(wf))
+                { ret.Add(wf, prodfam); }
+            }
+            return ret;
+        }
+
         public WXEvalPN()
         {
             WaferNum = "";

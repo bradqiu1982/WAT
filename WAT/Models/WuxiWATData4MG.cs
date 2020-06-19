@@ -347,6 +347,39 @@ namespace WAT.Models
             return dbret;
         }
 
+        public static Dictionary<string, string> GetVCSELTypeDict()
+        {
+            var ret = new Dictionary<string, string>();
+
+            var sql = @"select distinct left(c.containername,10) as wafer,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+                      left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,9)
+                      left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
+                      where len(c.Containername) = 20  and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]);
+                var tp = UT.O2S(line[1]);
+                if (!ret.ContainsKey(wf))
+                { ret.Add(wf, tp); }
+            }
+
+            sql = @"select distinct left(c.containername,14) as wafer,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+                  left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,13)
+                  left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
+                  where len(c.Containername) = 24  and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]);
+                var tp = UT.O2S(line[1]);
+                if (!ret.ContainsKey(wf))
+                { ret.Add(wf, tp); }
+            }
+
+            return ret;
+        }
+
         public static Dictionary<string, bool> GetKOYODict(List<string> wflist, Controller ctrl)
         {
             var syscfg = CfgUtility.GetSysConfig(ctrl);
@@ -396,6 +429,8 @@ namespace WAT.Models
         {
             var ret = new List<WuxiWATData4MG>();
             var dictdata = new Dictionary<string, List<WuxiWATData4MG>>();
+            var vdict = GetVCSELTypeDict();
+            var wfproddict = WXEvalPN.GetWaferProdfamDict();
 
             var dbret = GetWUXIWATWaferStepData();
             foreach (var line in dbret)
@@ -411,6 +446,14 @@ namespace WAT.Models
                 tempvm.TestStep = TestStep;
                 tempvm.TestTime = TestTime;
                 tempvm.RPStr = GetRPFromTestStep(tempvm.TestStep);
+                if (vdict.ContainsKey(wafer))
+                { tempvm.VArray = vdict[wafer]; }
+
+
+                tempvm.VType = "";
+                if (wfproddict.ContainsKey(tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T", "")))
+                { tempvm.VType = wfproddict[tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T", "")]; }
+
                 if (dictdata.ContainsKey(wafer))
                 { dictdata[wafer].Add(tempvm); }
                 else
@@ -432,13 +475,13 @@ namespace WAT.Models
                 });
                 var tempvm = tmplist[0];
                 GetWATTestResult(tempvm);
-                tempvm.VArray = WXEvalPN.GetLocalWaferArray(tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T",""));
+                //tempvm.VArray = WXEvalPN.GetLocalWaferArray(tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T",""));
                 if (commentdict.ContainsKey(tempvm.CouponID))
                 { tempvm.HasComment = "HasComment"; }
                 ret.Add(tempvm);
             }
 
-            GetVcselType(ret,ctrl);
+            //GetVcselType(ret,ctrl);
 
             ret.Sort(delegate (WuxiWATData4MG obj1, WuxiWATData4MG obj2)
             {
@@ -501,6 +544,42 @@ namespace WAT.Models
             return ret;
         }
 
+        public static void QuickRefreshTodaysWAT()
+        {
+            var wdict = new Dictionary<string, string>();
+            var dbret = GetWUXIWATWaferStepData();
+
+            foreach (var line in dbret)
+            {
+                var CouponID = UT.O2S(line[0]).ToUpper();
+                if (wdict.ContainsKey(CouponID))
+                { continue; }
+                wdict.Add(CouponID, CouponID);
+
+                var wafer = CouponID.Replace("E", "").Replace("R", "").Replace("T", "");
+                var TestStep = UT.O2S(line[1]);
+                var TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
+                var tempvm = new WuxiWATData4MG();
+                tempvm.CouponID = CouponID;
+                tempvm.TestStep = TestStep;
+                tempvm.TestTime = TestTime;
+
+                var jdstep = GetJudgementFromTestStep(tempvm.TestStep);
+                if (string.IsNullOrEmpty(jdstep))
+                { continue; }
+
+                if (UT.O2T(tempvm.TestTime) > DateTime.Now.AddDays(-2))
+                {
+                    try
+                    {
+                        var ret = GetWATResultFromLogic(tempvm, jdstep, false);
+                        StoreWATResult(tempvm.CouponID, jdstep, ret[0], ret[1]);
+                    }
+                    catch (Exception ex) { }
+                }//end if
+            }//end foreach
+        }
+
         public static Dictionary<string, string> GetPassFailWaferDict()
         {
             var ret = new Dictionary<string, string>();
@@ -534,6 +613,8 @@ namespace WAT.Models
                 {
                     if (!passfail.Contains("PASS") && !passfail.Contains("GREAT THAN"))
                     { ret.Add(wf, "FAIL"); }
+                    //else if (passfail.Contains("PASS"))
+                    //{ ret.Add(wf, "PASS"); }
                 }
             }
 

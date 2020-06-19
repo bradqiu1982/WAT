@@ -237,7 +237,9 @@
                             '<th>Wafer</th>' +
                             '<th>From Device</th>' +
                             '<th>From BIN</th>' +
+                            '<th>From PN</th>' +
                             '<th>To BIN</th>' +
+                            '<th>To PN</th>' +
                             //'<th>Count</th>' +
                             //'<th>Test</th>' +
                             //'<th>Finisar PN</th>' +
@@ -252,7 +254,9 @@
                             '<td>' + val.Wafer + '</td>' +
                             '<td>' + val.FromDevice + '</td>' +
                             '<td>' + val.FromBin + '</td>' +
+                            '<td>' + val.FromPN + '</td>' +
                             '<td>' + val.ToBin + '</td>' +
+                            '<td>' + val.ToPN + '</td>' +
                             //'<td>' + val.Count + '</td>' +
                             //'<td>' + val.Test + '</td>' +
                             //'<td>' + val.FPN + '</td>' +
@@ -288,6 +292,7 @@
                         '<tr>' +
                             '<th>Wafer</th>' +
                             '<th>BIN</th>' +
+                            '<th>PN</th>' +
                             '<th>Count</th>' +
                          '</tr>'
                     );
@@ -297,6 +302,7 @@
                         '<tr>' +
                             '<td>' + val.Wafer + '</td>' +
                             '<td>' + val.BIN + '</td>' +
+                            '<td>' + val.PN + '</td>' +
                             '<td>' + val.Count + '</td>' +
                         '</tr>'
                         );
@@ -328,6 +334,7 @@
                         '<tr>' +
                             '<th>Wafer</th>' +
                             '<th>BIN</th>' +
+                            '<th>PN</th>' +
                             '<th>Count</th>' +
                             //'<th>Unsorted PN</th>' +
                             //'<th>Uninspect PN</th>' +
@@ -344,6 +351,7 @@
                         '<tr>' +
                             '<td>' + val.Wafer + '</td>' +
                             '<td>' + val.BIN + '</td>' +
+                            '<td>' + val.PN + '</td>' +
                             '<td>' + val.Count + '</td>' +
                             //'<td>' + val.UnsortedPN + '</td>' +
                             //'<td>' + val.UninspectPN + '</td>' +

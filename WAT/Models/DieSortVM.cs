@@ -1530,6 +1530,19 @@ namespace WAT.Models
             return ret;
         }
 
+        public static Dictionary<string, bool> GetSampleXYDict(string wf)
+        {
+            var ret = new Dictionary<string, bool>();
+            var samplelist = RetrieveSampleData(wf);
+            foreach (var item in samplelist)
+            {
+                var key = (Models.UT.O2I(item.XX.Replace("X", "").Replace("x", "")) + ":::" + Models.UT.O2I(item.YY.Replace("Y", "").Replace("y", "")));
+                if (!ret.ContainsKey(key))
+                { ret.Add(key, true); }
+            }
+            return ret;
+        }
+
         public static List<string> SortedWaferNum()
         {
             var ret = new List<string>();
@@ -1542,10 +1555,11 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<object> waferBinSubstitude(string wafer)
+        public static List<object> waferBinSubstitude(string wafer,Controller ctrl)
         {
-            var ret = new List<object>();
+            var pndict = CfgUtility.GetProdfamPN(ctrl);
 
+            var ret = new List<object>();
             var dict = new Dictionary<string, string>();
             dict.Add("@wafer", wafer);
            
@@ -1554,12 +1568,26 @@ namespace WAT.Models
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
+                var FromPN = "";
+                var ToPN = "";
+                var dev = UT.O2S(line[0]);
+                var fb = UT.O2S(line[1]);
+                var tb = UT.O2S(line[2]);
+
+                if (pndict.ContainsKey(dev + "-" + fb))
+                { FromPN = pndict[dev + "-" + fb]; }
+
+                if (pndict.ContainsKey(dev + "-" + tb))
+                { ToPN = pndict[dev + "-" + tb]; }
+
                 ret.Add(new
                 {
                     Wafer = wafer,
-                    FromDevice = UT.O2S(line[0]),
-                    FromBin = UT.O2S(line[1]),
-                    ToBin = UT.O2S(line[2])
+                    FromDevice = dev,
+                    FromBin = fb,
+                    FromPN = FromPN,
+                    ToBin = tb,
+                    ToPN = ToPN
                 });
             }
            
@@ -1584,10 +1612,12 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<object> BinData4Plan(string wafer)
+        public static List<object> BinData4Plan(string wafer,Controller ctrl)
         {
-            var ret = new List<object>();
+            var pndict = CfgUtility.GetProdfamPN(ctrl);
+            var wfproddict = WXEvalPN.GetWaferProdfamDict();
 
+            var ret = new List<object>();
             if (wafer.Length == 13)
             {
                 var sql = "select wafer,bin,bincount from [WAT].[dbo].[WaferPassBinData] where WAFER = @wafer";
@@ -1596,10 +1626,21 @@ namespace WAT.Models
                 var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
                 foreach (var line in dbret)
                 {
+                    var wf = UT.O2S(line[0]);
+                    var bin = UT.O2S(line[1]);
+                    var pn = "";
+                    if (wfproddict.ContainsKey(wf))
+                    {
+                        var prod = wfproddict[wf];
+                        if (pndict.ContainsKey(prod + "-" + bin))
+                        { pn = pndict[prod + "-" + bin]; }
+                    }
+
                     ret.Add(new
                     {
-                        Wafer = UT.O2S(line[0]),
-                        BIN = UT.O2S(line[1]),
+                        Wafer =wf,
+                        BIN = bin,
+                        PN = pn,
                         Count = UT.O2I(line[2])
                     });
                 }
@@ -1638,10 +1679,20 @@ namespace WAT.Models
                     {
                         cnt = cnt - sampdict[bin];
                     }
+
+                    var pn = "";
+                    if (wfproddict.ContainsKey(wafer))
+                    {
+                        var prod = wfproddict[wafer];
+                        if (pndict.ContainsKey(prod + "-" + bin))
+                        { pn = pndict[prod + "-" + bin]; }
+                    }
+
                     ret.Add(new
                     {
                         Wafer = wafer,
                         BIN = bin,
+                        PN = pn,
                         Count = cnt
                     });
                 }
@@ -1651,10 +1702,12 @@ namespace WAT.Models
             return ret;
         }
 
-        public static List<object> SrcData4Plan(string wafer)
+        public static List<object> SrcData4Plan(string wafer,Controller ctrl)
         {
-            var ret = new List<object>();
+            var pndict = CfgUtility.GetProdfamPN(ctrl);
+            var wfproddict = WXEvalPN.GetWaferProdfamDict();
 
+            var ret = new List<object>();
             var srcdict = new Dictionary<string, int>();
             var sql = "select wafer,bincode,bincount from [WAT].[dbo].[WaferSrcData] where WAFER = @wafer and BinQuality = 'Pass'";
             var dict = new Dictionary<string, string>();
@@ -1662,10 +1715,21 @@ namespace WAT.Models
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
+                var wf = UT.O2S(line[0]);
+                var bin = UT.O2S(line[1]);
+                var pn = "";
+                if (wfproddict.ContainsKey(wf))
+                {
+                    var prod = wfproddict[wf];
+                    if (pndict.ContainsKey(prod + "-" + bin))
+                    { pn = pndict[prod + "-" + bin]; }
+                }
+
                 ret.Add(new
                 {
-                    Wafer = UT.O2S(line[0]),
-                    BIN = UT.O2S(line[1]),
+                    Wafer = wf,
+                    BIN = bin,
+                    PN = pn,
                     Count = UT.O2I(line[2])
                 });
             }

@@ -224,9 +224,9 @@ namespace WAT.Controllers
         public JsonResult LoadWaferData4Plan()
         {
             var wafernum = Request.Form["wafernum"].Trim();
-            var sampledata = DieSortVM.waferBinSubstitude(wafernum);
-            var waferbindata = DieSortVM.BinData4Plan(wafernum);
-            var wafersrcdata = DieSortVM.SrcData4Plan(wafernum);
+            var sampledata = DieSortVM.waferBinSubstitude(wafernum,this);
+            var waferbindata = DieSortVM.BinData4Plan(wafernum,this);
+            var wafersrcdata = DieSortVM.SrcData4Plan(wafernum,this);
 
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;

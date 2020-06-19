@@ -20,8 +20,20 @@ namespace WXLogic
             return string.Empty;
         }
 
+
         public static string GetArrayFromAllenSherman(string wafer)
         {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafer);
+            var sql = "select top 1 AppVal1 from [WAT].[dbo].[WXEvalPN] where [WaferNum] = @WaferNum";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            var array = "";
+            if (dbret.Count > 0)
+            { array = UT.O2S(dbret[0][0]); }
+            if (!string.IsNullOrEmpty(array))
+            { return array; }
+
+
             var sixinch = false;
             var productfm = "";
             if (wafer.Length == 13)

@@ -264,7 +264,7 @@ namespace WAT.Controllers
         {
             var starttime = Request.Form["sdate"];
             if (string.IsNullOrEmpty(starttime))
-            { starttime = "2020-01"; }
+            { starttime = DateTime.Now.AddMonths(-4).ToString("yyyy-MM"); }
 
             var sdate = DateTime.Parse(starttime + "-01 00:00:00");
             var orgdate = DateTime.Parse("2020-01-02 00:00:00");
@@ -301,10 +301,47 @@ namespace WAT.Controllers
             return View();
         }
 
+        public ActionResult WeeklyYield4Planning()
+        {
+            var url = "/DashBoard/WeeklyYield4Planning";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
+            return View();
+        }
+
+        public ActionResult WATRTYield()
+        {
+            var url = "/DashBoard/WATRTYield";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
+            return View();
+        }
+
+        private static string GetPNByWafer(string wf, Dictionary<string, string> wfproddict, Dictionary<string, string> pndict)
+        {
+            var wafer = wf.ToUpper().Replace("E", "").Replace("R", "").Replace("T", "");
+
+            var binlist = new List<string>(new string[] { "55","57","56","58","59","54","53","52","51","50" });
+            if (wfproddict.ContainsKey(wafer))
+            {
+                var prod = wfproddict[wafer];
+                foreach (var bin in binlist)
+                {
+                    if (pndict.ContainsKey(prod + "-" + bin))
+                    { return pndict[prod+"-"+bin]; }
+                }
+            }
+            return string.Empty;
+        }
+
         private List<object> GetYieldTable(DateTime sdate, List<WATCapacity> capvmlist)
         {
-            var ret = new List<object>();
+            var pndict = CfgUtility.GetProdfamPN(this);
+            var wfproddict = WXEvalPN.GetWaferProdfamDict();
 
+            var ret = new List<object>();
             var weekpassfailcap = new List<WATCapacity>();
 
             var weeklist = WATCapacity.GetWeekList(sdate);
@@ -332,6 +369,7 @@ namespace WAT.Controllers
                         { realweeklist.Add(wk); }
 
                         cap.WKStr = wk.ToString("yy/MM/dd");
+                        cap.PN = GetPNByWafer(cap.Wafer, wfproddict, pndict);
                         weekpassfailcap.Add(cap);
 
                         if (weekdata.ContainsKey(wk))
@@ -524,7 +562,7 @@ namespace WAT.Controllers
         {
             var starttime = Request.Form["sdate"];
             if (string.IsNullOrEmpty(starttime))
-            { starttime = "2020-01"; }
+            { starttime = DateTime.Now.AddMonths(-4).ToString("yyyy-MM"); }
 
             var sdate = DateTime.Parse(starttime + "-01 00:00:00");
             var orgdate = DateTime.Parse("2020-01-02 00:00:00");
@@ -532,14 +570,18 @@ namespace WAT.Controllers
             { sdate = orgdate; }
 
             var datafrom = sdate.AddDays(-21).ToString("yyyy-MM-dd HH:mm:ss");
+
+
             var capvmlist = WATCapacity.GetWATCapacity(datafrom);
             var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict();
+
             foreach (var capvm in capvmlist)
             {
                 if (passfailwfdict.ContainsKey(capvm.Wafer))
-                { capvm.Pass = passfailwfdict[capvm.Wafer]; }
+                {
+                    capvm.Pass = passfailwfdict[capvm.Wafer];
+                }
             }
-
 
             var yieldtable = GetYieldTable(sdate, capvmlist);
             var title = (List<string>)yieldtable[0];
@@ -560,6 +602,105 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public JsonResult WeeklyYield4PlanningData()
+        {
+            var starttime = Request.Form["sdate"];
+            if (string.IsNullOrEmpty(starttime))
+            { starttime = DateTime.Now.AddMonths(-4).ToString("yyyy-MM"); }
+
+            var sdate = DateTime.Parse(starttime + "-01 00:00:00");
+            var orgdate = DateTime.Parse("2020-01-02 00:00:00");
+            if (sdate < orgdate)
+            { sdate = orgdate; }
+
+            var datafrom = sdate.AddDays(-21).ToString("yyyy-MM-dd HH:mm:ss");
+
+            var passfaillist = new List<WATCapacity>();
+            var capvmlist = WATCapacity.GetWATCapacity(datafrom);
+            var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict();
+
+            foreach (var capvm in capvmlist)
+            {
+                if (capvm.Wafer.Length > 10)
+                { continue; }
+
+                if (passfailwfdict.ContainsKey(capvm.Wafer))
+                {
+                    capvm.Pass = passfailwfdict[capvm.Wafer];
+                    if (!capvm.Pass.Contains("PENDING"))
+                    {
+                        passfaillist.Add(capvm);
+                    }
+                }
+            }
+
+            var yieldtable = GetYieldTable(sdate, passfaillist);
+            var title = (List<string>)yieldtable[0];
+            var table = (List<List<string>>)yieldtable[1];
+            var weekpassfailcap = (List<WATCapacity>)yieldtable[2];
+
+            //var chartdata = GetCapacityChart(title, table);
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                title = title,
+                table = table,
+                passfailcap = weekpassfailcap
+                //,chartdata = chartdata
+            };
+            return ret;
+        }
+
+        public JsonResult RTYieldDSData()
+        {
+            var starttime = Request.Form["sdate"];
+            if (string.IsNullOrEmpty(starttime))
+            { starttime = DateTime.Now.AddMonths(-4).ToString("yyyy-MM"); }
+
+            var sdate = DateTime.Parse(starttime + "-01 00:00:00");
+            var orgdate = DateTime.Parse("2020-01-02 00:00:00");
+            if (sdate < orgdate)
+            { sdate = orgdate; }
+
+            var passfaillist = new List<WATCapacity>();
+
+            var datafrom = sdate.ToString("yyyy-MM-dd HH:mm:ss");
+            var capvmlist = WATCapacity.GetWATHTOL2Wafer(datafrom);
+            var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict();
+            foreach (var capvm in capvmlist)
+            {
+                if (passfailwfdict.ContainsKey(capvm.Wafer))
+                { capvm.Pass = passfailwfdict[capvm.Wafer]; }
+
+                if (!capvm.Pass.Contains("PENDING"))
+                {
+                    passfaillist.Add(capvm);
+                }
+            }
+
+
+            var yieldtable = GetYieldTable(sdate, passfaillist);
+            var title = (List<string>)yieldtable[0];
+            var table = (List<List<string>>)yieldtable[1];
+            var weekpassfailcap = (List<WATCapacity>)yieldtable[2];
+
+            //var chartdata = GetCapacityChart(title, table);
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                title = title,
+                table = table,
+                passfailcap = weekpassfailcap
+                //,chartdata = chartdata
+            };
+            return ret;
+        }
+
+
         public ActionResult WUXIWATWIPDS()
         {
             var url = "/DashBoard/WUXIWATWIPDS";
@@ -571,6 +712,9 @@ namespace WAT.Controllers
 
         public JsonResult WUXIWATWIPDSDATA()
         {
+            var pndict = CfgUtility.GetProdfamPN(this);
+            var wfproddict = WXEvalPN.GetWaferProdfamDict();
+
             var datafrom = DateTime.Now.AddDays(-90).ToString("yyyy-MM-dd HH:mm:ss");
             var wfdatedict = new Dictionary<string, DateTime>();
             var wftypedict = new Dictionary<string, string>();
@@ -605,6 +749,7 @@ namespace WAT.Controllers
                 var title = new List<string>();
                 title.Add("WAT WIP");
                 title.Add("TYPE");
+                title.Add("PN");
                 title.Add("START DATE");
                 title.Add("PRE-BI");
                 title.Add("POST-BI");
@@ -621,6 +766,8 @@ namespace WAT.Controllers
                     { tmplist.Add(wftypedict[wf]); }
                     else
                     { tmplist.Add(""); }
+
+                    tmplist.Add(GetPNByWafer(wf, wfproddict, pndict));
 
                     if (wfdatedict.ContainsKey(wf))
                     { tmplist.Add(wfdatedict[wf].ToString("yy/MM/dd")); }
