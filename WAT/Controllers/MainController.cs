@@ -662,6 +662,56 @@ namespace WAT.Controllers
 
         }
 
+        public ActionResult SampleCheckWithOCR()
+        {
+            return View();
+        }
+
+        public JsonResult SampleXYCheckWithOCRData()
+        {
+            var wf = Request.Form["wafer"].Trim();
+            var lotnum = Request.Form["lotnum"].Trim();
+            var wafer = wf.Split(new string[] { "E", "T", "R" }, StringSplitOptions.RemoveEmptyEntries)[0];
+
+            var MSG = "";
+            var ocrdata = OGPSNXYVM.GetLocalOGPXYSNDict(lotnum).Values.ToList();
+            if (ocrdata.Count == 0)
+            { MSG = "No OCR coordinate data,so this wafer "+wf+" have not done WAT at WUXI!"; }
+
+            var sampledict = DieSortVM.GetSampleXYDict(wafer);
+
+            //MSG = DieSortVM.GetAllBinFromMapFile(wafer,bindict, this);
+            if (sampledict.Count == 0)
+            { MSG = "This is a sorted wafer!"; }
+
+            var matched = 0;
+            foreach (var item in ocrdata)
+            {
+                var templine = new List<string>();
+                var key = (Models.UT.O2I(item.X.Replace("X", "").Replace("x", "")) + ":::" + Models.UT.O2I(item.Y.Replace("Y", "").Replace("y", "")));
+                if (sampledict.ContainsKey(key))
+                {
+                    item.Bin = "MATCH";
+                    matched++;
+                }
+            }
+
+            var matchrate = (double)matched / (double)ocrdata.Count;
+            if (matchrate > 0.7)
+            { MSG = "This is a unsorted wafer!"; }
+            else
+            { MSG = "This is a sorted wafer!"; }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                ocrlist = ocrdata,
+                MSG = MSG
+            };
+            return ret;
+        }
+
         public JsonResult GetWXWATWafer()
         {
             var couponidlistx = new List<string>();
