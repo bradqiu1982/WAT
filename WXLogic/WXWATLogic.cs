@@ -242,7 +242,11 @@ namespace WXLogic
             var BIYield = 100.0;
             if (string.Compare(RP, "1") == 0)
             { BIYield = WXWATPassFailUnit.GetDutBIYield(passfailunitdata); }
-            var BIYieldSpec = UT.O2D(cfg["PRODBIYIELDRP01"]);
+
+            var BIYieldSpec = 95.0;
+            if (cfg.ContainsKey(containerinfo.ProductName + "_BIYIELD"))
+            { BIYieldSpec = UT.O2D(cfg[containerinfo.ProductName + "_BIYIELD"]); }
+            else { BIYieldSpec = UT.O2D(cfg["PRODBIYIELDRP01"]); }
 
             var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
                , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,BIYield,BIYieldSpec);

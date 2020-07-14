@@ -2410,6 +2410,7 @@
                             '<th>LPW</th>' +
                             '<th>DLA</th>' +
                             '<th>RAWData</th>' +
+                            '<th>E10</th>' +
                             '<th>WATLogic</th>' +
                             '<th>PowerOnCoupon</th>' +
                             '<th>DVFOnCoupon</th>' +
@@ -2421,6 +2422,7 @@
                     
                     $.each(output.wipdata, function (i, val) {
                         var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '08" target="_blank" >RAWDATA</a></td>';
+                        var e10link = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '10" target="_blank" >E10</a></td>';
                         var logiclink = '<td></td>';
                         var poweroncoupon = '<td></td>';
                         var dvfoncoupon = '<td></td>';
@@ -2461,6 +2463,7 @@
                              //'<td class="FAILUREDETIAL" detailinfo="' + val.FailureStr + '">'
                              //+ val.FailureShortStr + '</td>' +
                              rawdatalink +
+                             e10link +
                              logiclink +
                              poweroncoupon +
                              dvfoncoupon +

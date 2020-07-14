@@ -790,7 +790,25 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult WuxiBinInfo()
+        {
+            return View();
+        }
 
+        public JsonResult WUXIBinData()
+        {
+            var marks = Request.Form["marks"];
+            List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+
+            var datalist = WUXIWATBIN.GetBinInfo(wflist, this);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                datalist = datalist
+            };
+            return ret;
+        }
 
     }
 }

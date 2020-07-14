@@ -55,7 +55,7 @@ namespace WAT.Models
 
             var evalcond = "('" + string.Join("','", allevalpn) + "')";
 
-            sql = @"select pb.productname,p.Description from insite.insite.product p with(nolock) 
+            sql = @"select distinct pb.productname,p.Description from insite.insite.product p with(nolock) 
                     inner join insite.insite.productbase pb with(nolock) on pb.productbaseid=p.productbaseid
 	                where pb.productname in <evalcond>";
             sql = sql.Replace("<evalcond>", evalcond);
@@ -72,7 +72,7 @@ namespace WAT.Models
                 }
             }
 
-            sql = @"select pb.productname,p.Description from [SHM-CSSQL].insite.insite.product p with(nolock) 
+            sql = @"select distinct pb.productname,p.Description from [SHM-CSSQL].insite.insite.product p with(nolock) 
                     inner join [SHM-CSSQL].insite.insite.productbase pb with(nolock) on pb.productbaseid=p.productbaseid
 	                where pb.productname in <evalcond>";
             sql = sql.Replace("<evalcond>", evalcond);

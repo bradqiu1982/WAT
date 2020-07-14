@@ -211,6 +211,9 @@ namespace WAT.Models
                 { break; }
             }
 
+            if (currentday.AddHours(1).DayOfWeek == DayOfWeek.Thursday)
+            { datelist.Add(currentday); }
+
             return datelist;
         }
 

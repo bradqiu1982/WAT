@@ -536,7 +536,9 @@ namespace WAT.Models
                 FileLoadedData.UpdateLoadedFile(wafer, "WAFER");
 
             }
-            catch (Exception ex) { return false; }
+            catch (Exception ex) {
+                return false;
+            }
 
             return true;
         }

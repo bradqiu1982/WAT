@@ -298,6 +298,7 @@
     <Compile Include="Models\WATSampleXY.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
+    <Compile Include="Models\WUXIWATBIN.cs" />
     <Compile Include="Models\WuxiWATData4MG.cs" />
     <Compile Include="Models\WUXIWATWIP.cs" />
     <Compile Include="Models\WXCfg.cs" />
@@ -912,6 +913,7 @@
     <Content Include="Views\DashBoard\WATRTYield.cshtml" />
     <Content Include="Scripts\prodfampn.cfg" />
     <Content Include="Views\DashBoard\WeeklyYield4Planning.cshtml" />
+    <Content Include="Views\Main\WuxiBinInfo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

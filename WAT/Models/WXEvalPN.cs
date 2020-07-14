@@ -50,10 +50,9 @@ namespace WAT.Models
         {
             var sql = @"SELECT distinct LEFT(pf.[ProductFamilyName],4) AS PRODUCT_FAMILY
                     FROM [SHM-CSSQL].[Insite].[insite].[Container] c with(nolock)
-                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductBase] pb with(nolock) ON pb.[RevOfRcdId] = c.[ProductId] 
-                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId] 
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductId] = c.[ProductId] 
                     INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductFamily] pf with(nolock) ON pf.[ProductFamilyId] = p.[ProductFamilyId]
-                    WHERE c.[ContainerName] = @wafernum";
+                    WHERE c.[ContainerName] =  @wafernum";
 
             var dict = new Dictionary<string, string>();
             dict.Add("@wafernum", wafernum);
@@ -195,13 +194,13 @@ namespace WAT.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
 
             var templist = new List<WXEvalPN>();
-            sql = @"SELECT  pb.productname FROM [SHM-CSSQL].[Insite].[insite].[Container] c with(nolock)
-                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductBase] pb with(nolock) ON pb.[RevOfRcdId] = c.[ProductId] 
-                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductBaseId] = pb.[ProductBaseId]
+            sql = @"SELECT distinct pb.productname FROM [SHM-CSSQL].[Insite].[insite].[Container] c with(nolock)
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[Product] p with(nolock) ON p.[ProductId] = c.[ProductId] 
+                    INNER JOIN [SHM-CSSQL].[Insite].[insite].[ProductBase] pb with(nolock)  ON p.[ProductBaseId] = pb.[ProductBaseId]
 		            INNER JOIN [SHM-CSSQL].[Insite].[insite].[factory] f with(nolock) on f.factoryid=p.factoryid
                     WHERE c.[ContainerName] = @wafernum and f.factoryname  = 'chip'";
 
-            var dbret = DBUtility.ExeAllenSqlWithRes(sql, dict);
+            var dbret = DBUtility.ExeShermanSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
                 var pdname = UT.O2S(line[0]);
