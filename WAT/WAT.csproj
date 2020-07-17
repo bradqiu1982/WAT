@@ -277,6 +277,7 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\IIVIVcselVM.cs" />
     <Compile Include="Models\JobCheckVM.cs" />
     <Compile Include="Models\MachineUserMap.cs" />
     <Compile Include="Models\OGPSNXYVM.cs" />
@@ -914,6 +915,7 @@
     <Content Include="Scripts\prodfampn.cfg" />
     <Content Include="Views\DashBoard\WeeklyYield4Planning.cshtml" />
     <Content Include="Views\Main\WuxiBinInfo.cshtml" />
+    <Content Include="Views\DieSort\IIVISamplePick.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

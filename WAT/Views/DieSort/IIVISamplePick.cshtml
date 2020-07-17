@@ -1,8 +1,9 @@
 ﻿
 @{
-    ViewBag.Title = "WATSamplePick";
+    ViewBag.Title = "IIVISamplePick";
     Layout = "~/Views/Shared/_Layout4Product.cshtml";
 }
+
 
 <style type="text/css">
     th, td {
@@ -13,14 +14,14 @@
 <script type="text/javascript" src="~/Scripts/WATDataPrepare.js"></script>
 <script type="text/javascript">
     $(function(){
-        WATDATAPAREPARE.WATSAMPLEPICK();
+        WATDATAPAREPARE.IIVISAMPLEPICK();
     })
 </script>
 
 <div class="row" style="height:90%!important">
     <div class="col-xs-3 mark-lists">
         <div class="marks-title">
-            <span>Input Wafer Number/Max 10 Wafers</span>
+            <span>Input II-VI Wafer Number/Max 10 Wafers</span>
         </div>
         <textarea class="form-control marks" id="marks"></textarea>
         <div class="marks-submit">
@@ -37,7 +38,7 @@
         <div class="mark-detail-op">
         </div>
         <table class="table  table-condensed" id="mywafertable">
-            <caption class="tb-caption">WUXI WAT SAMPLE PICK</caption>
+            <caption class="tb-caption">II-VI SAMPLE PICK</caption>
             <thead>
                 <tr>
                     <th>WAFER</th>
@@ -48,3 +49,4 @@
         </table>
     </div>
 </div>
+

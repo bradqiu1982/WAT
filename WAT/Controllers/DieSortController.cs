@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -508,6 +509,99 @@ namespace WAT.Controllers
             };
             return ret;
         }
-    }
 
-}
+        public ActionResult IIVISamplePick()
+        {
+            var url = "/DieSort/IIVISamplePick";
+            if (!CheckName(Request.UserHostName, url))
+            { return Jump2Welcome(url); }
+
+            return View();
+        }
+
+        public JsonResult IIVISamplePickData()
+        {
+            //get query condition
+            var syscfg = CfgUtility.GetSysConfig(this);
+            var marks = Request.Form["marks"];
+            List<string> allwflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var idx = 0;
+            var wflist = new List<string>();
+            foreach (var item in allwflist)
+            {
+                wflist.Add(item);
+                idx++;
+                if (idx > 10)
+                { break; }
+            }
+
+            var wfdatalist = new List<object>();
+
+            //get all exist files
+            var mapfolder = syscfg["IIVIMAPFILE"];
+            var samplefolder = syscfg["IIVISAMPLEPICK"];
+            //var requestcnt = UT.O2I(syscfg["IIVISAMPLESIZE"]);
+            var IIVIPNs = syscfg["IIVIPN"].Split(new string[] { ","},StringSplitOptions.RemoveEmptyEntries);
+            var IIVIPNDict = new Dictionary<string, string>();
+            foreach (var ip in IIVIPNs)
+            {
+                var pmap = ip.Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                IIVIPNDict.Add(pmap[0], pmap[1]);
+            }
+
+            var allsamplefile = ExternalDataCollector.DirectoryEnumerateFiles(this, samplefolder);
+            var allsrcfile = ExternalDataCollector.DirectoryEnumerateFiles(this, mapfolder);
+            var samplefsdict = new Dictionary<string, bool>();
+            foreach (var ef in allsamplefile)
+            {
+                var fs = System.IO.Path.GetFileNameWithoutExtension(ef);
+                if (!samplefsdict.ContainsKey(fs)) { samplefsdict.Add(fs, true); }
+            }
+            var srcdict = new Dictionary<string, bool>();
+            foreach (var sf in allsrcfile)
+            {
+                var fs = System.IO.Path.GetFileName(sf).Trim().ToUpper();
+                if (!srcdict.ContainsKey(fs)) { srcdict.Add(fs, true); }
+            }
+
+            //check exist files
+            var tobewf = new List<string>();
+            foreach (var wf in wflist)
+            {
+                var stat = IIVIVcselVM.CheckWaferFile(wf, allsamplefile, samplefsdict, allsrcfile, srcdict);
+                if (!string.IsNullOrEmpty(stat))
+                {
+                    wfdatalist.Add(new
+                    {
+                        wf = wf,
+                        stat = stat
+                    });
+                }
+                else
+                { tobewf.Add(wf); }
+            }
+
+            //try to pick sample data
+            foreach (var wf in tobewf)
+            {
+                var stat = IIVIVcselVM.SolveIIVIWafer(wf, allsrcfile, mapfolder, samplefolder, syscfg,IIVIPNDict);
+                wfdatalist.Add(new
+                {
+                    wf = wf,
+                    stat = stat
+                });
+            }//end foreach
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist
+            };
+            return ret;
+        }
+
+
+        }
+
+    }

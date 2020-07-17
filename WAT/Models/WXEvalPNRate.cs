@@ -17,7 +17,7 @@ namespace WAT.Models
             }
         }
 
-        private void UpdatePNRate()
+        public void UpdatePNRate()
         {
             if (!HasData())
             {
