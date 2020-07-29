@@ -145,8 +145,9 @@ namespace WAT.Models
             var htol2wf = GetWUXIWATHTOLWafer("HTOL2");
             var htol1wf = GetWUXIWATHTOLWafer("HTOL1");
             var ret = new List<WUXIWATBIN>();
-            foreach (var wf in wflist)
+            foreach (var wf1 in wflist)
             {
+                var wf = wf1.ToUpper().Replace("E", "").Replace("R", "").Replace("T", "");
                 if (watwf.ContainsKey(wf)){
                     if (htol2wf.ContainsKey(wf))
                     {
