@@ -788,6 +788,7 @@
     <Content Include="Scripts\JOBCHECKLIST.txt" />
     <Content Include="Scripts\mapfilewithocr.js" />
     <Content Include="Scripts\WATDataPrepare.js" />
+    <Content Include="Scripts\watstep.js" />
     <Content Include="Scripts\WWDS.js" />
     <Content Include="WXCfg.txt" />
     <None Include="Properties\PublishProfiles\watpublish.pubxml" />
@@ -916,6 +917,7 @@
     <Content Include="Views\DashBoard\WeeklyYield4Planning.cshtml" />
     <Content Include="Views\Main\WuxiBinInfo.cshtml" />
     <Content Include="Views\DieSort\IIVISamplePick.cshtml" />
+    <Content Include="Views\Main\WATTestStep.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -329,8 +329,8 @@ namespace WAT.Controllers
             }
             else
             {
-                wxlogic.AllowToMoveMapFile = false;
-                ret = wxlogic.WATPassFail100(couponid, jstepname);
+                //wxlogic.AllowToMoveMapFile = false;
+                //ret = wxlogic.WATPassFail100(couponid, jstepname);
             }
 
 

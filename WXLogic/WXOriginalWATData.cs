@@ -279,6 +279,10 @@ namespace WXLogic
             { return "PRLL_Post_HTOL1_Test"; }
             else if (rp == 3)
             { return "PRLL_Post_HTOL2_Test"; }
+            else if (rp == 4)
+            { return "PRLL_Post_HTOL3_Test"; }
+            else if (rp == 5)
+            { return "PRLL_Post_HTOL4_Test"; }
             else
             { return ""; }
 
@@ -310,6 +314,10 @@ namespace WXLogic
                 { return "2"; }
                 else if (string.Compare(stepnametrim, "PRLL_Post_HTOL2_Test", true) == 0)
                 { return "3"; }
+                else if (string.Compare(stepnametrim, "PRLL_Post_HTOL3_Test", true) == 0)
+                { return "4"; }
+                else if (string.Compare(stepnametrim, "PRLL_Post_HTOL4_Test", true) == 0)
+                { return "5"; }
                 else
                 { return ""; }
             }

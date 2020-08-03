@@ -712,14 +712,14 @@
         });
 
         $('body').on('click', '#btn-r100', function () {
-            var couponid = $('#couponid').val();
-            var jstepname = $('#jstepname').val();
-            if (couponid == '' || jstepname == '') {
-                alert('Please into correct coupon id and judgement step name!')
-                return false;
-            }
+            //var couponid = $('#couponid').val();
+            //var jstepname = $('#jstepname').val();
+            //if (couponid == '' || jstepname == '') {
+            //    alert('Please into correct coupon id and judgement step name!')
+            //    return false;
+            //}
 
-            wuxirest(couponid, jstepname, 'TRUE');
+            //wuxirest(couponid, jstepname, 'TRUE');
         });
 
         $(function () {

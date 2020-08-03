@@ -57,9 +57,16 @@ body {
     color: #000;
 }
 
+
 .wel-title {
     padding-top: 5%;
     font-size: 48px;
+}
+
+.wel-title1 {
+    padding-top: 5%;
+    font-size: 24px;
+    font-weight:bold;
 }
 
 .wel-subtitle {
@@ -77,6 +84,7 @@ body {
     background-color: transparent;
     color: #000;
     border: #000 solid 1px;
+    width:240px!important;
 }
 
 .wel-eg {
@@ -89,7 +97,7 @@ body {
 .wel-submit{
     padding-top: 5%;
     font-size: 35px;
-    width: 30%;
+    width: 50%;
 }
 
 .btn-wel-submit{
@@ -105,4 +113,11 @@ body {
     cursor: pointer;
 }
 
+.error-info {
+    color:red;
+}
+
+.ok-info {
+    color:greenyellow;
+}
 

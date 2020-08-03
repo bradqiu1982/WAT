@@ -332,6 +332,17 @@ namespace WAT.Models
             }//end if
         }
 
+        public static string GetWATTestStep(string sn)
+        {
+            var sql = "SELECT TOP (1) [TestStep]  FROM [Insite].[dbo].[ProductionResult] where sn = @sn order by TestTimeStamp desc";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@sn", sn);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            { return UT.O2S(line[0]).Trim().ToUpper(); }
+
+            return "";
+        }
 
         public static List<List<object>> GetWUXIWATWaferStepData()
         {
