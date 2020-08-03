@@ -810,5 +810,89 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult WATTestStep()
+        {
+
+            return View();
+        }
+
+        public JsonResult WATTestStepData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var wafernum = Request.Form["wafernum"].Trim().ToUpper();
+            var normaltest = "";
+            var retest = "";
+            var status = "";
+            var charlist = new List<string>(new string[] { "E", "R", "T" });
+            var tclist = new List<string>(new string[] { "08", "09", "10" });
+            var matchstr = "";
+            var matcht = "";
+            foreach (var c in charlist)
+            {
+                foreach (var t in tclist)
+                {
+                    if (wafernum.Contains(c + t))
+                    {
+                        matchstr = c + t;
+                        matcht = t;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(matchstr))
+            {
+                var currenttest = WuxiWATData4MG.GetWATTestStep(wafernum);
+                if (!string.IsNullOrEmpty(currenttest))
+                {
+                    var key = matcht + "_" + currenttest + "_NEXT";
+                    if (syscfg.ContainsKey(key))
+                    {
+                        var nexttest = syscfg[key];
+                        if (nexttest.Contains("END"))
+                        {
+                            status = "SN 测试完成,OK";
+                            retest = currenttest;
+                        }
+                        else
+                        {
+                            status = "OK";
+                            retest = currenttest;
+                            normaltest = nexttest;
+                        }
+                    }
+                    else
+                    {
+                        status = "错误步骤 "+matchstr +" "+currenttest;
+                    }
+                }
+                else
+                {
+                    status = "SN 第一次测试,OK";
+                    if (syscfg.ContainsKey(matcht + "_FIRSTTESTSTEP"))
+                    {
+                        normaltest = syscfg[matcht + "_FIRSTTESTSTEP"];
+                    }
+                }
+            }
+            else
+            {
+                status = "SN 格式不正确";
+            }
+
+            WebLog.Log(wafernum, "WATTEST", status);
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                normaltest = normaltest,
+                retest = retest,
+                status = status
+            };
+
+            return ret;
+        }
+
     }
 }

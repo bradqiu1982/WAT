@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewBag.Title = "WATTestStep";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/Content/welcome.css" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript" src="~/Scripts/watstep.js"></script>
+<script type="text/javascript">
+    $(function(){
+        WATSTEP.WATStepInit();
+    })
+</script>
+
+<div class="row" style="min-height:90%">
+    <div class="wel-container">
+        @*<div class="wel-bg">
+            <img src="~/Content/images/welcome.png" class="wel-bg-img" />
+        </div>*@
+        <div class="wel-body">
+            <div class="col-lg-5">
+                <div class="wel-title">WAT TEST STEP</div>
+                <div class="wel-subtitle">扫描测试板SN 确认测试步骤</div>
+                <div class="wel-op">
+                    <div class="input-group">
+                        <input type="text" class="form-control wel-input" id="wafernum" name="wafernum">
+                    </div>
+                    <div class="wel-eg">
+                    </div>
+                    <div class="wel-submit">
+                        <input type="button" class="btn btn-success btn-wel-submit" id="btn-submit" name="btn-submit" value="提交" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="row">
+                    <div class="col-lg-3 wel-title1">SN:</div>
+                    <div class="col-lg-9 wel-title1" id="sn" name="sn"></div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 wel-title1">测试:</div>
+                    <div class="col-lg-9 wel-title1" id="normaltest" name="normaltest"></div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 wel-title1">复测:</div>
+                    <div class="col-lg-9 wel-title1" id="retest" name="retest"></div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 wel-title1">状态:</div>
+                    <div class="col-lg-9 wel-title1" id="status" name="status"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
