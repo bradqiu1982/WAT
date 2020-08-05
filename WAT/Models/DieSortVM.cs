@@ -2101,86 +2101,86 @@ namespace WAT.Models
         }
 
 
-        public static string GetAllBinFromMapFile(string wafer,Dictionary<string,string> bindict, Controller ctrl)
-        {
-            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+        //public static string GetAllBinFromMapFile(string wafer,Dictionary<string,string> bindict, Controller ctrl)
+        //{
+        //    var syscfgdict = CfgUtility.GetSysConfig(ctrl);
 
-            var productfm = WXEvalPN.GetLocalProductFam(wafer);
-            var allwffiles = DieSortVM.GetAllWaferFile(ctrl);
-            var arraysize = WXEvalPN.GetLocalWaferArray(wafer);
+        //    var productfm = WXEvalPN.GetLocalProductFam(wafer);
+        //    var allwffiles = DieSortVM.GetAllWaferFile(ctrl);
+        //    var arraysize = WXEvalPN.GetLocalWaferArray(wafer);
 
-            //if (wafer.Length == 13)
-            //{
-            //    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
-            //    if (string.IsNullOrEmpty(productfm))
-            //    { return "fail to to get product family by wafer " + wafer; }
-            //}
-            //else
-            //{
-            //    productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
-            //    if (string.IsNullOrEmpty(productfm))
-            //    {
-            //        productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
-            //        if (string.IsNullOrEmpty(productfm))
-            //        { return "fail to to get product family by wafer " + wafer; }
-            //    }
-            //}
+        //    //if (wafer.Length == 13)
+        //    //{
+        //    //    productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+        //    //    if (string.IsNullOrEmpty(productfm))
+        //    //    { return "fail to to get product family by wafer " + wafer; }
+        //    //}
+        //    //else
+        //    //{
+        //    //    productfm = WXEvalPN.GetProductFamilyFromAllen(wafer);
+        //    //    if (string.IsNullOrEmpty(productfm))
+        //    //    {
+        //    //        productfm = WXEvalPN.GetProductFamilyFromSherman(wafer);
+        //    //        if (string.IsNullOrEmpty(productfm))
+        //    //        { return "fail to to get product family by wafer " + wafer; }
+        //    //    }
+        //    //}
 
-            //get the actual wafer file
-            var swaferfile = "";
-            long filesize = 0;
-            var flist = new List<string>();
-            foreach (var f in allwffiles)
-            {
-                var uf = f.ToUpper();
-                if (uf.Contains(wafer.ToUpper()))
-                {
-                    flist.Add(uf);
-                }
-            }
+        //    //get the actual wafer file
+        //    var swaferfile = "";
+        //    long filesize = 0;
+        //    var flist = new List<string>();
+        //    foreach (var f in allwffiles)
+        //    {
+        //        var uf = f.ToUpper();
+        //        if (uf.Contains(wafer.ToUpper()))
+        //        {
+        //            flist.Add(uf);
+        //        }
+        //    }
 
-            foreach (var f in flist)
-            {
-                System.IO.FileInfo fi = new System.IO.FileInfo(f);
-                if (fi.Length > filesize)
-                {
-                    swaferfile = f;
-                    filesize = fi.Length;
-                }
-            }
+        //    foreach (var f in flist)
+        //    {
+        //        System.IO.FileInfo fi = new System.IO.FileInfo(f);
+        //        if (fi.Length > filesize)
+        //        {
+        //            swaferfile = f;
+        //            filesize = fi.Length;
+        //        }
+        //    }
 
-            if (string.IsNullOrEmpty(swaferfile))
-            {
-                return "map file does not exist";
-            }
+        //    if (string.IsNullOrEmpty(swaferfile))
+        //    {
+        //        return "map file does not exist";
+        //    }
 
 
-            var waferfile = ExternalDataCollector.DownloadShareFile(swaferfile, ctrl);
-            if (waferfile == null)
-            { return "fail to download map file"; }
+        //    var waferfile = ExternalDataCollector.DownloadShareFile(swaferfile, ctrl);
+        //    if (waferfile == null)
+        //    { return "fail to download map file"; }
 
-            try
-            {
-                //get modify information
-                var doc = new XmlDocument();
-                doc.Load(waferfile);
-                var namesp = doc.DocumentElement.GetAttribute("xmlns");
-                doc = StripNamespace(doc);
-                XmlElement root = doc.DocumentElement;
+        //    try
+        //    {
+        //        //get modify information
+        //        var doc = new XmlDocument();
+        //        doc.Load(waferfile);
+        //        var namesp = doc.DocumentElement.GetAttribute("xmlns");
+        //        doc = StripNamespace(doc);
+        //        XmlElement root = doc.DocumentElement;
 
-                var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
-                foreach (XmlElement nd in bincodelist)
-                {
-                    var x = nd.GetAttribute("X");
-                    var y = nd.GetAttribute("Y");
-                    var k = x + ":::" + y;
-                    if (!bindict.ContainsKey(k))
-                    { bindict.Add(k, nd.InnerText); }
-                }//end foreach
-            }catch (Exception ex) { return ex.Message; }
+        //        var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+        //        foreach (XmlElement nd in bincodelist)
+        //        {
+        //            var x = nd.GetAttribute("X");
+        //            var y = nd.GetAttribute("Y");
+        //            var k = x + ":::" + y;
+        //            if (!bindict.ContainsKey(k))
+        //            { bindict.Add(k, nd.InnerText); }
+        //        }//end foreach
+        //    }catch (Exception ex) { return ex.Message; }
 
-            return string.Empty;
-        }
+        //    return string.Empty;
+        //}
 
         public static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
         {

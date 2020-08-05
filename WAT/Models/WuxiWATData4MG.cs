@@ -119,6 +119,10 @@ namespace WAT.Models
             { return "POSTHTOL1JUDGEMENT"; }
             else if (string.Compare(step, "PRLL_Post_HTOL2_Test", true) == 0)
             { return "POSTHTOL2JUDGEMENT"; }
+            else if (string.Compare(step, "PRLL_Post_HTOL3_Test", true) == 0)
+            { return "POSTHTOL3JUDGEMENT"; }
+            else if (string.Compare(step, "PRLL_Post_HTOL4_Test", true) == 0)
+            { return "POSTHTOL4JUDGEMENT"; }
             else
             { return ""; }
         }
@@ -131,6 +135,10 @@ namespace WAT.Models
             { return "RP02"; }
             else if (string.Compare(step, "PRLL_Post_HTOL2_Test", true) == 0)
             { return "RP03"; }
+            else if (string.Compare(step, "PRLL_Post_HTOL3_Test", true) == 0)
+            { return "RP04"; }
+            else if (string.Compare(step, "PRLL_Post_HTOL4_Test", true) == 0)
+            { return "RP05"; }
             else
             { return "RP00"; }
         }
@@ -143,7 +151,7 @@ namespace WAT.Models
             {
                 var WLG = new WXLogic.WXWATLogic();
                 WLG.AllowToMoveMapFile = allowmovemapfile;
-                var ret = WLG.WATPassFail(tempvm.CouponID + "08", jdstep);
+                var ret = WLG.WATPassFail(tempvm.CouponID, jdstep);
 
                 if (!string.IsNullOrEmpty(ret.AppErrorMsg))
                 { result = ret.AppErrorMsg; }
@@ -270,7 +278,7 @@ namespace WAT.Models
             var ret = GetWATResultFromDB(tempvm, jdstep);
             if (ret.Count == 0)
             {
-                ret = GetWATResultFromLogic(tempvm, jdstep);
+                ret = GetWATResultFromLogic(tempvm, jdstep,true);
                 StoreWATResult(tempvm.CouponID, jdstep, ret[0], ret[1]);
                 tempvm.ReTest = ret[0];
                 tempvm.FailureStr = ret[1];
@@ -346,26 +354,52 @@ namespace WAT.Models
 
         public static List<List<object>> GetWUXIWATWaferStepData()
         {
-            var sql = @"select distinct left(Containername,10),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 20 and Containername not like '17%' and (Containername like '%E08%' 
-                            or Containername like '%R08%'  or Containername like '%T08%') group by left(Containername,10),TestStep order by latesttime desc,left(Containername,10)";
+            var containcond = @"  Containername like '%E08%'  or Containername like '%R08%'  or Containername like '%T08%' 
+                                or Containername like '%E09%'  or Containername like '%R09%'  or Containername like '%T09%'  ";
+
+            var sql = @"select distinct left(Containername,12),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
+                         where len(Containername) = 20 and Containername not like '17%' and ("
+                        +containcond+") group by left(Containername,12),TestStep order by latesttime desc,left(Containername,10)";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            sql = @"select distinct left(Containername,14),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
-                         where len(Containername) = 24 and (Containername like '%E08%' 
-                        or Containername like '%R08%'  or Containername like '%T08%') group by left(Containername,14),TestStep order by latesttime desc,left(Containername,14)";
+
+            sql = @"select distinct left(Containername,16),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
+                         where len(Containername) = 24 and ("
+                        + containcond + ") group by left(Containername,16),TestStep order by latesttime desc,left(Containername,14)";
             var dbret1 = DBUtility.ExeLocalSqlWithRes(sql);
             dbret.AddRange(dbret1);
             return dbret;
+        }
+
+        public static string GetWATType(string wafer)
+        {
+            var charlist = new List<string>(new string[] { "E", "R", "T" });
+            var tclist = new List<string>(new string[] { "08", "09", "10" });
+            var matchstr = "";
+            foreach (var c in charlist)
+            {
+                foreach (var t in tclist)
+                {
+                    if (wafer.Contains(c + t))
+                    {
+                        matchstr = c + t;
+                        return matchstr;
+                    }
+                }
+            }
+            return "";
         }
 
         public static Dictionary<string, string> GetVCSELTypeDict()
         {
             var ret = new Dictionary<string, string>();
 
-            var sql = @"select distinct left(c.containername,10) as wafer,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            var containcond = @" c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%'
+                                or c.Containername like '%E09%' or c.Containername like '%R09%' or c.Containername like '%T09%'  ";
+
+            var sql = @"select distinct left(c.containername,12) as wafer,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                       left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,9)
                       left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                      where len(c.Containername) = 20  and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')";
+                      where len(c.Containername) = 20  and  r.RealRate is not null  and ("+ containcond + ")";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
@@ -375,10 +409,10 @@ namespace WAT.Models
                 { ret.Add(wf, tp); }
             }
 
-            sql = @"select distinct left(c.containername,14) as wafer,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            sql = @"select distinct left(c.containername,16) as wafer,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                   left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,13)
                   left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                  where len(c.Containername) = 24  and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')";
+                  where len(c.Containername) = 24  and  r.RealRate is not null  and ("+ containcond + ")";
             dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
@@ -391,52 +425,7 @@ namespace WAT.Models
             return ret;
         }
 
-        public static Dictionary<string, bool> GetKOYODict(List<string> wflist, Controller ctrl)
-        {
-            var syscfg = CfgUtility.GetSysConfig(ctrl);
-            var koyopns = syscfg["KOYOPNS"];
-            var wfcond = "('" + string.Join("','", wflist)+"')";
-            wfcond = wfcond.Replace("E", "").Replace("R", "").Replace("T", "");
-
-            var koyodict = new Dictionary<string, bool>();
-
-            var sql = @"select c.containername,pb.ProductName from insite.insite.container c with (nolock)
-                inner join insite.insite.Product p with (nolock) on c.ProductID = P.ProductID
-                inner join insite.insite.ProductBase pb with (nolock) on p.ProductID = pb.RevOfRcdID
-                where c.containername in <wfcond>";
-            sql = sql.Replace("<wfcond>", wfcond);
-            var dbret = DBUtility.ExeAllenSqlWithRes(sql);
-            foreach (var line in dbret)
-            {
-                var wf = UT.O2S(line[0]).ToUpper();
-                var pn = UT.O2S(line[1]).ToUpper();
-                if (koyopns.Contains(pn))
-                {
-                    if (!koyodict.ContainsKey(wf))
-                    { koyodict.Add(wf, true); }
-                }
-            }
-
-            return koyodict;
-        }
-
-        public static void GetVcselType(List<WuxiWATData4MG> datalist,Controller ctrl)
-        {
-            var wflist = new List<string>();
-            foreach (var d in datalist)
-            {
-                wflist.Add(d.CouponID.Replace("E", "").Replace("R", "").Replace("T", ""));
-            }
-
-            var koyodict = GetKOYODict(wflist, ctrl);
-            foreach (var d in datalist)
-            {
-                if (koyodict.ContainsKey(d.CouponID.Replace("E", "").Replace("R", "").Replace("T", "")))
-                { d.VType = "KOYO"; }
-            }
-        }
-
-        public static List<WuxiWATData4MG> GetWATStatus(Controller ctrl)
+         public static List<WuxiWATData4MG> GetWATStatus(Controller ctrl)
         {
             var ret = new List<WuxiWATData4MG>();
             var dictdata = new Dictionary<string, List<WuxiWATData4MG>>();
@@ -461,9 +450,10 @@ namespace WAT.Models
                 { tempvm.VArray = vdict[wafer]; }
 
 
+                var wf = tempvm.CouponID.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0];
                 tempvm.VType = "";
-                if (wfproddict.ContainsKey(tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T", "")))
-                { tempvm.VType = wfproddict[tempvm.CouponID.Replace("E", "").Replace("R", "").Replace("T", "")]; }
+                if (wfproddict.ContainsKey(wf))
+                { tempvm.VType = wfproddict[wf]; }
 
                 if (dictdata.ContainsKey(wafer))
                 { dictdata[wafer].Add(tempvm); }

@@ -719,8 +719,8 @@ namespace WAT.Controllers
             foreach (var line in dbret)
             {
                 var wafer = Models.UT.O2S(line[0]);
-                if (wafer.Length > 1)
-                { wafer = wafer.Substring(0, wafer.Length - 1); }
+                if (wafer.Length > 3)
+                { wafer = wafer.Substring(0, wafer.Length - 3); }
                 else
                 { continue; }
                 if (!couponidlistx.Contains(wafer))

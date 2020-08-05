@@ -125,12 +125,12 @@ namespace WAT.Models
                 tempvm.EvalBin = "E08";
                 templist.Add(tempvm);
 
-                tempvm = new WXEvalPN();
-                tempvm.EvalPN = pdname + "_C";
-                tempvm.DCDName = "Eval_50up_rp";
-                tempvm.LotType = "W";
-                tempvm.EvalBin = "E06";
-                templist.Add(tempvm);
+                //tempvm = new WXEvalPN();
+                //tempvm.EvalPN = pdname + "_C";
+                //tempvm.DCDName = "Eval_50up_rp";
+                //tempvm.LotType = "W";
+                //tempvm.EvalBin = "E06";
+                //templist.Add(tempvm);
 
                 //tempvm = new WXEvalPN();
                 //tempvm.EvalPN = pdname + "_T";
@@ -144,6 +144,13 @@ namespace WAT.Models
                 tempvm.DCDName = "Eval_COB_rp";
                 tempvm.LotType = "W";
                 tempvm.EvalBin = "E10";
+                templist.Add(tempvm);
+
+                tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_U";
+                tempvm.DCDName = "Eval_50up_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E09";
                 templist.Add(tempvm);
 
                 //var dcdname = UT.O2S(line[1]);
@@ -212,12 +219,12 @@ namespace WAT.Models
                 tempvm.EvalBin = "E08";
                 templist.Add(tempvm);
 
-                tempvm = new WXEvalPN();
-                tempvm.EvalPN = pdname + "_C";
-                tempvm.DCDName = "Eval_50up_rp";
-                tempvm.LotType = "W";
-                tempvm.EvalBin = "E06";
-                templist.Add(tempvm);
+                //tempvm = new WXEvalPN();
+                //tempvm.EvalPN = pdname + "_C";
+                //tempvm.DCDName = "Eval_50up_rp";
+                //tempvm.LotType = "W";
+                //tempvm.EvalBin = "E06";
+                //templist.Add(tempvm);
 
                 //tempvm = new WXEvalPN();
                 //tempvm.EvalPN = pdname + "_T";
@@ -231,6 +238,13 @@ namespace WAT.Models
                 tempvm.DCDName = "Eval_COB_rp";
                 tempvm.LotType = "W";
                 tempvm.EvalBin = "E10";
+                templist.Add(tempvm);
+
+                tempvm = new WXEvalPN();
+                tempvm.EvalPN = pdname + "_U";
+                tempvm.DCDName = "Eval_50up_rp";
+                tempvm.LotType = "W";
+                tempvm.EvalBin = "E09";
                 templist.Add(tempvm);
             }
 
@@ -277,28 +291,28 @@ namespace WAT.Models
             }
         }
 
-        public static string GetLocalProductFam(string wafer)
-        {
-            var dict = new Dictionary<string, string>();
-            dict.Add("@WaferNum", wafer);
+        //public static string GetLocalProductFam(string wafer)
+        //{
+        //    var dict = new Dictionary<string, string>();
+        //    dict.Add("@WaferNum", wafer);
 
-            var sql = "select top 1 Product from [WAT].[dbo].[WXEvalPN] where [WaferNum] = @WaferNum";
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            var product = "";
-            if (dbret.Count > 0)
-            { product = UT.O2S(dbret[0][0]); }
+        //    var sql = "select top 1 Product from [WAT].[dbo].[WXEvalPN] where [WaferNum] = @WaferNum";
+        //    var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+        //    var product = "";
+        //    if (dbret.Count > 0)
+        //    { product = UT.O2S(dbret[0][0]); }
 
-            if (!string.IsNullOrEmpty(product))
-            { return product; }
-            else
-            {
-                PrepareEvalPN(wafer);
-                dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-                if (dbret.Count > 0)
-                { product = UT.O2S(dbret[0][0]); }
-                return product;
-            }
-        }
+        //    if (!string.IsNullOrEmpty(product))
+        //    { return product; }
+        //    else
+        //    {
+        //        PrepareEvalPN(wafer);
+        //        dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+        //        if (dbret.Count > 0)
+        //        { product = UT.O2S(dbret[0][0]); }
+        //        return product;
+        //    }
+        //}
 
         public static bool PrepareEvalPN(string wafernum)
         {

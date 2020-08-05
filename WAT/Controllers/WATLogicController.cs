@@ -389,6 +389,8 @@ namespace WAT.Controllers
             steplist.Add("POSTBIJUDGEMENT");
             steplist.Add("POSTHTOL1JUDGEMENT");
             steplist.Add("POSTHTOL2JUDGEMENT");
+            steplist.Add("POSTHTOL3JUDGEMENT");
+            steplist.Add("POSTHTOL4JUDGEMENT");
 
             var ret = new JsonResult();
             ret.Data = new
@@ -543,13 +545,14 @@ namespace WAT.Controllers
         {
             var wxlogic = new WXLogic.WXWATLogic();
             wxlogic.AllowToMoveMapFile = false;
-
             var ret = wxlogic.WATPassFail(coupongroup, step);
 
             var stepdict = new Dictionary<string, string>();
             stepdict.Add("POSTBIJUDGEMENT", "(RP01)");
             stepdict.Add("POSTHTOL1JUDGEMENT", "(RP02)");
             stepdict.Add("POSTHTOL2JUDGEMENT", "(RP03)");
+            stepdict.Add("POSTHTOL3JUDGEMENT", "(RP04)");
+            stepdict.Add("POSTHTOL4JUDGEMENT", "(RP05)");
 
             var failcount = "";
             var couponstr = "";
@@ -628,14 +631,28 @@ namespace WAT.Controllers
         public JsonResult WUXIWaferWATData()
         {
             var wafer = Request.Form["wafer"];
+            var wattype = WuxiWATData4MG.GetWATType(wafer);
+            var wf = wafer.Split(new string[] { "E","R","T" }, StringSplitOptions.RemoveEmptyEntries)[0];
+
             var cdclist = new List<string>();
-            cdclist.Add("08");
-            cdclist.Add("10");
+            cdclist.Add(wattype);
+            cdclist.Add(wattype.Replace("08","10").Replace("09", "10"));
 
             var steplist = new List<string>();
-            steplist.Add("POSTBIJUDGEMENT");
-            steplist.Add("POSTHTOL1JUDGEMENT");
-            steplist.Add("POSTHTOL2JUDGEMENT");
+            if (wattype.Contains("08"))
+            {
+                steplist.Add("POSTBIJUDGEMENT");
+                steplist.Add("POSTHTOL1JUDGEMENT");
+                steplist.Add("POSTHTOL2JUDGEMENT");
+            }
+            else if (wattype.Contains("09"))
+            {
+                steplist.Add("POSTBIJUDGEMENT");
+                steplist.Add("POSTHTOL1JUDGEMENT");
+                steplist.Add("POSTHTOL2JUDGEMENT");
+                steplist.Add("POSTHTOL3JUDGEMENT");
+                steplist.Add("POSTHTOL4JUDGEMENT");
+            }
 
             var reslist = new List<object>();
 

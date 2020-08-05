@@ -106,26 +106,26 @@ namespace WAT.Controllers
             return ret;
         }
 
-        public ActionResult WATWIP()
-        {
-            var url = "/MGTL/WATWIP";
-            if (!CheckName(Request.UserHostName, url))
-            { return Jump2Welcome(url); }
+        //public ActionResult WATWIP()
+        //{
+        //    var url = "/MGTL/WATWIP";
+        //    if (!CheckName(Request.UserHostName, url))
+        //    { return Jump2Welcome(url); }
 
-            return View();
-        }
+        //    return View();
+        //}
 
-        public JsonResult WATWIPDATA()
-        {
-            var wipdata = WUXIWATWIP.GetWATWIP(this);
+        //public JsonResult WATWIPDATA()
+        //{
+        //    var wipdata = WUXIWATWIP.GetWATWIP(this);
 
-            var ret = new JsonResult();
-            ret.MaxJsonLength = Int32.MaxValue;
-            ret.Data = new
-            {
-                wipdata = wipdata
-            };
-            return ret;
-        }
+        //    var ret = new JsonResult();
+        //    ret.MaxJsonLength = Int32.MaxValue;
+        //    ret.Data = new
+        //    {
+        //        wipdata = wipdata
+        //    };
+        //    return ret;
+        //}
     }
 }

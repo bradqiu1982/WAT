@@ -30,6 +30,9 @@ namespace WXLogic
             var RP1WATPBData = new Dictionary<string, WXWATProbeTestData>();
             var RP2WATPBData = new Dictionary<string, WXWATProbeTestData>();
             var RP3WATPBData = new Dictionary<string, WXWATProbeTestData>();
+            var RP4WATPBData = new Dictionary<string, WXWATProbeTestData>();
+            var RP5WATPBData = new Dictionary<string, WXWATProbeTestData>();
+            var RP6WATPBData = new Dictionary<string, WXWATProbeTestData>();
 
             foreach (var item in srcdatalist)
             {
@@ -48,12 +51,20 @@ namespace WXLogic
                     { if (!RP2WATPBData.ContainsKey(key)) { RP2WATPBData.Add(key, item); } }
                     if (string.Compare(item.RP, "3") == 0)
                     { if (!RP3WATPBData.ContainsKey(key)) { RP3WATPBData.Add(key, item); } }
+                    if (string.Compare(item.RP, "4") == 0)
+                    { if (!RP4WATPBData.ContainsKey(key)) { RP4WATPBData.Add(key, item); } }
+                    if (string.Compare(item.RP, "5") == 0)
+                    { if (!RP5WATPBData.ContainsKey(key)) { RP5WATPBData.Add(key, item); } }
+                    if (string.Compare(item.RP, "6") == 0)
+                    { if (!RP6WATPBData.ContainsKey(key)) { RP6WATPBData.Add(key, item); } }
                 }
             }//end foreach
 
             var rplist = new List<string>();
             rplist.Add("0"); rplist.Add("1");
             rplist.Add("2"); rplist.Add("3");
+            rplist.Add("4"); rplist.Add("5");
+            rplist.Add("6");
 
             foreach (var fitem in filtereddata)
             {
@@ -69,6 +80,12 @@ namespace WXLogic
                     { RPWATPBData = RP2WATPBData; }
                     if (string.Compare(p, "3") == 0)
                     { RPWATPBData = RP3WATPBData; }
+                    if (string.Compare(p, "4") == 0)
+                    { RPWATPBData = RP4WATPBData; }
+                    if (string.Compare(p, "5") == 0)
+                    { RPWATPBData = RP5WATPBData; }
+                    if (string.Compare(p, "6") == 0)
+                    { RPWATPBData = RP6WATPBData; }
 
                     if (RPWATPBData.ContainsKey(key))
                     {
@@ -113,6 +130,12 @@ namespace WXLogic
                 { PRERPWATPBData = RP2WATPBData; }
                 if (prep == 3)
                 { PRERPWATPBData = RP3WATPBData; }
+                if (prep == 4)
+                { PRERPWATPBData = RP4WATPBData; }
+                if (prep == 5)
+                { PRERPWATPBData = RP5WATPBData; }
+                if (prep == 6)
+                { PRERPWATPBData = RP6WATPBData; }
 
                 var prekey = fitem.UnitNum + "::" + fitem.CommonTestName + "::" + prep.ToString();
                 if (!PRERPWATPBData.ContainsKey(prekey))

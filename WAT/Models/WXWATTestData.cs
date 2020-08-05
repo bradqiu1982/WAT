@@ -99,6 +99,10 @@ namespace WAT.Models
             { return "PRLL_Post_HTOL1_Test"; }
             else if (rp == 3)
             { return "PRLL_Post_HTOL2_Test"; }
+            else if (rp == 4)
+            { return "PRLL_Post_HTOL3_Test"; }
+            else if (rp == 5)
+            { return "PRLL_Post_HTOL4_Test"; }
             else
             { return ""; }
 

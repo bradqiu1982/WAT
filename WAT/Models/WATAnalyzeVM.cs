@@ -19,6 +19,10 @@ namespace WAT.Models
             { return "PRLL_Post_HTOL1_Test"; }
             else if (rp.Contains("RP03"))
             { return "PRLL_Post_HTOL2_Test"; }
+            else if (rp.Contains("RP04"))
+            { return "PRLL_Post_HTOL3_Test"; }
+            else if (rp.Contains("RP05"))
+            { return "PRLL_Post_HTOL4_Test"; }
             else if (rp.Contains("RP00"))
             { return "PRLL_VCSEL_Pre_Burn_in_Test"; }
             else
@@ -33,6 +37,10 @@ namespace WAT.Models
             { return "POSTHTOL1JUDGEMENT"; }
             else if (rp.Contains("RP03"))
             { return "POSTHTOL2JUDGEMENT"; }
+            else if (rp.Contains("RP04"))
+            { return "POSTHTOL3JUDGEMENT"; }
+            else if (rp.Contains("RP05"))
+            { return "POSTHTOL4JUDGEMENT"; }
             else if (rp.Contains("RP00"))
             { return "PREBIJUDGEMENT"; }
             else
@@ -179,11 +187,9 @@ namespace WAT.Models
 
             var containerdict = new Dictionary<string, bool>();
 
-            if (!wf.Contains("E") && !wf.Contains("R") && !wf.Contains("T"))
-            { wf = wf + "E"; }
-
-            if (!wf.Contains("E08") && !wf.Contains("R08") && !wf.Contains("T08"))
-            { wf = wf + "08"; }
+            var matchstr = WuxiWATData4MG.GetWATType(wf);
+            if (string.IsNullOrEmpty(matchstr))
+            { return new List<XYVAL>(); }
 
             var ret = new List<XYVAL>();
             var sql = "select <param>,Containername,ChannelInfo from Insite.dbo.ProductionResult where (Containername like '<coupongroup>%') and TestStep='<TestStep>' order by TestTimeStamp desc";
@@ -344,11 +350,9 @@ namespace WAT.Models
             wxlogic.AllowToMoveMapFile = false;
             wxlogic.AnalyzeParam = param.ToUpper();
 
-            if (!wf.Contains("E") && !wf.Contains("R") && !wf.Contains("T"))
-            { wf = wf + "E"; }
-
-            if (!wf.Contains("E08") && !wf.Contains("R08") && !wf.Contains("T08"))
-            { wf = wf + "08"; }
+            var matchstr = WuxiWATData4MG.GetWATType(wf);
+            if (string.IsNullOrEmpty(matchstr))
+            { return new List<XYVAL>(); }
 
             wxlogic.WATPassFail(wf, jstepname);
 

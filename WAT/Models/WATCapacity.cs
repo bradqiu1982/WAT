@@ -13,14 +13,16 @@ namespace WAT.Models
         {
             var ret = new List<WATCapacity>();
 
+            var containcond = @" c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%'
+                                or c.Containername like '%E09%' or c.Containername like '%R09%' or c.Containername like '%T09%'  ";
+
             var dict = new Dictionary<string, string>();
             dict.Add("@starttime", starttime);
 
-            var sql = @"select left(c.containername,10) as wafer,min(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            var sql = @"select left(c.containername,12) as wafer,min(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                       left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,9)
                       left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_VCSEL_Post_Burn_in_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')
-                      group by left(c.containername,10),r.RealRate,ep.AppVal1  order by mintime asc";
+                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_VCSEL_Post_Burn_in_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null  and ("+containcond+") group by left(c.containername,10),r.RealRate,ep.AppVal1  order by mintime asc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
@@ -31,11 +33,10 @@ namespace WAT.Models
                 ret.Add(tempvm);
             }
 
-            sql = @"select left(c.containername,14) as wafer,min(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            sql = @"select left(c.containername,16) as wafer,min(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                   left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,13)
                   left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_VCSEL_Post_Burn_in_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')
-                  group by left(c.containername,14),r.RealRate,ep.AppVal1  order by mintime asc";
+                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_VCSEL_Post_Burn_in_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null  and (" + containcond + ") group by left(c.containername,14),r.RealRate,ep.AppVal1  order by mintime asc";
             dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
@@ -58,16 +59,18 @@ namespace WAT.Models
         {
             var ret = new List<WATCapacity>();
 
+            var containcond = @" c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%'
+                                or c.Containername like '%E09%' or c.Containername like '%R09%' or c.Containername like '%T09%'  ";
+
             var wfdict = new Dictionary<string, string>();
 
             var dict = new Dictionary<string, string>();
             dict.Add("@starttime", starttime);
 
-            var sql = @"select left(c.containername,10) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            var sql = @"select left(c.containername,12) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                       left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,9)
                       left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_Post_HTOL2_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')
-                      group by left(c.containername,10),r.RealRate,ep.AppVal1  order by mintime asc";
+                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_Post_HTOL2_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null and (" + containcond + ")  group by left(c.containername,10),r.RealRate,ep.AppVal1  order by mintime asc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
@@ -83,11 +86,10 @@ namespace WAT.Models
                 ret.Add(tempvm);
             }
 
-            sql = @"select left(c.containername,14) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            sql = @"select left(c.containername,16) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                   left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,13)
                   left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_Post_HTOL2_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')
-                  group by left(c.containername,14),r.RealRate,ep.AppVal1  order by mintime asc";
+                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_Post_HTOL2_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null  and (" + containcond + ")  group by left(c.containername,14),r.RealRate,ep.AppVal1  order by mintime asc";
             dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
@@ -103,11 +105,10 @@ namespace WAT.Models
                 ret.Add(tempvm);
             }
 
-            sql = @"select left(c.containername,10) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            sql = @"select left(c.containername,12) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                       left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,9)
                       left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_Post_HTOL1_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')
-                      group by left(c.containername,10),r.RealRate,ep.AppVal1  order by mintime asc";
+                      where len(c.Containername) = 20 and c.TestStep = 'PRLL_Post_HTOL1_Test' and c.TestTimeStamp > @starttime  and  r.RealRate is not null and (" + containcond + ")  group by left(c.containername,10),r.RealRate,ep.AppVal1  order by mintime asc";
             dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {
@@ -123,11 +124,10 @@ namespace WAT.Models
                 ret.Add(tempvm);
             }
 
-            sql = @"select left(c.containername,14) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+            sql = @"select left(c.containername,16) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                   left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,13)
                   left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
-                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_Post_HTOL1_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null  and (c.Containername like '%E08%' or c.Containername like '%R08%' or c.Containername like '%T08%')
-                  group by left(c.containername,14),r.RealRate,ep.AppVal1  order by mintime asc";
+                  where len(c.Containername) = 24 and c.TestStep = 'PRLL_Post_HTOL1_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null  and (" + containcond + ")  group by left(c.containername,14),r.RealRate,ep.AppVal1  order by mintime asc";
             dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
             {

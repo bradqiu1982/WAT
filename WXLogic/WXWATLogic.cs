@@ -40,7 +40,16 @@ namespace WXLogic
             return CouponGroup;
         }
 
-
+        private bool CCT(string coupon,string type)
+        {
+            var keylist = new List<string>(new string[] { "E", "R", "T" });
+            foreach (var k in keylist)
+            {
+                if (coupon.Contains(k + type))
+                { return true; }
+            }
+            return false;
+        }
 
         public  WXWATLogic WATPassFail(string coupongroup1, string CurrentStepName)
         {
@@ -62,9 +71,7 @@ namespace WXLogic
             }
 
             var bitemp = 100;
-            if (CouponGroup.Contains("E06") 
-                || CouponGroup.Contains("R06") 
-                || CouponGroup.Contains("T06"))
+            if (CCT(CouponGroup,"06"))
             { bitemp = 25; }
 
             var shippable = 1;
@@ -83,6 +90,18 @@ namespace WXLogic
                 return ret;
             }
 
+            var RPI = UT.O2I(RP);
+            if (CCT(CouponGroup, "08") && RPI > 3)
+            {
+                ret.AppErrorMsg = "E08 only support to RP03";
+                return ret;
+            }
+
+            if (CCT(CouponGroup, "10") && RPI > 3)
+            {
+                ret.AppErrorMsg = "E10 only support to RP03";
+                return ret;
+            }
 
             var DCDName = GetDCDName(CouponGroup, RP);
             if (string.IsNullOrEmpty(DCDName))
@@ -120,11 +139,10 @@ namespace WXLogic
             
             var waferarray = WATSampleXY.GetArrayFromAllenSherman(containerinfo.wafer);
 
-            var couponlist = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, UT.O2I(RP));
+            var couponlist = WXOriginalWATData.GetCurrentRPTestedCoupon(CouponGroup, RPI);
 
             if (!string.IsNullOrEmpty(waferarray)
-                && (CouponGroup.Contains("E08") || CouponGroup.Contains("R08")|| CouponGroup.Contains("T08")
-                || CouponGroup.Contains("E09") || CouponGroup.Contains("R09") || CouponGroup.Contains("T09"))
+                && ( CCT(CouponGroup,"08") || CCT(CouponGroup,"09"))
                 && string.IsNullOrEmpty(AnalyzeParam))
             {
                 var couponcount = couponlist.Count;
@@ -195,7 +213,7 @@ namespace WXLogic
 
             //TTF
             var fitspec = WXSpecBinPassFail.GetFitSpec(containerinfo.ProductName, DCDName, allspec);
-            var ttfdata = WXWATTTF.GetTTFData(containerinfo.ProductName, UT.O2I(RP), fitspec, watprobevalfiltered, failmodes);
+            var ttfdata = WXWATTTF.GetTTFData(containerinfo.ProductName, RPI, fitspec, watprobevalfiltered, failmodes);
 
             //TTFSorted
             var ttfdatasorted = WXWATTTFSorted.GetSortedTTFData(ttfdata);
@@ -249,14 +267,14 @@ namespace WXLogic
             { BIYieldSpec = UT.O2D(cfg[containerinfo.ProductName + "_BIYIELD"]); }
             else { BIYieldSpec = UT.O2D(cfg["PRODBIYIELDRP01"]); }
 
-            var logicresult = RetestLogic(containerinfo, DCDName, UT.O2I(RP), shippable, probecount, readcount
+            var logicresult = RetestLogic(containerinfo, DCDName, RPI, shippable, probecount, readcount
                , dutminitem[0].minDUT, failcount, failstring, watpassfailcoupondata.Count(), couponDutCount, couponSumFails,BIYield,BIYieldSpec);
 
             if (!string.IsNullOrEmpty(AnalyzeParam))
             { logicresult.AnalyzeParamData.AddRange(AnalyzeParamData); }
 
             var scrapspec = WXSpecBinPassFail.GetScrapSpec(containerinfo.ProductName, DCDName, allspec);
-            logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, UT.O2I(RP), readcount, failcount, bitemp, failmodes);
+            logicresult.ScrapIt = ScrapLogic(containerinfo, scrapspec, RPI, readcount, failcount, bitemp, failmodes);
             if (logicresult.ScrapIt)
             {
                 logicresult.ResultReason = failmodestr;
@@ -285,14 +303,13 @@ namespace WXLogic
             logicresult.DataTables.Add(watpassfailcoupondata);
             logicresult.DataTables.Add(failmodes);
 
-            if ((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08")
-                || CouponGroup.Contains("E09") || CouponGroup.Contains("R09") || CouponGroup.Contains("T09"))
+            if ((CCT(CouponGroup,"08") || CCT(CouponGroup,"09"))
                 && string.IsNullOrEmpty(AnalyzeParam))
             {
                 WXWATFailureMode.StoreFailMode(CouponGroup, RP, failmodes);
             }
 
-            if ((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08"))
+            if ( CCT(CouponGroup,"08")
                 && string.IsNullOrEmpty(AnalyzeParam))
             {
                 try
@@ -320,8 +337,7 @@ namespace WXLogic
                 catch (Exception ex) { }
             }
 
-            if ((CouponGroup.Contains("E09") || CouponGroup.Contains("R09") || CouponGroup.Contains("T09"))
-                && string.IsNullOrEmpty(AnalyzeParam))
+            if (CCT(CouponGroup,"09") && string.IsNullOrEmpty(AnalyzeParam))
             {
                 try
                 {
@@ -351,12 +367,13 @@ namespace WXLogic
 
             if (string.IsNullOrEmpty(logicresult.AppErrorMsg) 
                 && logicresult.TestPass
-                && (((CouponGroup.Contains("E08") || CouponGroup.Contains("R08") || CouponGroup.Contains("T08"))
-                && (string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0 
+                && (
+                (CCT(CouponGroup,"08") && (string.Compare(CurrentStepName.Replace(" ","").ToUpper(), "POSTHTOL2JUDGEMENT") == 0 
                 || string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL1JUDGEMENT") == 0))
-                || ((CouponGroup.Contains("E09") || CouponGroup.Contains("R09") || CouponGroup.Contains("T09"))
-                && (string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL4JUDGEMENT") == 0
-                || string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL3JUDGEMENT") == 0)))
+
+                || (CCT(CouponGroup, "09") && (string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL4JUDGEMENT") == 0
+                || string.Compare(CurrentStepName.Replace(" ", "").ToUpper(), "POSTHTOL3JUDGEMENT") == 0))
+                )
                 && string.IsNullOrEmpty(AnalyzeParam)
                 && AllowToMoveMapFile)
             {
