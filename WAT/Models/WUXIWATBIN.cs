@@ -8,36 +8,23 @@ namespace WAT.Models
 {
     public class WUXIWATBIN
     {
-        private static Dictionary<string, bool> GetDict(string sql)
+        private static List<WUXIWATBIN> GetWaferRes(string wf)
         {
-            var ret = new Dictionary<string, bool>();
+            var cond = @" and  (wafer like '%E08%'  or wafer like '%R08%'  or wafer like '%T08%' 
+                                or wafer like '%E09%'  or wafer like '%R09%'  or wafer like '%T09%') ";
+
+            var sql = @"select distinct wafer,result,CONVERT(datetime,AppVal1) as tm,teststep FROM [WAT].[dbo].[WATResult] where left(wafer,len(wafer)-3) = '" + wf+"' "+cond+ " order by CONVERT(datetime,AppVal1) DESC";
+            var ret = new List<WUXIWATBIN>();
+
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
-                var k = UT.O2S(line[0]);
-                if (!ret.ContainsKey(k))
-                { ret.Add(k, true); }
-            }
-            return ret;
-        }
-
-        private static Dictionary<string, bool> GetWUXIWATWafer()
-        {
-            var sql = @"select distinct left(wafer,len(wafer)-1) as wf FROM [WAT].[dbo].[WATResult]";
-            return GetDict(sql);
-        }
-
-        private static Dictionary<string, string> GetWUXIWATHTOLWafer(string htol)
-        {
-            var sql = @"select distinct left(wafer,len(wafer)-1) as wf,result,AppVal1 FROM [WAT].[dbo].[WATResult] where teststep like '%" + htol+ "%'  order by AppVal1 DESC";
-            var ret = new Dictionary<string, string>();
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            foreach (var line in dbret)
-            {
-                var k = UT.O2S(line[0]);
-                var res = UT.O2S(line[1]).ToUpper();
-                if (!ret.ContainsKey(k))
-                { ret.Add(k, res); }
+                var tempvm = new WUXIWATBIN();
+                tempvm.Wafer = UT.O2S(line[0]);
+                tempvm.Status = UT.O2S(line[1]).ToUpper();
+                tempvm.Bin = UT.T2S(line[2]);
+                tempvm.PN = UT.O2S(line[3]);
+                ret.Add(tempvm);
             }
             return ret;
         }
@@ -136,75 +123,86 @@ namespace WAT.Models
             return ret;
         }
 
+        private static bool CCT(string coupon, string type)
+        {
+            var keylist = new List<string>(new string[] { "E", "R", "T" });
+            foreach (var k in keylist)
+            {
+                if (coupon.Contains(k + type))
+                { return true; }
+            }
+            return false;
+        }
+
         public static List<WUXIWATBIN> GetBinInfo(List<string> wflist, Controller ctrl)
         {
             var pndict = CfgUtility.GetProdfamPN(ctrl);
             var wfproddict = WXEvalPN.GetWaferProdfamDict();
-
-            var watwf = GetWUXIWATWafer();
-            var htol2wf = GetWUXIWATHTOLWafer("HTOL2");
-            var htol1wf = GetWUXIWATHTOLWafer("HTOL1");
             var ret = new List<WUXIWATBIN>();
-            foreach (var wf1 in wflist)
+
+            var nwflist = new List<string>();
+            foreach (var wf in wflist)
             {
-                var wf = wf1.ToUpper().Replace("E", "").Replace("R", "").Replace("T", "");
-                if (watwf.ContainsKey(wf)){
-                    if (htol2wf.ContainsKey(wf))
+                var w = wf.ToUpper().Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0];
+                if (!nwflist.Contains(w))
+                { nwflist.Add(w); }
+            }
+
+            foreach (var wf in nwflist)
+            {
+                var rest = GetWaferRes(wf);
+                if (rest.Count == 0)
+                {
+                    var tempvm = new WUXIWATBIN();
+                    tempvm.Wafer = wf;
+                    tempvm.Status = "NO WAT";
+                    ret.Add(tempvm);
+                }
+                else
+                {
+                    foreach (var r in rest)
                     {
-                        var stat = htol2wf[wf];
-                        if (stat.Contains("PASS"))
+                        var HTOL = "HTOL2";
+                        if (CCT(r.Wafer, "09"))
+                        { HTOL = "HTOL4"; }
+                        if (CCT(r.Wafer, "08"))
+                        { HTOL = "HTOL2"; }
+
+                        if (r.PN.Contains(HTOL))
                         {
-                            ret.AddRange(BinData(wf,pndict,wfproddict));
-                        }
-                        else if (stat.Contains("GREAT")) {
                             var tempvm = new WUXIWATBIN();
                             tempvm.Wafer = wf;
-                            tempvm.Status = "PENDING";
-                            ret.Add(tempvm);
-                        }
-                        else {
-                            var tempvm = new WUXIWATBIN();
-                            tempvm.Wafer = wf;
-                            tempvm.Status = "FAIL";
-                            ret.Add(tempvm);
-                        }
-                    }
-                    else
-                    {
-                        if (htol1wf.ContainsKey(wf))
-                        {
-                            var stat = htol1wf[wf];
-                            if (stat.Contains("PASS") || stat.Contains("GREAT"))
+                            if (r.Status.Contains("PASS"))
+                            { ret.AddRange(BinData(wf, pndict, wfproddict)); break; }
+                            else if (r.Status.Contains("GREAT"))
                             {
-                                var tempvm = new WUXIWATBIN();
-                                tempvm.Wafer = wf;
                                 tempvm.Status = "PENDING";
-                                ret.Add(tempvm);
+                                ret.Add(tempvm); break;
                             }
                             else
                             {
-                                var tempvm = new WUXIWATBIN();
-                                tempvm.Wafer = wf;
                                 tempvm.Status = "FAIL";
-                                ret.Add(tempvm);
+                                ret.Add(tempvm); break;
                             }
                         }
                         else
                         {
                             var tempvm = new WUXIWATBIN();
                             tempvm.Wafer = wf;
-                            tempvm.Status = "PENDING";
-                            ret.Add(tempvm);
+                            if (r.Status.Contains("PASS")|| r.Status.Contains("GREAT"))
+                            {
+                                tempvm.Status = "PENDING";
+                                ret.Add(tempvm); break;
+                            }
+                            else
+                            {
+                                tempvm.Status = "FAIL";
+                                ret.Add(tempvm); break;
+                            }
                         }
-                    }
-                }
-                else {
-                    var tempvm = new WUXIWATBIN();
-                    tempvm.Wafer = wf;
-                    tempvm.Status = "NO WAT";
-                    ret.Add(tempvm);
-                }
-            }
+                    }//end foreach
+                }//end else
+            }//end foreach
             return ret;
         }
 

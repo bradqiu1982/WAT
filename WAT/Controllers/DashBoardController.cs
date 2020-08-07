@@ -321,7 +321,7 @@ namespace WAT.Controllers
 
         private static string GetPNByWafer(string wf, Dictionary<string, string> wfproddict, Dictionary<string, string> pndict)
         {
-            var wafer = wf.ToUpper().Replace("E", "").Replace("R", "").Replace("T", "");
+            var wafer = wf.Split(new string[] { "E","R","T"},StringSplitOptions.RemoveEmptyEntries)[0];
 
             var binlist = new List<string>(new string[] { "55","57","56","58","59","54","53","52","51","50" });
             if (wfproddict.ContainsKey(wafer))
@@ -569,7 +569,7 @@ namespace WAT.Controllers
             if (sdate < orgdate)
             { sdate = orgdate; }
 
-            var datafrom = sdate.AddDays(-21).ToString("yyyy-MM-dd HH:mm:ss");
+            var datafrom = sdate.AddDays(-42).ToString("yyyy-MM-dd HH:mm:ss");
 
 
             var capvmlist = WATCapacity.GetWATCapacity(datafrom);
@@ -613,7 +613,7 @@ namespace WAT.Controllers
             if (sdate < orgdate)
             { sdate = orgdate; }
 
-            var datafrom = sdate.AddDays(-21).ToString("yyyy-MM-dd HH:mm:ss");
+            var datafrom = sdate.AddDays(-42).ToString("yyyy-MM-dd HH:mm:ss");
 
             var passfaillist = new List<WATCapacity>();
             var capvmlist = WATCapacity.GetWATCapacity(datafrom);
@@ -667,7 +667,7 @@ namespace WAT.Controllers
             var passfaillist = new List<WATCapacity>();
 
             var datafrom = sdate.ToString("yyyy-MM-dd HH:mm:ss");
-            var capvmlist = WATCapacity.GetWATHTOL2Wafer(datafrom);
+            var capvmlist = WATCapacity.GetWATHTOLWafer(datafrom);
             var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict();
             foreach (var capvm in capvmlist)
             {
@@ -755,6 +755,8 @@ namespace WAT.Controllers
                 title.Add("POST-BI");
                 title.Add("HTOL1");
                 title.Add("HTOL2");
+                title.Add("HTOL3");
+                title.Add("HTOL4");
 
                 var table = new List<List<string>>();
                 foreach (var wf in wflist)
@@ -778,6 +780,9 @@ namespace WAT.Controllers
                     tmplist.Add("PENDING");
                     tmplist.Add("PENDING");
                     tmplist.Add("PENDING");
+                    tmplist.Add("PENDING");
+                    tmplist.Add("PENDING");
+
                     table.Add(tmplist);
                 } 
                  
@@ -797,6 +802,10 @@ namespace WAT.Controllers
                             { line[5] = "PASS"; }
                             if (wp.Step.Contains("POST_HTOL2_TEST"))
                             { line[6] = "PASS"; }
+                            if (wp.Step.Contains("POST_HTOL3_TEST"))
+                            { line[7] = "PASS"; }
+                            if (wp.Step.Contains("POST_HTOL4_TEST"))
+                            { line[8] = "PASS"; }
                         }//end if
                     }//end foreach
                 }//end for
@@ -820,6 +829,8 @@ namespace WAT.Controllers
                 title.Add("POST-BI");
                 title.Add("HTOL1");
                 title.Add("HTOL2");
+                title.Add("HTOL3");
+                title.Add("HTOL4");
 
                 var ret = new JsonResult();
                 ret.MaxJsonLength = Int32.MaxValue;
@@ -841,6 +852,17 @@ namespace WAT.Controllers
             return View();
         }
 
+        private bool CCT(string coupon, string type)
+        {
+            var keylist = new List<string>(new string[] { "E", "R", "T" });
+            foreach (var k in keylist)
+            {
+                if (coupon.Contains(k + type))
+                { return true; }
+            }
+            return false;
+        }
+
         public JsonResult WATCapPredictDATA()
         {
             var syscfg = CfgUtility.GetSysConfig(this);
@@ -848,14 +870,31 @@ namespace WAT.Controllers
             var xAxis = new List<string>();
 
             var daystart = DateTime.Parse(DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + " 00:00:00");
+            var dayend = daystart.AddDays(15);
 
-            var datafrom = DateTime.Now.AddDays(-60).ToString("yyyy-MM-dd HH:mm:ss");
+            var datafrom = DateTime.Now.AddDays(-90).ToString("yyyy-MM-dd HH:mm:ss");
             var capvmlist = WATCapacity.GetWATCapacity(datafrom);
+            var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict();
+            foreach (var capvm in capvmlist)
+            {
+                if (passfailwfdict.ContainsKey(capvm.Wafer))
+                { capvm.Pass = passfailwfdict[capvm.Wafer]; }
+            }
+
+            var twomonthago = DateTime.Now.AddDays(-60);
             var precaplist = new List<WATCapacity>();
             foreach (var cap in capvmlist)
             {
+                if (!cap.Pass.Contains("PENDING"))
+                { continue; }
+                if (cap.WFDate < twomonthago)
+                { continue; }
+
                 var preday = cap.WFDate.AddDays(13);
-                if (preday > daystart)
+                if (CCT(cap.Wafer, "09"))
+                { preday = cap.WFDate.AddDays(40); }
+
+                if (preday > daystart && preday < dayend)
                 {
                     cap.WFDate = preday;
                     var capslot = cap.VType.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)[0]+ "SLOT";
@@ -1030,10 +1069,27 @@ namespace WAT.Controllers
             var allslot = 0;
             var datafrom = DateTime.Now.AddDays(-60).ToString("yyyy-MM-dd HH:mm:ss");
             var capvmlist = WATCapacity.GetWATCapacity(datafrom);
+            var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict();
+            foreach (var capvm in capvmlist)
+            {
+                if (passfailwfdict.ContainsKey(capvm.Wafer))
+                { capvm.Pass = passfailwfdict[capvm.Wafer]; }
+            }
+
+            var twomonthago = DateTime.Now.AddDays(-60);
+
             var precaplist = new List<WATCapacity>();
             foreach (var cap in capvmlist)
             {
+                if (!cap.Pass.Contains("PENDING"))
+                { continue; }
+                if (cap.WFDate < twomonthago)
+                { continue; }
+
                 var preday = cap.WFDate.AddDays(13);
+                if (CCT(cap.Wafer, "09"))
+                { preday = cap.WFDate.AddDays(40); }
+
                 if (preday > daystart && preday < dayend)
                 {
                     cap.WFDate = preday;

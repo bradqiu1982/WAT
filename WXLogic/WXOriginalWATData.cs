@@ -249,7 +249,7 @@ namespace WXLogic
             var teststep = RP2TestName(rp);
             var ret = new List<string>();
             var sql = @"select distinct Containername from insite.dbo.ProductionResult 
-                        where Containername like '<coupongroup>%' and TestStep = '<TestStep>' and Len(Containername) > 15 ";
+                        where Containername like '<coupongroup>%' and TestStep = '<TestStep>' and Len(Containername) > 9 ";
             sql = sql.Replace("<coupongroup>",coupongroup).Replace("<TestStep>",teststep);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)

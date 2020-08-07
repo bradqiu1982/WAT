@@ -73,12 +73,12 @@ namespace WAT.Models
         public static List<string> GetAllCouponID()
         {
             var retdict = new Dictionary<string,bool>();
-            var sql = "select distinct Containername from Insite.dbo.ProductionResult where len(Containername) > 14 and (Containername like '%E%' or Containername like '%R%' or Containername like '%T%')";
+            var sql = "select distinct Containername from Insite.dbo.ProductionResult where len(Containername) > 9 and (Containername like '%E%' or Containername like '%R%' or Containername like '%T%')";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
                 var couponid = UT.O2S(line[0]).Split(new string[] { "_" },StringSplitOptions.RemoveEmptyEntries)[0];
-                if (couponid.Length >= 14)
+                if (couponid.Length >= 10)
                 {
                     couponid = couponid.Substring(0, couponid.Length - 2);
                     if (!retdict.ContainsKey(couponid))

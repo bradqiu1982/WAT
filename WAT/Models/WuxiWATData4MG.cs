@@ -359,12 +359,12 @@ namespace WAT.Models
 
             var sql = @"select distinct left(Containername,12),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
                          where len(Containername) = 20 and Containername not like '17%' and ("
-                        +containcond+") group by left(Containername,12),TestStep order by latesttime desc,left(Containername,10)";
+                        +containcond+") group by left(Containername,12),TestStep order by latesttime desc,left(Containername,12)";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
 
             sql = @"select distinct left(Containername,16),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
                          where len(Containername) = 24 and ("
-                        + containcond + ") group by left(Containername,16),TestStep order by latesttime desc,left(Containername,14)";
+                        + containcond + ") group by left(Containername,16),TestStep order by latesttime desc,left(Containername,16)";
             var dbret1 = DBUtility.ExeLocalSqlWithRes(sql);
             dbret.AddRange(dbret1);
             return dbret;
@@ -509,7 +509,7 @@ namespace WAT.Models
                 { continue; }
                 wdict.Add(CouponID, CouponID);
 
-                var wafer = CouponID.Replace("E", "").Replace("R", "").Replace("T", "");
+                var wafer = CouponID.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0];
                 if (wafer.Length == 9)
                 {
                     if (!Models.WXProbeData.AllenHasData(wafer))
@@ -557,7 +557,7 @@ namespace WAT.Models
                 { continue; }
                 wdict.Add(CouponID, CouponID);
 
-                var wafer = CouponID.Replace("E", "").Replace("R", "").Replace("T", "");
+                //var wafer = CouponID.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0];
                 var TestStep = UT.O2S(line[1]);
                 var TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
                 var tempvm = new WuxiWATData4MG();
@@ -584,9 +584,15 @@ namespace WAT.Models
         public static Dictionary<string, string> GetPassFailWaferDict()
         {
             var ret = new Dictionary<string, string>();
+            var cond08 = @" and  (wafer like '%E08%'  or wafer like '%R08%'  or wafer like '%T08%') ";
+            var cond09 = @" and  (wafer like '%E09%'  or wafer like '%R09%'  or wafer like '%T09%') ";
 
-            var sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL2JUDGEMENT'";
+            var sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL4JUDGEMENT'"  +cond09;
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL2JUDGEMENT'"+ cond08;
+            var dbret2 = DBUtility.ExeLocalSqlWithRes(sql);
+
+            dbret.AddRange(dbret2);
             foreach (var line in dbret)
             {
                 var wf = UT.O2S(line[0]).ToUpper();
@@ -603,19 +609,21 @@ namespace WAT.Models
                 }
             }
 
-            sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL1JUDGEMENT'";
+
+            sql = "select distinct wafer,result,CONVERT(datetime,AppVal1) FROM [WAT].[dbo].[WATResult] where teststep like '%HTOL%' and teststep <> 'POSTHTOL4JUDGEMENT'" + cond09 + " order by CONVERT(datetime,AppVal1) DESC";
             dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            sql = "select distinct wafer,result,CONVERT(datetime,AppVal1) FROM [WAT].[dbo].[WATResult] where teststep like '%HTOL%' and teststep <> 'POSTHTOL2JUDGEMENT'" + cond08 + " order by CONVERT(datetime,AppVal1) DESC";
+            dbret2 = DBUtility.ExeLocalSqlWithRes(sql);
+
+            dbret.AddRange(dbret2);
             foreach (var line in dbret)
             {
                 var wf = UT.O2S(line[0]).ToUpper();
                 var passfail = UT.O2S(line[1]).ToUpper();
-
                 if (!ret.ContainsKey(wf))
                 {
                     if (!passfail.Contains("PASS") && !passfail.Contains("GREAT THAN"))
                     { ret.Add(wf, "FAIL"); }
-                    //else if (passfail.Contains("PASS"))
-                    //{ ret.Add(wf, "PASS"); }
                 }
             }
 

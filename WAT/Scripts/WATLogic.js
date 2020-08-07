@@ -2421,8 +2421,8 @@
                         );
                     
                     $.each(output.wipdata, function (i, val) {
-                        var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '08" target="_blank" >RAWDATA</a></td>';
-                        var e10link = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '10" target="_blank" >E10</a></td>';
+                        var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '" target="_blank" >RAWDATA</a></td>';
+                        var e10link = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID.substr(0,val.CouponID.length-2) + '10" target="_blank" >E10</a></td>';
                         var logiclink = '<td></td>';
                         var poweroncoupon = '<td></td>';
                         var dvfoncoupon = '<td></td>';
@@ -2444,7 +2444,7 @@
                         }
 
                         if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1) {
-                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + '08&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
+                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
                         }
 
                         $("#logiccontent").append(

@@ -632,11 +632,36 @@ namespace WAT.Controllers
         {
             var wafer = Request.Form["wafer"];
             var wattype = WuxiWATData4MG.GetWATType(wafer);
+
+            if (string.IsNullOrEmpty(wattype))
+            {
+                var reslist1 = new List<object>();
+                reslist1.Add( new
+                {
+                    coupongroup = wafer,
+                    teststep = "",
+                    result = "Your input should be wafernum with E08/E09,eg:192323-80E08",
+                    testtimes = "",
+                    failcount = "",
+                    failmode = "",
+                    couponstr = ""
+                });
+
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    reslist = reslist1
+                };
+                return ret1;
+            }
+
             var wf = wafer.Split(new string[] { "E","R","T" }, StringSplitOptions.RemoveEmptyEntries)[0];
 
             var cdclist = new List<string>();
             cdclist.Add(wattype);
-            cdclist.Add(wattype.Replace("08","10").Replace("09", "10"));
+            var E10Str = wattype.Replace("08", "10").Replace("09", "10");
+            cdclist.Add(E10Str);
 
             var steplist = new List<string>();
             if (wattype.Contains("08"))
@@ -660,7 +685,11 @@ namespace WAT.Controllers
             {
                 foreach (var step in steplist)
                 {
-                    reslist.Add(GetWuxiWaferWATRest(wafer+cdc,step));
+                    if (cdc.Contains(E10Str)
+                        && (step.Contains("POSTHTOL3JUDGEMENT") || step.Contains("POSTHTOL4JUDGEMENT")))
+                    { continue; }
+
+                    reslist.Add(GetWuxiWaferWATRest(wf+cdc,step));
                 }
             }
 
@@ -1450,7 +1479,20 @@ namespace WAT.Controllers
             var wafernum = Request.Form["wafernum"].Trim().ToUpper();
             var rp = Request.Form["rp"];
 
-            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum.Replace("E","").Replace("R", "").Replace("T", ""), this);
+            if ((CCT(wafernum, "08") || CCT(wafernum, "10"))
+               && (rp.Contains("RP04") || rp.Contains("RP05")))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "E08/E10 not support RP04/RP05!"
+                };
+                return ret;
+            }
+
+            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0], this);
             if (vcselxy.Count == 0)
             {
                 var ret = new JsonResult();
@@ -1498,7 +1540,7 @@ namespace WAT.Controllers
         public JsonResult ALLENWATXYDATA() {
 
             var wafernum = Request.Form["wafernum"].Trim().ToUpper();
-            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum.Replace("E", "").Replace("R", "").Replace("T", ""), this);
+            var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafernum.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0], this);
 
             var allenwatdata = new List<XYVAL>();
 
@@ -1636,7 +1678,7 @@ namespace WAT.Controllers
         public JsonResult WUXIWATDistributionDATA()
         {
             var coupongroup = Request.Form["wafernum"].Trim().ToUpper();
-            var wafer = coupongroup.Replace("E", "").Replace("R", "").Replace("T", "");
+            var wafer = coupongroup.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0];
             var vcselxy = WATAnalyzeVM.GetWaferCoordinate(wafer, this);
 
             if (vcselxy.Count == 0)
@@ -1961,12 +2003,36 @@ namespace WAT.Controllers
             , lowlimit, highlimit, lowrange, highrange, rd, false);
         }
 
+        private bool CCT(string coupon, string type)
+        {
+            var keylist = new List<string>(new string[] { "E", "R", "T" });
+            foreach (var k in keylist)
+            {
+                if (coupon.Contains(k + type))
+                { return true; }
+            }
+            return false;
+        }
+
         public JsonResult WUXIWATCouponData()
         {
             var param = Request.Form["param"].Trim();
             param = WATAnalyzeVM.RealParam(param);
             var wafers = Request.Form["wafers"];
             var rp = Request.Form["rp"];
+
+            if ((CCT(wafers, "08") || CCT(wafers, "10")) 
+                && (rp.Contains("RP04") || rp.Contains("RP05")))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "E08/E10 not support RP04/RP05!"
+                };
+                return ret;
+            }
 
             var wfdict = new Dictionary<string, bool>();
             var wfarray = wafers.Split(new string[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -2200,6 +2266,19 @@ namespace WAT.Controllers
 
             var wafers = Request.Form["wafers"];
             var rp = Request.Form["rp"];
+
+            if ((CCT(wafers, "08") || CCT(wafers, "10"))
+                && (rp.Contains("RP04") || rp.Contains("RP05")))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    sucess = false,
+                    msg = "E08/E10 not support RP04/RP05!"
+                };
+                return ret;
+            }
 
             var wfdict = new Dictionary<string, bool>();
             var wfarray = wafers.Split(new string[] { ",", ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
