@@ -453,92 +453,92 @@ namespace WAT.Models
             }
         }
 
-        //public static List<int> GetDieOneOfWafer(string wafer,Controller ctrl)
-        //{
-        //    var ret = new List<int>();
-        //    var syscfgdict = CfgUtility.GetSysConfig(ctrl);
-        //    var reviewdir = syscfgdict["DIESORTREVIEW"];
-        //    var fs = "";
-        //    var allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl,reviewdir);
-        //    foreach (var f in allfiles)
-        //    {
-        //        if (f.Contains(wafer))
-        //        {
-        //            fs = f;
-        //            break;
-        //        }
-        //    }
+        public static List<int> GetDieOneOfWafer(string wafer, Controller ctrl)
+        {
+            var ret = new List<int>();
+            var syscfgdict = CfgUtility.GetSysConfig(ctrl);
+            var reviewdir = syscfgdict["DIESORTREVIEW"];
+            var fs = "";
+            var allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, reviewdir);
+            foreach (var f in allfiles)
+            {
+                if (f.Contains(wafer))
+                {
+                    fs = f;
+                    break;
+                }
+            }
 
-        //    if (string.IsNullOrEmpty(fs))
-        //    { return ret; }
+            if (string.IsNullOrEmpty(fs))
+            { return ret; }
 
-        //    var folderuser = syscfgdict["SHAREFOLDERUSER"];
-        //    var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
-        //    var folderpwd = syscfgdict["SHAREFOLDERPWD"];
+            var folderuser = syscfgdict["SHAREFOLDERUSER"];
+            var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
+            var folderpwd = syscfgdict["SHAREFOLDERPWD"];
 
-        //    using (NativeMethods cv = new NativeMethods(folderuser, folderdomin, folderpwd))
-        //    {
-        //        var doc = new XmlDocument();
-        //        doc.Load(fs);
-        //        var namesp = doc.DocumentElement.GetAttribute("xmlns");
-        //        doc = DieSortVM.StripNamespace(doc);
-        //        XmlElement root = doc.DocumentElement;
-        //        var dieonenodelist = root.SelectNodes("//BinDefinition[@BinDescription='DIE_ONE']");
-        //        var dieonebincode = "";
-        //        foreach (XmlElement nd in dieonenodelist)
-        //        {
-        //            try
-        //            {
-        //                dieonebincode = nd.GetAttribute("BinCode");
-        //                break;
-        //            }
-        //            catch (Exception ex) { }
-        //        }
+            using (NativeMethods cv = new NativeMethods(folderuser, folderdomin, folderpwd))
+            {
+                var doc = new XmlDocument();
+                doc.Load(fs);
+                var namesp = doc.DocumentElement.GetAttribute("xmlns");
+                doc = DieSortVM.StripNamespace(doc);
+                XmlElement root = doc.DocumentElement;
+                var dieonenodelist = root.SelectNodes("//BinDefinition[@BinDescription='DIE_ONE']");
+                var dieonebincode = "";
+                foreach (XmlElement nd in dieonenodelist)
+                {
+                    try
+                    {
+                        dieonebincode = nd.GetAttribute("BinCode");
+                        break;
+                    }
+                    catch (Exception ex) { }
+                }
 
-        //        if (string.IsNullOrEmpty(dieonebincode))
-        //        { return ret; }
+                if (string.IsNullOrEmpty(dieonebincode))
+                { return ret; }
 
-        //        var dieonex = "";
-        //        var dieoney = "";
+                var dieonex = "";
+                var dieoney = "";
 
-        //        var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
-        //        foreach (XmlElement nd in bincodelist)
-        //        {
-        //            try
-        //            {
-        //                if (string.Compare(nd.InnerText, dieonebincode, true) == 0)
-        //                {
-        //                    dieonex = nd.GetAttribute("X");
-        //                    dieoney = nd.GetAttribute("Y");
-        //                    break;
-        //                }
-        //            }
-        //            catch (Exception ex) { }
-        //        }
+                var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
+                foreach (XmlElement nd in bincodelist)
+                {
+                    try
+                    {
+                        if (string.Compare(nd.InnerText, dieonebincode, true) == 0)
+                        {
+                            dieonex = nd.GetAttribute("X");
+                            dieoney = nd.GetAttribute("Y");
+                            break;
+                        }
+                    }
+                    catch (Exception ex) { }
+                }
 
-        //        if (string.IsNullOrEmpty(dieonex) || string.IsNullOrEmpty(dieoney))
-        //        { return ret; }
+                if (string.IsNullOrEmpty(dieonex) || string.IsNullOrEmpty(dieoney))
+                { return ret; }
 
-        //        var dieonexs = new List<int>();
-        //        bincodelist = root.SelectNodes("//BinCode[@X and @Y='" + dieoney + "']");
-        //        foreach (XmlElement nd in bincodelist)
-        //        {
-        //            try
-        //            {
-        //                dieonexs.Add(UT.O2I(nd.GetAttribute("X")));
-        //            }
-        //            catch (Exception ex) { }
-        //        }
+                var dieonexs = new List<int>();
+                bincodelist = root.SelectNodes("//BinCode[@X and @Y='" + dieoney + "']");
+                foreach (XmlElement nd in bincodelist)
+                {
+                    try
+                    {
+                        dieonexs.Add(UT.O2I(nd.GetAttribute("X")));
+                    }
+                    catch (Exception ex) { }
+                }
 
-        //        if (dieonexs.Count == 0)
-        //        { return ret; }
+                if (dieonexs.Count == 0)
+                { return ret; }
 
-        //        ret.Add(UT.O2I(dieonex));
-        //        ret.Add(dieonexs.Min());
-        //    }
+                ret.Add(UT.O2I(dieonex));
+                ret.Add(dieonexs.Min());
+            }
 
-        //    return ret;
-        //}
+            return ret;
+        }
 
         public static Dictionary<string, bool> GetWaferCoordinate(string wafer, Controller ctrl)
         {

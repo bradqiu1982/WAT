@@ -1532,17 +1532,85 @@ namespace WAT.Models
             return ret;
         }
 
-        public static Dictionary<string, bool> GetSampleXYDict(string wf)
+        public static Dictionary<string, bool> GetSampleXYDict(string wf,Controller ctrl)
         {
             var ret = new Dictionary<string, bool>();
             var samplelist = RetrieveSampleData(wf);
-            foreach (var item in samplelist)
+            var array = UT.O2I(WXEvalPN.GetLocalWaferArray(wf));
+            if (array == 1)
             {
-                var key = (Models.UT.O2I(item.XX.Replace("X", "").Replace("x", "")) + ":::" + Models.UT.O2I(item.YY.Replace("Y", "").Replace("y", "")));
-                if (!ret.ContainsKey(key))
-                { ret.Add(key, true); }
+                foreach (var item in samplelist)
+                {
+                    var key = (Models.UT.O2I(item.XX.Replace("X", "").Replace("x", "")) + ":::" + Models.UT.O2I(item.YY.Replace("Y", "").Replace("y", "")));
+                    if (!ret.ContainsKey(key))
+                    { ret.Add(key, true); }
+                }
+            }
+            else
+            {
+                var dieone = WATAnalyzeVM.GetDieOneOfWafer(wf, ctrl);
+                if (dieone.Count == 0)
+                { return ret; }
+
+                var templist = new List<DieSortVM>();
+                foreach (var item in samplelist)
+                {
+                    var arrayx = Models.UT.O2I(item.XX.Replace("X", "").Replace("x", ""));
+                    var singlex = Get_First_Singlet_From_Array_Coord(dieone[0], dieone[1], arrayx, array);
+                    for (var die = 0; die < array; die++)
+                    {
+                        var x = (singlex + die).ToString();
+                        var y = Models.UT.O2I(item.YY.Replace("Y", "").Replace("y", "")).ToString();
+                        var key =  x + ":::" + y;
+                        if (!ret.ContainsKey(key))
+                        { ret.Add(key, true); }
+
+                        var temp = new DieSortVM();
+                        temp.Wafer = wf;
+                        temp.XX = x;
+                        temp.YY = y;
+                        templist.Add(temp);
+                    }
+                }
+
+                //SortSampleSingleCoor(wf, templist);
             }
             return ret;
+        }
+
+        private static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
+        {
+            var new_x = ((arrayx - DIE_ONE_X
+                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
+                + DIE_ONE_FIELD_MIN_X;
+            if (Array_Count != 1)
+            {
+                return (int)Math.Round(new_x, 0) - 1;
+            }
+            else
+            {
+                return (int)Math.Round(new_x, 0);
+            }
+        }
+
+        public static void SortSampleSingleCoor(string wf, List<DieSortVM> templist)
+        {
+            var sql = "select top 1 wafer from SampleSingleCoor where wafer = @wafer";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wf);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            if (dbret.Count == 0)
+            {
+                sql = "insert into SampleSingleCoor(wafer,x,y) values(@wafer,@x,@y)";
+                foreach (var item in templist)
+                {
+                    dict = new Dictionary<string, string>();
+                    dict.Add("@wafer", item.Wafer);
+                    dict.Add("@x", item.XX);
+                    dict.Add("@y", item.YY);
+                    DBUtility.ExeLocalSqlNoRes(sql, dict);
+                }//end foreach
+            }//end if
         }
 
         public static List<string> SortedWaferNum()
@@ -2181,17 +2249,6 @@ namespace WAT.Models
 
         //    return string.Empty;
         //}
-
-        public static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
-        {
-            var new_x = ((arrayx - DIE_ONE_X
-                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
-                + DIE_ONE_FIELD_MIN_X;
-            if (Array_Count != 1)
-            { return (int)Math.Round(new_x, 0) - 1; }
-            else
-            { return (int)Math.Round(new_x, 0); }
-        }
 
         private static Dictionary<string, string> GetIPOHE01PassedBinXYDict(XmlElement root)
         {

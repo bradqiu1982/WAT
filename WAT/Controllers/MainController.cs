@@ -621,6 +621,7 @@ namespace WAT.Controllers
                         templine.Add("-1");
                     }
 
+                    item.WaferNum = wafer; 
                     item.Product = lotnum;
                     ocrlist.Add(item);
 
@@ -674,15 +675,14 @@ namespace WAT.Controllers
             var wafer = wf.Split(new string[] { "E", "T", "R" }, StringSplitOptions.RemoveEmptyEntries)[0];
 
             var MSG = "";
+
+            var sampledict = DieSortVM.GetSampleXYDict(wafer,this);
+            if (sampledict.Count == 0)
+            { MSG = "This is a sorted wafer!"; }
+
             var ocrdata = OGPSNXYVM.GetLocalOGPXYSNDict(lotnum).Values.ToList();
             if (ocrdata.Count == 0)
             { MSG = "No OCR coordinate data,so this wafer "+wf+" have not done WAT at WUXI!"; }
-
-            var sampledict = DieSortVM.GetSampleXYDict(wafer);
-
-            //MSG = DieSortVM.GetAllBinFromMapFile(wafer,bindict, this);
-            if (sampledict.Count == 0)
-            { MSG = "This is a sorted wafer!"; }
 
             var matched = 0;
             foreach (var item in ocrdata)
