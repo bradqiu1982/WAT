@@ -918,6 +918,7 @@
     <Content Include="Views\Main\WuxiBinInfo.cshtml" />
     <Content Include="Views\DieSort\IIVISamplePick.cshtml" />
     <Content Include="Views\Main\WATTestStep.cshtml" />
+    <Content Include="Views\DieSort\Wafer2DC.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

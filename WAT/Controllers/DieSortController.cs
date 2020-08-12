@@ -601,7 +601,62 @@ namespace WAT.Controllers
             return ret;
         }
 
-
+        public ActionResult Wafer2DC()
+        {
+            return View();
         }
 
+        public JsonResult WF2DCData()
+        {
+            var marks = Request.Form["marks"];
+            List<string> allwflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var idx = 0;
+            var wflist = new List<string>();
+            foreach (var item in allwflist)
+            {
+                wflist.Add(item.Replace("'","").Trim().ToUpper()
+                    .Split(new string[]{ "E","R","T" },StringSplitOptions.RemoveEmptyEntries)[0]);
+                idx++;
+                if (idx > 10)
+                { break; }
+            }
+
+            var wfcond = "('"+string.Join("','",wflist)+"')";
+
+            var wfdatalist = new List<object>();
+            var sql = @"select distinct ddc.ParamValueString,dc.ParamValueString,mf.MfgOrderName,mf.ReleaseDate from [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) dc 
+	                 inner join  [InsiteDB].[insite].[dc_IQC_InspectionResult] ddc (nolock) on ddc.HistoryMainlineId = dc.HistoryMainlineId 
+	                 left join InsiteDB.insite.container fco (nolock) on fco.ContainerName = dc.ParamValueString
+	                 left join insitedb.insite.IssueActualsHistory iah with(nolock) on iah.FromContainerId = fco.ContainerId
+	                 left join  InsiteDB.insite.container co with (nolock) on iah.ToContainerId = co.ContainerId
+	                 left join InsiteDB.insite.MfgOrder mf (nolock) on co.MfgOrderId = mf.MfgOrderId
+	                 where dc.ParameterName = 'QAID' and ddc.ParamValueString in "+wfcond;
+
+            var dbret = DBUtility.ExeRealMESSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]);
+                var dc = UT.O2S(line[1]);
+                var jo = UT.O2S(line[2]);
+                var date = UT.O2T(line[3]).ToString("yyyy-MM-dd");
+                wfdatalist.Add(new {
+                    wf = wf,
+                    dc = dc,
+                    jo = jo,
+                    date = date
+                });
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist
+            };
+            return ret;
+        }
+
+
     }
+
+}
