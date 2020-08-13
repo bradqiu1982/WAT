@@ -557,7 +557,10 @@ namespace WAT.Models
             }
             else
             {
-                var ret = new Dictionary<string, bool>();
+                var ret = WXProbeData.GetWaferCoord(wafer);
+                if (ret.Count != 0) { return ret; }
+
+                ret = new Dictionary<string, bool>();
                 var syscfgdict = CfgUtility.GetSysConfig(ctrl);
                 var allfiles = DieSortVM.GetAllWaferFile(ctrl);
 
@@ -604,6 +607,7 @@ namespace WAT.Models
                     }
                 }
                 return ret;
+
             }
 
         }

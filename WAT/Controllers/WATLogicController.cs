@@ -1373,14 +1373,14 @@ namespace WAT.Controllers
             ylist.Sort();
 
 
-            var serial = new List<object>();
+           var serial = new List<object>();
             serial.Add(new
             {
                 name = "Die Sort",
                 data = data,
                 boostThreshold = 100,
                 borderWidth = 0,
-                nullColor = "#acacac",//"#EFEFEF",
+                nullColor = "#e5e5e5",//"#EFEFEF",
                 turboThreshold = 100
             });
 

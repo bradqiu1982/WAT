@@ -2409,24 +2409,26 @@
                             '<th>DIS</th>' +
                             '<th>LPW</th>' +
                             '<th>DLA</th>' +
-                            '<th>RAWData</th>' +
+                            '<th>RAW</th>' +
                             '<th>E10</th>' +
-                            '<th>WATLogic</th>' +
-                            '<th>PowerOnCoupon</th>' +
-                            '<th>DVFOnCoupon</th>' +
+                            '<th>Logic</th>' +
+                            '<th>PWROnCP</th>' +
+                            '<th>DVFOnCP</th>' +
                             '<th>Assembly</th>' +
-                            '<th>PowerOnWafer</th>' +
+                            '<th>PWRXY</th>' +
+                            '<th>DVFXY</th>' +
                             '<th>DITHvsDPO</th>' +
                             '</tr>'
                         );
                     
                     $.each(output.wipdata, function (i, val) {
-                        var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '" target="_blank" >RAWDATA</a></td>';
+                        var rawdatalink = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID + '" target="_blank" >RAW</a></td>';
                         var e10link = '<td><a href="/WATLogic/WUXIWATDataManage?wafer=' + val.CouponID.substr(0,val.CouponID.length-2) + '10" target="_blank" >E10</a></td>';
                         var logiclink = '<td></td>';
                         var poweroncoupon = '<td></td>';
                         var dvfoncoupon = '<td></td>';
                         var poweronwafer = '<td></td>';
+                        var dvfonwafer = '<td></td>';
                         var powervsdith = '<td></td>';
 
                         var DVFtd = '<td>' + val.DVF + '</td>';
@@ -2437,14 +2439,15 @@
 
                         if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1 && val.ReTest.indexOf('coupon count') == -1 && val.ReTest.indexOf('Fail to') == -1)
                         {
-                            poweroncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PowerOnCoupon</a></td>';
-                            dvfoncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=Dvf&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >DVFOnCoupon</a></td>';
-                            poweronwafer = '<td><a href="/WATLogic/WUXIWATXY?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PowerOnWafer</a></td>';
+                            poweroncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PWROnCP</a></td>';
+                            dvfoncoupon = '<td><a href="/WATLogic/WUXIWATCoupon?param=Dvf&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >DVFOnCP</a></td>';
+                            poweronwafer = '<td><a href="/WATLogic/WUXIWATXY?param=PO_LD_W&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >PWRXY</a></td>';
+                            dvfonwafer = '<td><a href="/WATLogic/WUXIWATXY?param=Dvf&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >DVFXY</a></td>';
                             powervsdith = '<td><a href="/WATLogic/WUXIWATPvsP?xparam=DIth&yparam=DPO&wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >DITHvsDPO</a></td>';
                         }
 
                         if (val.RPStr != 'RP00' && val.ReTest.indexOf('productname') == -1) {
-                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >WATLogic</a></td>';
+                            logiclink = '<td><a href="/WATLogic/WUXIWATLogic?wafer=' + val.CouponID + '&rp=' + val.RPStr + '" target="_blank" >Logic</a></td>';
                         }
 
                         $("#logiccontent").append(
@@ -2453,15 +2456,14 @@
                             '<td>' + val.VType + '</td>' +
                             '<td>' + val.VArray + '</td>' +
                             '<td>' + val.TestTime + '</td>' +
-                            '<td>' + val.TestStep + '</td>' +
+                            '<td>' + val.TestStep.replace('PRLL_', '').replace('VCSEL_', '') + '</td>' +
                              '<td>' + val.ReTest + '</td>' +
                              DVFtd +
                              '<td>' + val.WOT + '</td>' +
                              '<td>' + val.DIS + '</td>' +
                              '<td>' + val.LPW + '</td>' +
                              '<td>' + val.DLA + '</td>' +
-                             //'<td class="FAILUREDETIAL" detailinfo="' + val.FailureStr + '">'
-                             //+ val.FailureShortStr + '</td>' +
+
                              rawdatalink +
                              e10link +
                              logiclink +
@@ -2469,6 +2471,7 @@
                              dvfoncoupon +
                              assemblylink +
                              poweronwafer +
+                             dvfonwafer +
                              powervsdith +
                             '</tr>'
                         );

@@ -341,6 +341,23 @@ namespace WAT.Models
             }
         }
 
+        public static Dictionary<string, bool> GetWaferCoord(string wafernum)
+        {
+            var ret = new Dictionary<string, bool>();
+
+            var sql = "select distinct Xcoord,Ycoord from [EngrData].[dbo].[VR_Eval_Pts_Data_Basic] where [WaferID] = @WaferID";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferID", wafernum);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var k = UT.O2I(line[0]).ToString()+ ":::" + UT.O2I(line[1]).ToString();
+                if (!ret.ContainsKey(k))
+                { ret.Add(k, true); }
+            }
+            return ret;
+        }
+
         public static void PrepareNeoMapData2Allen(List<string > probewf)
         {
             var waitprobe = false;
