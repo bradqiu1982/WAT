@@ -621,31 +621,92 @@ namespace WAT.Controllers
                 { break; }
             }
 
-            var wfcond = "('"+string.Join("','",wflist)+"')";
-
             var wfdatalist = new List<object>();
-            var sql = @"select distinct ddc.ParamValueString,dc.ParamValueString,mf.MfgOrderName,mf.ReleaseDate from [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) dc 
-	                 inner join  [InsiteDB].[insite].[dc_IQC_InspectionResult] ddc (nolock) on ddc.HistoryMainlineId = dc.HistoryMainlineId 
-	                 left join InsiteDB.insite.container fco (nolock) on fco.ContainerName = dc.ParamValueString
-	                 left join insitedb.insite.IssueActualsHistory iah with(nolock) on iah.FromContainerId = fco.ContainerId
-	                 left join  InsiteDB.insite.container co with (nolock) on iah.ToContainerId = co.ContainerId
-	                 left join InsiteDB.insite.MfgOrder mf (nolock) on co.MfgOrderId = mf.MfgOrderId
-	                 where dc.ParameterName = 'QAID' and ddc.ParamValueString in "+wfcond;
 
-            var dbret = DBUtility.ExeRealMESSqlWithRes(sql);
-            foreach (var line in dbret)
+            //var wfdict = new Dictionary<string, bool>();
+
+            //var wfcond = "('"+string.Join("','",wflist)+"') ";
+
+            
+            //var sql = @"select distinct ddc.ParamValueString,dc.ParamValueString,mf.MfgOrderName,mf.ReleaseDate from [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) dc 
+	           //      inner join  [InsiteDB].[insite].[dc_IQC_InspectionResult] ddc (nolock) on ddc.HistoryMainlineId = dc.HistoryMainlineId 
+	           //      left join InsiteDB.insite.container fco (nolock) on fco.ContainerName = dc.ParamValueString
+	           //      left join insitedb.insite.IssueActualsHistory iah with(nolock) on iah.FromContainerId = fco.ContainerId
+	           //      left join  InsiteDB.insite.container co with (nolock) on iah.ToContainerId = co.ContainerId
+	           //      left join InsiteDB.insite.MfgOrder mf (nolock) on co.MfgOrderId = mf.MfgOrderId
+	           //      where dc.ParameterName = 'QAID' and ddc.ParamValueString in "+wfcond+ " and mf.MfgOrderName  like 'VCSL-PIK%'";
+
+            //var dbret = DBUtility.ExeRealMESSqlWithRes(sql);
+            //foreach (var line in dbret)
+            //{
+            //    var wf = UT.O2S(line[0]).Trim().ToUpper();
+            //    var dc = UT.O2S(line[1]);
+            //    var jo = UT.O2S(line[2]);
+            //    var date = UT.O2T(line[3]).ToString("yyyy-MM-dd");
+            //    wfdatalist.Add(new {
+            //        wf = wf,
+            //        dc = dc,
+            //        jo = jo,
+            //        date = date
+            //    });
+
+            //    if (!wfdict.ContainsKey(wf))
+            //    {
+            //        wfdict.Add(wf, true);
+            //    }
+            //}
+
+            //var leftwf = new List<string>();
+            //foreach (var wf in wflist)
+            //{
+            //    if (!wfdict.ContainsKey(wf)) {
+            //        leftwf.Add(wf);
+            //    }
+            //}
+
+
+            foreach (var wf in wflist)
             {
-                var wf = UT.O2S(line[0]);
-                var dc = UT.O2S(line[1]);
-                var jo = UT.O2S(line[2]);
-                var date = UT.O2T(line[3]).ToString("yyyy-MM-dd");
-                wfdatalist.Add(new {
-                    wf = wf,
-                    dc = dc,
-                    jo = jo,
-                    date = date
-                });
-            }
+                var snlist = new List<string>();
+                var sql = @"select co.ContainerName from [InsiteDB].[insite].[dc_IQC_InspectionResult] (nolock) dc 
+	                 inner join  [InsiteDB].[insite].[dc_IQC_InspectionResult] ddc (nolock) on ddc.HistoryMainlineId = dc.HistoryMainlineId 
+	                 inner join InsiteDB.insite.container fco (nolock) on fco.ContainerName = dc.ParamValueString
+	                 inner join insitedb.insite.IssueActualsHistory iah with(nolock) on iah.FromContainerId = fco.ContainerId
+	                 inner join  InsiteDB.insite.container co with (nolock) on iah.ToContainerId = co.ContainerId
+	                 where dc.ParameterName = 'QAID' and ddc.ParamValueString in ('"+wf+"')";
+                var dbret = DBUtility.ExeRealMESSqlWithRes(sql);
+                foreach (var line in dbret)
+                { snlist.Add(UT.O2S(line[0])); }
+
+                if (snlist.Count > 0)
+                {
+                    var sncond = "('" + string.Join("','", snlist) + "') ";
+                    var sql1 = @" select distinct  fco.ContainerName,jo.MfgOrderName,jo.ReleaseDate  from InsiteDB.insite.container co (nolock)  
+	                     inner join InsiteDB.insite.historyMainline hml with (nolock) on co.containerId = hml.HistoryId
+	                     inner join InsiteDB.insite.MoveHistory mv with (nolock) on mv.HistoryMainlineId= hml.HistoryMainlineId
+	                     inner join InsiteDB.insite.MfgOrder (nolock) jo on jo.MfgOrderId = mv.MfgOrderId
+	                     inner join InsiteDB.insite.container fco with (nolock) on jo.MfgOrderId = fco.MfgOrderId
+	                    where co.ContainerName in " + sncond+" and jo.MfgOrderName like 'VCSL-PIK%' and len(fco.ContainerName) < 13 ";
+                    var dbret1 = DBUtility.ExeRealMESSqlWithRes(sql1);
+                    foreach (var line in dbret1)
+                    {
+                        var dc = UT.O2S(line[0]);
+                        var jo = UT.O2S(line[1]);
+                        var date = UT.O2T(line[2]).ToString("yyyy-MM-dd");
+                        if (dc.Contains("VS"))
+                        { continue; }
+
+                        wfdatalist.Add(new
+                        {
+                            wf = wf,
+                            dc = dc,
+                            jo = jo,
+                            date = date
+                        });
+                    }//end foreach
+                }//end if
+            }//end foreach
+
 
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;

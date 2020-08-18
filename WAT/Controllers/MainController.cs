@@ -663,6 +663,25 @@ namespace WAT.Controllers
 
         }
 
+        public JsonResult WrongBinCommitData()
+        {
+            var die = Request.Form["die"];
+            var waferxy = die.ToUpper().Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries);
+            var username = WXWATIgnoreDie.GetUserName(Request.UserHostName);
+            if (waferxy.Length == 3) {
+                WXWATIgnoreDie.UpdateIgnoreDie(waferxy[0], Models.UT.O2I(waferxy[1].ToUpper().Replace("X","").Replace("Y","")).ToString()
+                    , Models.UT.O2I(waferxy[2].ToUpper().Replace("X", "").Replace("Y", "")).ToString(), "Wrong bin", username);
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                Sucess = "OK"
+            };
+            return ret;
+        }
+
         public ActionResult SampleCheckWithOCR()
         {
             return View();
@@ -891,6 +910,87 @@ namespace WAT.Controllers
                 status = status
             };
 
+            return ret;
+        }
+
+        public ActionResult IIVIBin() {
+            return View();
+        }
+
+        public JsonResult IIVIBinData()
+        {
+            var wafernum = Request.Form["wafernum"];
+            var marks = Request.Form["marks"];
+            List<string> allwflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+
+            var wfdatalist = new List<object>();
+            var MSG = "";
+
+            var xydict = IIVIVcselVM.GetIIVICoordDict(wafernum);
+            if (xydict.Count == 0)
+            {
+                MSG = "没有对应的WAFER!";
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    wfdatalist = wfdatalist,
+                    MSG = MSG
+                };
+                return ret1;
+            }
+
+            foreach (var xy in allwflist)
+            {
+                var xystr = xy.Trim().Split(new string[] { ",", " ","\t" }, StringSplitOptions.RemoveEmptyEntries);
+                if (xystr.Length == 2)
+                {
+                    var x = Models.UT.O2I(xystr[0]).ToString();
+                    var y = Models.UT.O2I(xystr[1]).ToString();
+                    var k =  x+ ":::" +y ;
+                    if (xydict.ContainsKey(k))
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wafernum,
+                            x = x,
+                            y = y,
+                            bin = "1"
+                        });
+                    }
+                    else
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wafernum,
+                            x = x,
+                            y = y,
+                            bin = "0"
+                        });
+                    }
+                }//end if
+            }
+
+            if (wfdatalist.Count == 0)
+            {
+                MSG = "坐标输入格式有误!";
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    wfdatalist = wfdatalist,
+                    MSG = MSG
+                };
+                return ret1;
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist,
+                MSG = MSG
+            };
             return ret;
         }
 

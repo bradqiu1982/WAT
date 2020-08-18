@@ -912,6 +912,134 @@
             $("#WaferTableID").empty();
         })
     }
+
+    var iivibinfun = function () {
+        var mywafertable = null;
+
+        $('#marks').focus();
+
+        $('body').on('keypress', '#marks', function (e) {
+            if (e.keyCode == 13) {
+                var all_marks = $.trim($(this).val()).split('\n');
+                var cur_marks = new Array();
+                var arr_count = new Array();
+                $.each(all_marks, function (i, val) {
+                    if (val != "") {
+                        if (arr_count[val]) {
+                            alert(val + " has already existed.");
+                            arr_count[val]++;
+                        }
+                        else {
+                            arr_count[val] = 1;
+                            cur_marks.push(val);
+                        }
+                    }
+                })
+                $('#total-marks').html(cur_marks.length);
+                $('#marks').val(cur_marks.join('\n'));
+            }
+        })
+
+        function RefreshWaferTable(warning) {
+
+            var wafernum = $('#wafernum').val();
+            var all_marks = $.trim($('#marks').val()).split('\n');
+            var cur_marks = new Array();
+            var arr_count = new Array();
+            $.each(all_marks, function (i, val) {
+                if (val != "") {
+                    if (arr_count[val]) {
+                        alert(val + " has already existed.");
+                        arr_count[val]++;
+                    }
+                    else {
+                        arr_count[val] = 1;
+                        cur_marks.push(val);
+                    }
+                }
+            })
+
+            if (wafernum == '') {
+                if (warning) {
+                    alert("输入WAFER 号!");
+                }
+                return false;
+            }
+
+            if (cur_marks.length === 0) {
+                if (warning) {
+                    alert("输入坐标!");
+                }
+                return false;
+            }
+            $('#marks').val(cur_marks.join('\n'));
+            var options = {
+                loadingTips: "Data Loading.....",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/Main/IIVIBinData',
+           {
+               marks: JSON.stringify(cur_marks),
+               wafernum: wafernum
+           }, function (output) {
+               $.bootstrapLoading.end();
+               if (mywafertable) {
+                   mywafertable.destroy();
+                   mywafertable = null;
+               }
+
+               $("#WaferTableID").empty();
+
+               if (output.MSG != '')
+               { alert(output.MSG); return false;}
+
+               $.each(output.wfdatalist, function (i, val) {
+                   var appendstr = '<tr>';
+                   appendstr += '<td>' + val.wf + '</td>'
+                   appendstr += '<td>' + val.x + '</td>'
+                   appendstr += '<td>' + val.y + '</td>'
+                   appendstr += '<td>' + val.bin + '</td>'
+                   appendstr += '</tr>';
+
+                   $("#WaferTableID").append(appendstr);
+               });
+
+
+               mywafertable = $('#mywafertable').DataTable({
+                   'iDisplayLength': 50,
+                   'aLengthMenu': [[20, 50, 100, -1],
+                   [20, 50, 100, "All"]],
+                   "aaSorting": [],
+                   "order": [],
+                   dom: 'lBfrtip',
+                   buttons: ['copyHtml5', 'csv', 'excelHtml5']
+               });
+
+           })
+        }
+
+
+        $('body').on('click', '#btn-marks-submit', function () {
+            RefreshWaferTable(true);
+        })
+
+        $('body').on('click', '#btn-marks-clean', function () {
+            $('#total-marks').html(0);
+            $('#marks').val('');
+            if (mywafertable) {
+                mywafertable.destroy();
+                mywafertable = null;
+            }
+            $("#WaferTableID").empty();
+        })
+    }
+
     return {
         NEOMAPLOADER:function(){
             neomapload();
@@ -934,6 +1062,9 @@
         },
         WF2DC: function () {
             wf2dcfun();
+        },
+        IIVIBIN: function () {
+            iivibinfun();
         }
     }
 

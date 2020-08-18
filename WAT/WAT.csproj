@@ -919,6 +919,7 @@
     <Content Include="Views\DieSort\IIVISamplePick.cshtml" />
     <Content Include="Views\Main\WATTestStep.cshtml" />
     <Content Include="Views\DieSort\Wafer2DC.cshtml" />
+    <Content Include="Views\Main\IIVIBin.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

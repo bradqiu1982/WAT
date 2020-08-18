@@ -79,6 +79,7 @@
                             '<td>' + val.X + '</td>' +
                             '<td>' + val.Y + '</td>' +
                             '<td>' + val.Bin + '</td>' +
+                            '<td><input class="form-control btn btn-success ignorebtn" type="button" myid="' + val.WaferNum + '_' + val.X + '_' + val.Y + '"  value="Ignore" /></td>' +
                         '</tr>'
                         );
                 });
@@ -105,6 +106,15 @@
 
         $('body').on('click', '#btn-check', function () {
             checkbin();
+        });
+
+        $('body').on('click', '.ignorebtn', function () {
+            var die = $(this).attr('myid');
+            $.post('/Main/WrongBinCommitData', {
+                die: die
+            }, function (output) {
+                alert("Done!");
+            });
         });
     }
 

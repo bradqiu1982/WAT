@@ -1,0 +1,58 @@
+﻿
+@{
+    ViewBag.Title = "IIVIBin";
+    Layout = "~/Views/Shared/_Layout4Product.cshtml";
+}
+
+
+<style type="text/css">
+    th, td {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/WATDataPrepare.js"></script>
+<script type="text/javascript">
+    $(function(){
+        WATDATAPAREPARE.IIVIBIN();
+    })
+</script>
+
+<div class="row" style="height:90%!important">
+    <div class="col-xs-3 mark-lists">
+        <div class="marks-title" style="margin-left:20px!important">
+            <div class="row"><h4>WAFER 号</h4></div>
+            <div class="row"><input class="form-control" type="text" id="wafernum" name="wafernum" style="width:80%!important"/></div>
+            <div class="row">
+                <span>输入坐标，最多100个。X,Y</span>
+            </div>
+        </div>
+        <textarea class="form-control marks" id="marks" style="height:80%!important;margin-top:2%!important"></textarea>
+        <div class="marks-submit">
+            <div class="total-marks label-danger col-xs-3" id="total-marks">0</div>
+            <div class="col-xs-4">
+                <input type="button" class="btn btn-warning btn-marks-clean" id="btn-marks-clean" value="清除">
+            </div>
+            <div class="marks-op col-xs-4 ">
+                <input type="button" class="btn btn-success btn-marks-submit" id="btn-marks-submit" value="提交">
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-9 mark-detail">
+        <div class="mark-detail-op">
+        </div>
+        <table class="table  table-condensed" id="mywafertable">
+            <caption class="tb-caption">WAFER BIN</caption>
+            <thead>
+                <tr>
+                    <th>WAFER</th>
+                    <th>X</th>
+                    <th>Y</th>
+                    <th>BIN</th>
+                </tr>
+            </thead>
+            <tbody id="WaferTableID"></tbody>
+        </table>
+    </div>
+</div>
+

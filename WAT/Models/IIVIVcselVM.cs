@@ -216,6 +216,31 @@ namespace WAT.Models
             }
         }
 
+        public static Dictionary<string, bool> GetIIVICoordDict(string wafer)
+        {
+            var sql = "select XY,ArraySize from [WAT].[dbo].[IIVICoord] where Wafer=@Wafer";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@Wafer", wafer);
+            var ret = new Dictionary<string, bool>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var xystr = UT.O2S(line[0]).Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                var sz = UT.O2I(line[1]);
+
+                var x = UT.O2I(xystr[0]);
+                var y = UT.O2I(xystr[1]);
+
+                for (var idx = 0; idx < sz; idx++)
+                {
+                    var k = (x + idx).ToString() + ":::" + y.ToString();
+                    if (!ret.ContainsKey(k))
+                    { ret.Add(k, true); }
+                }
+            }
+            return ret;
+        }
+
         private static string StoreWaferProbe(string wf,List<string> probelines)
         {
             var xyidx = 2;
