@@ -1040,6 +1040,40 @@
         })
     }
 
+    var iivipdfun = function () {
+
+        function getpddata() {
+            var wf = $('#mapfile').val();
+
+            if (wf == '')
+            {
+                alert('Please input PD wafer number!'); return false;
+            }
+
+            var options = {
+                loadingTips: "Data Loading.....",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DieSort/DownloadIIVIPDData',
+                { wf:wf},
+            function (output) {
+                $.bootstrapLoading.end();
+                alert(output.MSG);
+                return false;
+            });
+        }
+
+        $('body').on('click', '#btn-search', function () {
+            getpddata();
+        })
+    }
+
     return {
         NEOMAPLOADER:function(){
             neomapload();
@@ -1065,6 +1099,9 @@
         },
         IIVIBIN: function () {
             iivibinfun();
+        },
+        IIVIPD: function () {
+            iivipdfun();
         }
     }
 

@@ -601,6 +601,58 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult DownloadIIVIPD()
+        { return View(); }
+
+        public JsonResult DownloadIIVIPDData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var wf = Request.Form["wf"].Trim();
+            var mapfolder = syscfg["IIVIMAPFILE"];
+            var IIVIPNs = syscfg["IIVIPDPN"].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            var IIVIPNDict = new Dictionary<string, string>();
+            foreach (var ip in IIVIPNs)
+            {
+                IIVIPNDict.Add(ip,ip);
+            }
+
+            var MSG = "";
+            var tobewffs = "";
+            var pn = "";
+
+            var allsrcfile = ExternalDataCollector.DirectoryEnumerateFiles(this, mapfolder);
+            foreach (var sf in allsrcfile)
+            {
+                var fs = System.IO.Path.GetFileName(sf).Trim().ToUpper();
+                foreach (var kv in IIVIPNDict)
+                {
+                    if (fs.Contains(kv.Key))
+                    {
+                        pn = kv.Key; break;
+                    }
+                }
+
+                if (fs.Contains(wf) && fs.Contains("GOOD.TXT") && !string.IsNullOrEmpty(pn))
+                { tobewffs = sf; break; }
+            }
+
+            if (string.IsNullOrEmpty(tobewffs))
+            { MSG = "NO PD MAP FILE MATCH YOUR INPUT!"; }
+            else
+            { MSG = IIVIVcselVM.SolveIIVIPDFile(wf,tobewffs,pn); }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                MSG = MSG
+            };
+            return ret;
+        }
+
+
+
         public ActionResult Wafer2DC()
         {
             return View();

@@ -121,6 +121,37 @@ namespace WAT.Models
             }//end else
         }
 
+        public static string SolveIIVIPDFile(string wf,string tobewffs, string pn)
+        {
+            var coordlines = System.IO.File.ReadAllLines(tobewffs).ToList();
+            if (coordlines.Count < 2)
+            { return "PD MAP FILE HAS NO DATA!"; }
+
+            var coords = coordlines[1].Trim().Split(new string[] { "_", " " }, StringSplitOptions.RemoveEmptyEntries);
+            var arraysize = UT.O2I(coords[2]) - UT.O2I(coords[0]) + 1;
+
+            var idx = 0;
+            foreach (var line in coordlines)
+            {
+                if (idx == 0)
+                {
+                    StorePDIIVICoord(wf, "", arraysize, true);
+                    idx++;
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(line.Trim()))
+                    { continue; }
+
+                    coords = line.Trim().Split(new string[] { "_", " " }, StringSplitOptions.RemoveEmptyEntries);
+                    var coordstr = coords[0] + ":::" + coords[1];
+                    StorePDIIVICoord(wf, coordstr, arraysize, false);
+                }
+            }
+
+            return "PD MAP FILE IS OK!";
+        }
+
         private static string StoreWaferInfo(string wf, List<string> coordlines, List<string> goodbinxylist,Dictionary<string,bool> selectdict,string pn,List<string> probelines)
         {
             try
@@ -212,6 +243,28 @@ namespace WAT.Models
                 dict.Add("@XY", xy);
                 dict.Add("@ArraySize", arraysize.ToString());
                 dict.Add("@Sampled", sampled);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+            }
+        }
+
+        private static void StorePDIIVICoord(string wf,  string xy, int arraysize , bool dataexist)
+        {
+            if (dataexist)
+            {
+                var sql = "delete from [WAT].[dbo].[IIVICoord] where Wafer = @Wafer";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@Wafer", wf);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+            }
+            else
+            {
+                var sql = "insert into [WAT].[dbo].[IIVICoord](Wafer,ColRow,XY,ArraySize,Sampled) values(@Wafer,@ColRow,@XY,@ArraySize,@Sampled)";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@Wafer", wf);
+                dict.Add("@ColRow", "");
+                dict.Add("@XY", xy);
+                dict.Add("@ArraySize", arraysize.ToString());
+                dict.Add("@Sampled", "");
                 DBUtility.ExeLocalSqlNoRes(sql, dict);
             }
         }
