@@ -299,9 +299,15 @@ namespace WAT.Models
                 StoreWATResult(tempvm.CouponID, jdstep, ret[0], ret[1]);
                 tempvm.ReTest = ret[0];
                 tempvm.FailureStr = ret[1];
-                //tempvm.FailureShortStr = tempvm.FailureStr;
-                //if (tempvm.FailureStr.Length > 20)
-                //{ tempvm.FailureShortStr = tempvm.FailureStr.Substring(0, 20); }
+
+                if (tempvm.CouponID.Length > 14)
+                {
+                    var e10 = new WuxiWATData4MG();
+                    e10.CouponID = tempvm.CouponID.Replace("E08", "E10").Replace("R08", "R10").Replace("T08", "T10")
+                        .Replace("E09", "E10").Replace("R09", "R10").Replace("T09", "T10");
+                    var ret1 = GetWATResultFromLogic(e10, jdstep, false);
+                    StoreWATResult(e10.CouponID, jdstep, ret1[0], ret1[1]);
+                }
             }
             else
             {
