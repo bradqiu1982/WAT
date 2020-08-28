@@ -36,7 +36,8 @@ namespace WAT.Models
             var ret = new Dictionary<string, string>();
             if (WaferNum.Length == 13)
             {
-                return GetShermanBinDict(WaferNum, ocrdata);
+                var arraysize = WXEvalPN.GetLocalWaferArray(WaferNum);
+                return GetShermanBinDict(WaferNum, ocrdata,UT.O2I(arraysize));
             }
             else
             {
@@ -172,14 +173,18 @@ namespace WAT.Models
             return ret;
         }
 
-        private static Dictionary<string,string> GetShermanBinDict(string WaferNum, List<OGPSNXYVM> ocrdata)
+        private static Dictionary<string,string> GetShermanBinDict(string WaferNum, List<OGPSNXYVM> ocrdata,int array)
         {
             var ret = new Dictionary<string, string>();
             var arraybindict = new Dictionary<string, string>();
 
             var dict = new Dictionary<string, string>();
             dict.Add("@WAFER_NUMBER", WaferNum);
-            dict.Add("@DATA_SET_TYPE_NAME", "Final Bins AVI Merged");
+            if (array == 1)
+            { dict.Add("@DATA_SET_TYPE_NAME", "Final Probe AVI Merge"); }
+            else
+            { dict.Add("@DATA_SET_TYPE_NAME", "Final Bins AVI Merged");}
+            
             dict.Add("@Include_Units_IN_Col_Headers", "1");
             dict.Add("@Passing_Dies_Only", "0");
             dict.Add("@Sample_Quantity", "-1");
@@ -238,6 +243,9 @@ namespace WAT.Models
                 if (!arraybindict.ContainsKey(k))
                 { arraybindict.Add(k, bin); }
             }
+
+            if (array == 1)
+            { return arraybindict; }
 
             var xlist = new List<string>();
             var ylist = new List<string>();

@@ -795,17 +795,17 @@ namespace WAT.Controllers
                         if (wf.Contains(wp.Wafer))
                         {
                             if (wp.Step.Contains("PRE_BURN_IN_TEST"))
-                            { line[3] = "PASS"; }
-                            if (wp.Step.Contains("POST_BURN_IN_TEST"))
                             { line[4] = "PASS"; }
-                            if (wp.Step.Contains("POST_HTOL1_TEST"))
+                            if (wp.Step.Contains("POST_BURN_IN_TEST"))
                             { line[5] = "PASS"; }
-                            if (wp.Step.Contains("POST_HTOL2_TEST"))
+                            if (wp.Step.Contains("POST_HTOL1_TEST"))
                             { line[6] = "PASS"; }
-                            if (wp.Step.Contains("POST_HTOL3_TEST"))
+                            if (wp.Step.Contains("POST_HTOL2_TEST"))
                             { line[7] = "PASS"; }
-                            if (wp.Step.Contains("POST_HTOL4_TEST"))
+                            if (wp.Step.Contains("POST_HTOL3_TEST"))
                             { line[8] = "PASS"; }
+                            if (wp.Step.Contains("POST_HTOL4_TEST"))
+                            { line[9] = "PASS"; }
                         }//end if
                     }//end foreach
                 }//end for
