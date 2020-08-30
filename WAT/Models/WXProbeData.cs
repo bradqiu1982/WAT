@@ -37,7 +37,14 @@ namespace WAT.Models
             if (WaferNum.Length == 13)
             {
                 var arraysize = WXEvalPN.GetLocalWaferArray(WaferNum);
-                return GetShermanBinDict(WaferNum, ocrdata,UT.O2I(arraysize));
+                return GetShermanBinDict(WaferNum, ocrdata, UT.O2I(arraysize));
+            }
+            else if (WaferNum.Length == 6)
+            {
+                var tempbin = IIVIVcselVM.GetIIVICoordDict(WaferNum);
+                foreach (var kv in tempbin)
+                { ret.Add(kv.Key, "55"); }
+                return ret;
             }
             else
             {
