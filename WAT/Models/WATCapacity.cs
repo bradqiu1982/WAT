@@ -47,6 +47,20 @@ namespace WAT.Models
                 ret.Add(tempvm);
             }
 
+            sql = @"select left(c.containername,9) as wafer,min(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+                  left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,6)
+                  left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
+                  where len(c.Containername) = 17 and c.TestStep = 'PRLL_VCSEL_Post_Burn_in_Test' and c.TestTimeStamp > @starttime   and  r.RealRate is not null  and (" + containcond + ") group by left(c.containername,9),r.RealRate,ep.AppVal1  order by mintime asc";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var tempvm = new WATCapacity();
+                tempvm.Wafer = UT.O2S(line[0]).ToUpper();
+                tempvm.WFDate = UT.O2T(line[1]).AddHours(-23);
+                tempvm.VType = UT.O2S(line[2]);
+                ret.Add(tempvm);
+            }
+
             ret.Sort(delegate(WATCapacity obj1,WATCapacity obj2)
             {
                return obj1.WFDate.CompareTo(obj2.WFDate);
@@ -111,6 +125,27 @@ namespace WAT.Models
                 ret.Add(tempvm);
             }
 
+            sql = @"select left(c.containername,9) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+                  left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,6)
+                  left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
+                  where len(c.Containername) = 17 and c.TestTimeStamp > @starttime   and  r.RealRate is not null 
+                  and (" + e08 + " or " + e09 + ")  group by left(c.containername,9),r.RealRate,ep.AppVal1  order by mintime asc";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var tempvm = new WATCapacity();
+                tempvm.Wafer = UT.O2S(line[0]).ToUpper();
+                tempvm.WFDate = UT.O2T(line[1]);
+                tempvm.VType = UT.O2S(line[2]);
+
+                if (wfdict.ContainsKey(tempvm.Wafer))
+                { continue; }
+                wfdict.Add(tempvm.Wafer, tempvm.Wafer);
+
+                ret.Add(tempvm);
+            }
+
+
             sql = @"select left(c.containername,12) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
                       left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,9)
                       left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
@@ -151,6 +186,27 @@ namespace WAT.Models
                 ret.Add(tempvm);
             }
 
+            sql = @"select left(c.containername,9) as wafer,max(c.TestTimeStamp) as mintime,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+                  left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,6)
+                  left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
+                  where len(c.Containername) = 17 and c.TestTimeStamp > @starttime  and  r.RealRate is not null  
+                  and (" + e081 + " or " + e091 + ") group by left(c.containername,9),r.RealRate,ep.AppVal1  order by mintime asc";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var tempvm = new WATCapacity();
+                tempvm.Wafer = UT.O2S(line[0]).ToUpper();
+                tempvm.WFDate = UT.O2T(line[1]);
+                tempvm.VType = UT.O2S(line[2]);
+
+                if (wfdict.ContainsKey(tempvm.Wafer))
+                { continue; }
+                wfdict.Add(tempvm.Wafer, tempvm.Wafer);
+
+                ret.Add(tempvm);
+            }
+
+
             ret.Sort(delegate (WATCapacity obj1, WATCapacity obj2)
             {
                 return obj1.WFDate.CompareTo(obj2.WFDate);
@@ -184,6 +240,17 @@ namespace WAT.Models
 
             sql = @"select distinct left(containername,16) as wafer,TestStep FROM [Insite].[dbo].[ProductionResult]
                   where len(Containername) = 24 and (" + wfcond + ")";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var tempvm = new WATCapacity();
+                tempvm.Wafer = UT.O2S(line[0]).ToUpper();
+                tempvm.Step = UT.O2S(line[1]).ToUpper();
+                ret.Add(tempvm);
+            }
+
+            sql = @"select distinct left(containername,9) as wafer,TestStep FROM [Insite].[dbo].[ProductionResult]
+                  where len(Containername) = 17 and (" + wfcond + ")";
             dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {

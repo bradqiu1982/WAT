@@ -18,7 +18,7 @@ namespace WXLogic
             var CouponGroup = "";
             try
             {
-                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") &&!coupongroup1.Contains("R") && !coupongroup1.Contains("T")))
+                if (coupongroup1.Length < 9 || (!coupongroup1.Contains("E") &&!coupongroup1.Contains("R") && !coupongroup1.Contains("T")))
                 { return string.Empty; }
                 else
                 {

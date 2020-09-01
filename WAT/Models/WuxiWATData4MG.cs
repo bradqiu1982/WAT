@@ -72,7 +72,7 @@ namespace WAT.Models
             var CouponGroup = "";
             try
             {
-                if (coupongroup1.Length < 12 || (!coupongroup1.Contains("E") && !coupongroup1.Contains("R") && !coupongroup1.Contains("T")))
+                if (coupongroup1.Length < 9 || (!coupongroup1.Contains("E") && !coupongroup1.Contains("R") && !coupongroup1.Contains("T")))
                 { return string.Empty; }
                 else
                 {
@@ -389,7 +389,15 @@ namespace WAT.Models
                          where len(Containername) = 24 and ("
                         + containcond + ") group by left(Containername,16),TestStep order by latesttime desc,left(Containername,16)";
             var dbret1 = DBUtility.ExeLocalSqlWithRes(sql);
+
+            sql = @"select distinct left(Containername,9),TestStep,MAX(TestTimeStamp) latesttime from insite.dbo.ProductionResult
+                         where len(Containername) = 17 and ("
+                        + containcond + ") group by left(Containername,9),TestStep order by latesttime desc,left(Containername,9)";
+            var dbret2 = DBUtility.ExeLocalSqlWithRes(sql);
+
             dbret.AddRange(dbret1);
+            dbret.AddRange(dbret2);
+
             return dbret;
         }
 
@@ -436,6 +444,19 @@ namespace WAT.Models
                   left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,13)
                   left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
                   where len(c.Containername) = 24  and  r.RealRate is not null  and ("+ containcond + ")";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]);
+                var tp = UT.O2S(line[1]);
+                if (!ret.ContainsKey(wf))
+                { ret.Add(wf, tp); }
+            }
+
+            sql = @"select distinct left(c.containername,9) as wafer,REPLACE(REPLACE('1x'+ep.AppVal1+ ' ' +r.RealRate,'14G','10G'),'28G','25G') as vtype FROM [Insite].[dbo].[ProductionResult] c with(nolock) 
+                  left join wat.dbo.WXEvalPN ep with (nolock) on ep.WaferNum = left(c.Containername,6)
+                  left join wat.dbo.WXEvalPNRate r on left(ep.EvalPN,7) = r.EvalPN
+                  where len(c.Containername) = 17  and  r.RealRate is not null  and (" + containcond + ")";
             dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {

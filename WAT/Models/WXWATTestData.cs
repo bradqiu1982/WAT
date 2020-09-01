@@ -73,7 +73,7 @@ namespace WAT.Models
         public static List<string> GetAllCouponID()
         {
             var retdict = new Dictionary<string,bool>();
-            var sql = "select distinct Containername from Insite.dbo.ProductionResult where len(Containername) > 9 and (Containername like '%E%' or Containername like '%R%' or Containername like '%T%')";
+            var sql = "select distinct left(Containername,len(Containername)-6)  from Insite.dbo.ProductionResult where len(Containername) > 9 and (Containername like '%E%' or Containername like '%R%' or Containername like '%T%')";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
