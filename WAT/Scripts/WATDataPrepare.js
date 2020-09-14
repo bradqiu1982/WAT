@@ -1029,6 +1029,36 @@
             RefreshWaferTable(true);
         })
 
+        function getpddata() {
+            var wf = $('#wafernum').val();
+
+            if (wf == '') {
+                alert('Please input PD wafer number!'); return false;
+            }
+
+            var options = {
+                loadingTips: "Data Loading.....",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/DieSort/DownloadIIVIPDData',
+                { wf: wf },
+            function (output) {
+                $.bootstrapLoading.end();
+                alert(output.MSG);
+                return false;
+            });
+        }
+
+        $('body').on('click', '#btn-marks-pd', function () {
+            getpddata();
+        })
+
         $('body').on('click', '#btn-marks-clean', function () {
             $('#total-marks').html(0);
             $('#marks').val('');
