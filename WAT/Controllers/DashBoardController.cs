@@ -621,7 +621,7 @@ namespace WAT.Controllers
 
             foreach (var capvm in capvmlist)
             {
-                if (capvm.Wafer.Length > 10)
+                if (capvm.Wafer.Length > 12)
                 { continue; }
 
                 if (passfailwfdict.ContainsKey(capvm.Wafer))
