@@ -493,36 +493,45 @@ namespace WXLogic
                     { return; }
                 }
 
-                var filedict = new Dictionary<string, string>();
-                var nofolderfiles = Directory.GetFiles(orgfolder+"\\"+product);
-                foreach (var f in nofolderfiles)
+                if (wafer.Length == 13)
                 {
-                    var uf = f.ToUpper();
-                    if (!filedict.ContainsKey(uf))
-                    { filedict.Add(uf, f); }
+                    var desfile = Path.Combine(PCT100folder, wafer + ".xml");
+                    SixIMapFile.GenerateMapFile(wafer, desfile);
+                }
+                else
+                {
+                        var filedict = new Dictionary<string, string>();
+                        var nofolderfiles = Directory.GetFiles(orgfolder+"\\"+product);
+                        foreach (var f in nofolderfiles)
+                        {
+                            var uf = f.ToUpper();
+                            if (!filedict.ContainsKey(uf))
+                            { filedict.Add(uf, f); }
+                        }
+
+                        //var folders = Directory.GetDirectories(orgfolder);
+                        //foreach (var fd in folders)
+                        //{
+                        //    var fs = Directory.GetFiles(fd);
+                        //    foreach (var f in fs)
+                        //    {
+                        //        var uf = f.ToUpper();
+                        //        if (!filedict.ContainsKey(uf))
+                        //        { filedict.Add(uf, f); }
+                        //    }
+                        //}
+
+                        foreach (var kv in filedict)
+                        {
+                            if (kv.Key.Contains(wafer.ToUpper()))
+                            {
+                                var desfile = Path.Combine(PCT100folder, Path.GetFileName(kv.Value));
+                                File.Copy(kv.Value, desfile, true);
+                                return;
+                            }
+                        }
                 }
 
-                //var folders = Directory.GetDirectories(orgfolder);
-                //foreach (var fd in folders)
-                //{
-                //    var fs = Directory.GetFiles(fd);
-                //    foreach (var f in fs)
-                //    {
-                //        var uf = f.ToUpper();
-                //        if (!filedict.ContainsKey(uf))
-                //        { filedict.Add(uf, f); }
-                //    }
-                //}
-
-                foreach (var kv in filedict)
-                {
-                    if (kv.Key.Contains(wafer.ToUpper()))
-                    {
-                        var desfile = Path.Combine(PCT100folder, Path.GetFileName(kv.Value));
-                        File.Copy(kv.Value, desfile, true);
-                        return;
-                    }
-                }
             }
             catch (Exception ex) { }
         }
