@@ -48,6 +48,28 @@ namespace WAT.Models
             SortLog(machine, username, "VISIT", msg);
         }
 
+        public static void LogIIVIQuery(string wafer,string user, string msg)
+        {
+            SortLog(wafer, user, "IIVIQ", msg);
+        }
+
+        public static List<WebLog> GetIIVIQuery(string wafer)
+        {
+            var ret = new List<WebLog>();
+            var sql = "select Name,MSG,UpdateTime from WebLog where MSGType='IIVIQ' and Machine = @wafer";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var msg = Convert.ToString(line[1]);
+                var tempvm = new WebLog(Convert.ToString(line[0]), msg, Convert.ToDateTime(line[2]).ToString("yyyy-MM-dd"));
+                tempvm.IIVIWafer = wafer;
+                ret.Add(tempvm);
+            }
+            return ret;
+        }
+
         public static void Log(string filename,string msgtype,string msg)
         {
             var sql = "select Name from WebLog where MSGType='IGNDIESORT' and Name = @Name";
@@ -103,17 +125,21 @@ namespace WAT.Models
         }
 
         public WebLog() {
+            IIVIWafer = "";
             Name = "";
             MSG = "";
             UpdateTime = "";
         }
         public WebLog(string name,string msg,string updatetime)
         {
+            IIVIWafer = "";
             Name = name;
             MSG = msg;
             UpdateTime = updatetime;
         }
 
+
+        public string IIVIWafer { set; get; }
         public string Name { set; get; }
         public string MSG { set; get; }
         public string UpdateTime { set; get; }

@@ -942,6 +942,12 @@
 
         function RefreshWaferTable(warning) {
 
+            var gh = $('#gh').val();
+            if (gh == '')
+            { alert("输入工号!"); return false; }
+            if (gh.indexOf('-') != -1)
+            { alert("工号和WAFER 号是否颠倒输入了？"); return false; }
+
             var wafernum = $('#wafernum').val();
             var all_marks = $.trim($('#marks').val()).split('\n');
             var cur_marks = new Array();
@@ -986,7 +992,8 @@
             $.post('/Main/IIVIBinData',
            {
                marks: JSON.stringify(cur_marks),
-               wafernum: wafernum
+               wafernum: wafernum,
+               gh:gh
            }, function (output) {
                $.bootstrapLoading.end();
                if (mywafertable) {
@@ -994,13 +1001,22 @@
                    mywafertable = null;
                }
 
+               $('#wfhead').empty();
                $("#WaferTableID").empty();
 
                if (output.MSG != '')
                { alert(output.MSG); return false;}
 
+               var appendstr = '<tr>';
+               appendstr += '<th>WAFER</th>'
+               appendstr += '<th>X</th>'
+               appendstr += '<th>Y</th>'
+               appendstr += '<th>BIN</th>'
+               appendstr += '</tr>';
+               $('#wfhead').append(appendstr);
+
                $.each(output.wfdatalist, function (i, val) {
-                   var appendstr = '<tr>';
+                   appendstr = '<tr>';
                    appendstr += '<td>' + val.wf + '</td>'
                    appendstr += '<td>' + val.x + '</td>'
                    appendstr += '<td>' + val.y + '</td>'
@@ -1057,6 +1073,76 @@
 
         $('body').on('click', '#btn-marks-pd', function () {
             getpddata();
+        })
+
+
+        function gethistorydata()
+        {
+            var wf = $('#wafernum').val();
+
+            if (wf == '') {
+                alert('Please input wafer number!'); return false;
+            }
+
+            var options = {
+                loadingTips: "Data Loading.....",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/Main/IIVIBinHistory',
+                { wf: wf },
+            function (output) {
+                $.bootstrapLoading.end();
+                
+                if (mywafertable) {
+                    mywafertable.destroy();
+                    mywafertable = null;
+                }
+
+                $('#wfhead').empty();
+                $("#WaferTableID").empty();
+
+                var appendstr = '<tr>';
+                appendstr += '<th>WAFER</th>'
+                appendstr += '<th>USER</th>'
+                appendstr += '<th>MSG</th>'
+                appendstr += '<th>DATE</th>'
+                appendstr += '</tr>';
+                $('#wfhead').append(appendstr);
+
+                $.each(output.wfdatalist, function (i, val) {
+                    appendstr = '<tr>';
+                    appendstr += '<td>' + val.IIVIWafer + '</td>'
+                    appendstr += '<td>' + val.Name + '</td>'
+                    appendstr += '<td>' + val.MSG + '</td>'
+                    appendstr += '<td>' + val.UpdateTime + '</td>'
+                    appendstr += '</tr>';
+
+                    $("#WaferTableID").append(appendstr);
+                });
+
+
+                mywafertable = $('#mywafertable').DataTable({
+                    'iDisplayLength': 50,
+                    'aLengthMenu': [[20, 50, 100, -1],
+                    [20, 50, 100, "All"]],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
+            });
+
+        }
+
+
+        $('body').on('click', '#btn-marks-history', function () {
+            gethistorydata();
         })
 
         $('body').on('click', '#btn-marks-clean', function () {
