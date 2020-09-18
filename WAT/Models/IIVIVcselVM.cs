@@ -164,28 +164,31 @@ namespace WAT.Models
                     { return stat; }
 
                     DieSortVM.StoreWaferSrcData(wf, wf, "1", goodbinxylist.Count.ToString(), "Pass", "GOOD", "true", "100", pn, "");
-                }
 
-                var arraysize = 0;
-                var bidx = 1;
-                foreach (var gb in goodbinxylist)
-                {
-                    var coords = coordlines[bidx].Trim().Split(new string[] { "_", " " }, StringSplitOptions.RemoveEmptyEntries);
-                    arraysize = UT.O2I(coords[2]) - UT.O2I(coords[0]) + 1;
-                    var coordstr = coords[0] + ":::" + coords[1];
-
-                    var sampled = "";
-                    if (selectdict.ContainsKey(gb))
+                    var arraysize = 0;
+                    var bidx = 1;
+                    foreach (var gb in goodbinxylist)
                     {
-                        sampled = "TRUE";
-                        StoreIIVISampleData(wf, wf, coords[0], coords[3], arraysize, pn);
-                    }
-                    StoreIIVICoord(wf, gb, coordstr, arraysize, sampled, dataexist);
-                    bidx++;
-                }
+                        var coords = coordlines[bidx].Trim().Split(new string[] { "_", " " }, StringSplitOptions.RemoveEmptyEntries);
+                        arraysize = UT.O2I(coords[2]) - UT.O2I(coords[0]) + 1;
+                        var coordstr = coords[0] + ":::" + coords[1];
 
-                if (!dataexist)
-                { StoreEvalPN(wf, pn, arraysize); }
+                        var sampled = "";
+                        if (selectdict.ContainsKey(gb))
+                        {
+                            sampled = "TRUE";
+                            StoreIIVISampleData(wf, wf, coords[0], coords[3], arraysize, pn);
+                        }
+                        StoreIIVICoord(wf, gb, coordstr, arraysize, sampled, dataexist);
+                        bidx++;
+                    }
+
+                    StoreEvalPN(wf, pn, arraysize);
+                }//not allowed to pick sample again
+                else
+                {
+                    return "WAFER COORD/PROBE DATA EXIST";
+                }
             }
             catch (Exception ex)
             {
