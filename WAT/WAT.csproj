@@ -921,6 +921,7 @@
     <Content Include="Views\DieSort\Wafer2DC.cshtml" />
     <Content Include="Views\Main\IIVIBin.cshtml" />
     <Content Include="Views\DieSort\DownloadIIVIPD.cshtml" />
+    <Content Include="Views\Main\OVENTestPlan.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

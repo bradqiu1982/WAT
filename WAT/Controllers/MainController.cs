@@ -913,12 +913,95 @@ namespace WAT.Controllers
             return ret;
         }
 
+        public ActionResult OVENTestPlan()
+        {
+            return View();
+        }
+
+        public JsonResult OVENPlanData()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var wafernum = Request.Form["wafernum"].Trim().ToUpper();
+            var normaltest = "";
+            var tested = "";
+            var status = "";
+            var charlist = new List<string>(new string[] { "E", "R", "T" });
+            var tclist = new List<string>(new string[] { "08", "09", "10" });
+            var matchstr = "";
+            var matcht = "";
+            foreach (var c in charlist)
+            {
+                foreach (var t in tclist)
+                {
+                    if (wafernum.Contains(c + t))
+                    {
+                        matchstr = c + t;
+                        matcht = t;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(matchstr))
+            {
+                var currenttest = WuxiWATData4MG.GetWATTestStep(wafernum);
+                if (!string.IsNullOrEmpty(currenttest))
+                {
+                    var key = "OVEN"+ matcht + "_" + currenttest + "_NEXT";
+                    if (syscfg.ContainsKey(key))
+                    {
+                        var nexttest = syscfg[key];
+                        if (nexttest.Contains("END"))
+                        {
+                            status = "SN测试完成,不再进炉,OK";
+                            normaltest = "";
+                            tested = currenttest;
+                        }
+                        else
+                        {
+                            status = "OK";
+                            normaltest = nexttest;
+                            tested = currenttest;
+                        }
+                    }
+                    else
+                    {
+                        status = "错误步骤 " + matchstr + " " + currenttest;
+                    }
+                }
+                else
+                {
+                    status = "先测 " + matchstr + "-PRE-BURNI,再进炉！";
+                    normaltest = "先测 " + matchstr + "-PRE-BURNI,再进炉！";
+                }
+            }
+            else
+            {
+                status = "SN 格式不正确";
+            }
+
+            WebLog.Log(wafernum, "WATTEST", status);
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                normaltest = normaltest,
+                tested = tested,
+                status = status
+            };
+
+            return ret;
+        }
+        
+
         public ActionResult IIVIBin() {
             return View();
         }
 
         public JsonResult IIVIBinData()
         {
+            var gh = Request.Form["gh"];
             var wafernum = Request.Form["wafernum"];
             var marks = Request.Form["marks"];
             List<string> allwflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
@@ -940,6 +1023,8 @@ namespace WAT.Controllers
                 return ret1;
             }
 
+            var loglist = new List<WebLog>();
+
             foreach (var xy in allwflist)
             {
                 var xystr = xy.Trim().Split(new string[] { ",", " ","\t" }, StringSplitOptions.RemoveEmptyEntries);
@@ -957,6 +1042,12 @@ namespace WAT.Controllers
                             y = y,
                             bin = "1"
                         });
+
+                        var tempvm = new WebLog();
+                        tempvm.IIVIWafer = wafernum;
+                        tempvm.Name = gh;
+                        tempvm.MSG = k + ",bin 1";
+                        loglist.Add(tempvm);
                     }
                     else
                     {
@@ -967,6 +1058,12 @@ namespace WAT.Controllers
                             y = y,
                             bin = "0"
                         });
+
+                        var tempvm = new WebLog();
+                        tempvm.IIVIWafer = wafernum;
+                        tempvm.Name = gh;
+                        tempvm.MSG = k + ",bin 0";
+                        loglist.Add(tempvm);
                     }
                 }//end if
             }
@@ -984,6 +1081,9 @@ namespace WAT.Controllers
                 return ret1;
             }
 
+            foreach (var item in loglist)
+            { WebLog.LogIIVIQuery(item.IIVIWafer, item.Name, item.MSG); }
+
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
@@ -994,5 +1094,18 @@ namespace WAT.Controllers
             return ret;
         }
 
-    }
+        public JsonResult IIVIBinHistory()
+        {
+            var wafernum = Request.Form["wf"];
+            var wfdatalist = WebLog.GetIIVIQuery(wafernum);
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist
+            };
+            return ret;
+        }
+
+   }
 }

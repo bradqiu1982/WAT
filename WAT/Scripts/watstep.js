@@ -45,9 +45,56 @@
         })
     }
 
+    var GetOVENPlan = function () {
+        $(function () {
+            $('#wafernum').focus();
+        })
+
+        function RetrieveStep() {
+            var wafernum = $('#wafernum').val().trim();
+            $('#wafernum').val('');
+            $('#wafernum').focus();
+            $('#sn').html(wafernum);
+            $('#normaltest').html('');
+            $('#tested').html('');
+            $('#status').html('');
+
+            if (wafernum) {
+                $.post('/Main/OVENPlanData',
+                    { wafernum: wafernum },
+                    function (output) {
+                        $('#normaltest').html(output.normaltest);
+                        $('#tested').html(output.tested);
+                        $('#status').html(output.status);
+                        if (output.status.indexOf('OK') != -1) {
+                            $('#status').removeClass('error-info').removeClass('ok-info').addClass('ok-info');
+                        }
+                        else {
+                            $('#status').removeClass('error-info').removeClass('ok-info').addClass('error-info');
+                        }
+                        $('#wafernum').focus();
+                    });
+            }
+            return false;
+        }
+
+        $('body').on('click', '#btn-submit', function () {
+            RetrieveStep();
+        })
+
+        $('body').on('keypress', '#wafernum', function (e) {
+            if (e.keyCode == 13) {
+                RetrieveStep();
+            }
+        })
+    }
+
     return {
         WATStepInit: function () {
             GetWatStep();
+        },
+        OvenPlanInit: function () {
+            GetOVENPlan();
         }
     }
 }();
