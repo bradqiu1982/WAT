@@ -155,6 +155,8 @@ namespace WAT.Models
 
                 if (!string.IsNullOrEmpty(ret.AppErrorMsg))
                 { result = ret.AppErrorMsg; }
+                else if (ret.ResultReason.ToUpper().Contains("BI YIELD"))
+                { result = "SCRAP/BI YIELD"; }
                 else
                 {
                     if (ret.TestPass)

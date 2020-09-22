@@ -729,7 +729,8 @@ namespace WXLogic
                 if (string.Compare(fm.Failure, "WEAROUT", true) == 0
                 || string.Compare(fm.Failure, "DELAM", true) == 0
                 || string.Compare(fm.Failure, "DVF", true) == 0
-                || string.Compare(fm.Failure, "LOWPOWERLOWLEAKAGE", true) == 0)
+                || string.Compare(fm.Failure, "LOWPOWERLOWLEAKAGE", true) == 0
+                || string.Compare(fm.Failure, "DISLOCATION", true) == 0)
                 {
                     bfailmode = true;
                     break;
