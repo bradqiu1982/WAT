@@ -117,7 +117,8 @@ namespace WAT.Models
             dict.Add("@Include_Units_IN_Col_Headers", "1");
             dict.Add("@Passing_Dies_Only", "0");
             dict.Add("@Sample_Quantity", "-1");
-            dict.Add("@Comma_Delimited_TEST_NAMES_To_Return", "RT.Ith,RT.SeriesR,RT.SlopEff");
+            //dict.Add("@Comma_Delimited_TEST_NAMES_To_Return", "RT.Ith,RT.SeriesR,RT.SlopEff");
+            dict.Add("@Comma_Delimited_TEST_NAMES_To_Include", "RT.Ith,RT.SeriesR,RT.SlopEff");
             var dbret = DBUtility.ExeShermanStoreProcedureWithRes("Get_Latest_PROBE_DATA_For_Wafer", dict);
 
             var xidx = 14;
@@ -195,7 +196,8 @@ namespace WAT.Models
             dict.Add("@Include_Units_IN_Col_Headers", "1");
             dict.Add("@Passing_Dies_Only", "0");
             dict.Add("@Sample_Quantity", "-1");
-            dict.Add("@Comma_Delimited_TEST_NAMES_To_Return", "RT.Ith");
+            //dict.Add("@Comma_Delimited_TEST_NAMES_To_Return", "RT.Ith");
+            dict.Add("@Comma_Delimited_TEST_NAMES_To_Include", "RT.Ith");
             var dbret = DBUtility.ExeShermanStoreProcedureWithRes("Get_Latest_PROBE_DATA_For_Wafer", dict);
 
             var xidx = 14;

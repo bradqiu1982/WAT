@@ -454,6 +454,14 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult SixInchMapFile()
+        {
+            var wafer = "61926-609-050";
+            var desfile = Path.Combine(@"\\wux-engsys01.china.ads.finisar.com\DieSortingReview", wafer + ".xml");
+            SixIMapFile.GenerateMapFile(wafer, desfile);
+            return View("HeartBeat");
+        }
+
         public ActionResult PrepareBinMap()
         {
             var url = "/Main/PrepareBinMap";

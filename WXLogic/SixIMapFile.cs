@@ -383,6 +383,10 @@ namespace WXLogic
             if (arraysize != 1)
             { typename = "Wafer Final"; }//"Final Bins AVI Merged"; }
 
+            //var typename = "Final Probe AVI Merge";
+            //if (arraysize != 1)
+            //{ typename = "Final Bins AVI Merged"; }
+
             var sql = "SELECT * FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
             var dbret = DBUtility.ExeShermanSqlWithRes(sql);
             foreach (var line in dbret)
