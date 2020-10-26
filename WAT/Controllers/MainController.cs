@@ -1115,5 +1115,15 @@ namespace WAT.Controllers
             return ret;
         }
 
-   }
+        public ActionResult WATDataWatchDog()
+        {
+            return View();
+        }
+
+        public ActionResult WatchDogDemo()
+        {
+            return View();
+        }
+
+    }
 }

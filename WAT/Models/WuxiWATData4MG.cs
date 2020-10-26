@@ -403,6 +403,117 @@ namespace WAT.Models
             return dbret;
         }
 
+        public static List<WuxiWATData4MG> GetRecentWATCouponID(string starttime)
+        {
+            var ret = new List<WuxiWATData4MG>();
+
+            var endtime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            var dict = new Dictionary<string, string>();
+            dict.Add("@starttime", starttime);
+            dict.Add("@endtime", endtime);
+
+            var containcond = @"  Containername like '%E08%'  or Containername like '%R08%'  or Containername like '%T08%' 
+                                or Containername like '%E09%'  or Containername like '%R09%'  or Containername like '%T09%'  ";
+
+            var sql = @"select distinct left(Containername,14),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
+	                    where len(Containername) = 20  and TestTimeStamp > @starttime and TestTimeStamp < @endtime
+	                    and ( " + containcond + ") group by left(Containername,14),TestStep,TestStation order by latesttime desc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql,dict);
+
+            sql = @"select distinct left(Containername,18),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
+                      where len(Containername) = 24 and TestTimeStamp > @starttime and TestTimeStamp < @endtime
+                      and (" + containcond + ") group by left(Containername,18),TestStep,TestStation order by latesttime desc";
+            var dbret1 = DBUtility.ExeLocalSqlWithRes(sql, dict);
+
+            sql = @"select distinct left(Containername,11),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
+                       where len(Containername) = 17  and TestTimeStamp > @starttime and TestTimeStamp < @endtime
+                    and (" + containcond + " ) group by left(Containername,11),TestStep,TestStation order by latesttime desc";
+            var dbret2 = DBUtility.ExeLocalSqlWithRes(sql, dict);
+
+            dbret.AddRange(dbret1);
+            dbret.AddRange(dbret2);
+
+            foreach (var line in dbret)
+            {
+                var tempvm = new WuxiWATData4MG();
+                tempvm.CouponID = UT.O2S(line[0]);
+                tempvm.TestStep = UT.O2S(line[1]);
+                tempvm.TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
+                tempvm.Comment = UT.O2S(line[3]);
+                ret.Add(tempvm);
+            }
+
+            return ret;
+        }
+
+        private static List<double> GetWATPowerTestData(string couponid,string teststep,string testtime)
+        {
+            var ret = new List<double>();
+
+            var starttime = UT.O2T(testtime).AddSeconds(-3).ToString("yyyy-MM-dd HH:mm:ss");
+            var endtime = UT.O2T(testtime).AddSeconds(3).ToString("yyyy-MM-dd HH:mm:ss");
+            var dict = new Dictionary<string, string>();
+            dict.Add("@teststep",teststep);
+            dict.Add("@starttime",starttime);
+            dict.Add("@endtime", endtime);
+
+            var sql = @"select [PO_LD_W] from insite.dbo.ProductionResult where Containername like '"+couponid+@"%' and TestStep = @teststep
+                    and TestTimeStamp > @starttime and TestTimeStamp < @endtime";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                ret.Add(UT.O2D(line[0]));
+            }
+            return ret;
+        }
+
+
+        public static bool CheckWATDataUniform(string couponid, string teststep, string testtime
+            ,double zerolevel,int zcnt,string filterlevelstr,string fcntstr)
+        {
+            var filterlevel = new List<double>();
+            var fcnt = new List<int>();
+
+            var list = filterlevelstr.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var i in list)
+            { filterlevel.Add(UT.O2D(i)); }
+
+            list = fcntstr.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var i in list)
+            { fcnt.Add(UT.O2I(i)); }
+
+            var pwlist = GetWATPowerTestData(couponid, teststep, testtime);
+            if (pwlist.Count > 20)
+            {
+                var count = 0;
+                foreach (var p in pwlist)
+                {
+                    if (p < zerolevel)
+                    { count++; }
+                }
+                if (count >= zcnt)
+                { return false; }
+
+                var maxval = pwlist.Max();
+                for (var idx = 0; idx < filterlevel.Count; idx++)
+                {
+                    count = 0;
+                    var flevel = maxval * filterlevel[idx];
+                    foreach (var p in pwlist)
+                    {
+                        if (p < flevel && p > zerolevel)
+                        { count++; }
+                    }
+
+                    if (count >= fcnt[idx])
+                    { return false; }
+                }
+
+            }//end if
+
+            return true;
+        }
+
         public static string GetWATType(string wafer)
         {
             var charlist = new List<string>(new string[] { "E", "R", "T" });

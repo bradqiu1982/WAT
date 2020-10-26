@@ -1,0 +1,62 @@
+﻿
+@{
+    ViewBag.Title = "WatchDogDemo";
+    Layout = "~/Views/Shared/_Layout4Product.cshtml";
+}
+
+<link href="~/Content/welcome.css" rel="stylesheet" type="text/css" />
+
+<script type="text/javascript" src="~/Scripts/watchdog.js"></script>
+<script type="text/javascript">
+    $(function(){
+        WATCHDOG.DEMO();
+    })
+</script>
+
+<div class="row" style="min-height:90%">
+    <div class="wel-container">
+        <div class="wel-bg">
+            <img src="~/Content/images/welcome.png" class="wel-bg-img" />
+        </div>
+        <div class="wel-body">
+            <div class="wel-title">WATCH DOG DEMO</div>
+            <div class="wel-subtitle">Function check server data every 30 seconds</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="watchdlg" tabindex="-1" role="dialog" style="margin-top:2%" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">WARNING COUPON ID</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12"><img class="transparent" src="~/Content/matrix.gif" width="560" height="40" /></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-6" style="align-content:center">
+                        <table class="table table-hover table-striped">
+                            @*<thead>
+                                    <tr style="align-content:center">
+                                        <th style="font-size:28px!important;text-align:center">COUPON ID</th>
+                                    </tr>
+                                </thead>*@
+                            <tbody id="coupontab" name="coupontab"></tbody>
+                        </table>
+                    </div>
+                    <div class="col-sm-3"></div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12"><img class="transparent" src="~/Content/matrix.gif" width="560" height="40" /></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="btn-cmf" name="btn-cmf">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+

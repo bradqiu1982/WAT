@@ -733,8 +733,10 @@
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\jquery.dataTables.min.css" />
     <Content Include="Content\Layout.css" />
+    <Content Include="Content\matrix.gif" />
     <Content Include="Content\Site.css" />
     <Content Include="Content\welcome.css" />
+    <Content Include="Content\wwry.mp3" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -787,6 +789,7 @@
     <Content Include="Scripts\JobCheckList.js" />
     <Content Include="Scripts\JOBCHECKLIST.txt" />
     <Content Include="Scripts\mapfilewithocr.js" />
+    <Content Include="Scripts\watchdog.js" />
     <Content Include="Scripts\WATDataPrepare.js" />
     <Content Include="Scripts\watstep.js" />
     <Content Include="Scripts\WWDS.js" />
@@ -922,6 +925,8 @@
     <Content Include="Views\Main\IIVIBin.cshtml" />
     <Content Include="Views\DieSort\DownloadIIVIPD.cshtml" />
     <Content Include="Views\Main\OVENTestPlan.cshtml" />
+    <Content Include="Views\Main\WATDataWatchDog.cshtml" />
+    <Content Include="Views\Main\WatchDogDemo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

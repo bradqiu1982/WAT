@@ -70,6 +70,30 @@ namespace WAT.Models
             return ret;
         }
 
+        public static void LogWATDataWDog(string machine)
+        {
+            SortLog(machine, "SYSTEM", "WATDATAWDOG", "CHECK WAT DATA UNIFORMITY");
+        }
+
+        public static string GetLatestWATDataWDogTime(string machine)
+        {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@Machine", machine);
+
+            var pretime = DateTime.Now.AddMinutes(-60);
+            var sql = "select top 1 UpdateTime from WebLog where MSGType='WATDATAWDOG' and Machine=@Machine order by UpdateTime desc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql,dict);
+
+            if (dbret.Count == 0)
+            { return pretime.ToString("yyyy-MM-dd HH:mm:ss"); }
+
+            var lasttime = UT.O2T(dbret[0][0]);
+            if (lasttime < pretime)
+            { return pretime.ToString("yyyy-MM-dd HH:mm:ss"); }
+            else
+            { return lasttime.ToString("yyyy-MM-dd HH:mm:ss"); }
+        }
+
         public static void Log(string filename,string msgtype,string msg)
         {
             var sql = "select Name from WebLog where MSGType='IGNDIESORT' and Name = @Name";

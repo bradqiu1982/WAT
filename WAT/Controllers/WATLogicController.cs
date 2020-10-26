@@ -3332,5 +3332,64 @@ namespace WAT.Controllers
             return ret;
         }
 
+
+        public JsonResult CheckWATTestDataUniformity()
+        {
+            var waferlist = new List<object>();
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var zerolevel = WAT.Models.UT.O2D(syscfg["WATDATAWDOGZEROLEVEL"]);
+            var zerocnt = WAT.Models.UT.O2I(syscfg["WDOGZEROCNT"]);
+
+            var filterlevel = syscfg["WATDATAWDOGFILTERLEVEL"];
+            var filtercnt = syscfg["WDOGFILTERCNT"];
+
+            var dict = new Dictionary<string, bool>();
+
+            var machine = MachineUserMap.DetermineCompName(Request.UserHostName);
+            var starttime = WebLog.GetLatestWATDataWDogTime(machine);
+            WebLog.LogWATDataWDog(machine);
+
+            var allcoupon = WuxiWATData4MG.GetRecentWATCouponID(starttime);
+            foreach (var cp in allcoupon)
+            {
+                var key = cp.CouponID.ToUpper() + "_" + cp.TestStep.ToUpper();
+                if (!dict.ContainsKey(key))
+                {
+                    dict.Add(key, true);
+                    if (!WuxiWATData4MG.CheckWATDataUniform(cp.CouponID, cp.TestStep, cp.TestTime
+                        , zerolevel,zerocnt,filterlevel,filtercnt))
+                    {
+                        waferlist.Add(new { wafer = cp.CouponID
+                            ,teststep = cp.TestStep
+                            ,tester = cp.Comment});
+                    }
+                }//end if
+            }//end foreach
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                waferlist = waferlist
+            };
+            return ret;
+        }
+
+        public JsonResult WDogDemo()
+        {
+            var waferlist = new List<object>();
+
+            waferlist.Add(new { wafer = "62024-261-040E0807" });
+            waferlist.Add(new { wafer = "62024-261-040E0814" });
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                waferlist = waferlist
+            };
+            return ret;
+        }
     }
 }
