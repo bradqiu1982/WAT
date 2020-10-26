@@ -22,7 +22,8 @@
 
                         $.each(output.waferlist, function (i, val) {
                             var appendstr = '<tr style="align-content:center">' +
-                                            '<td style="font-size:24px!important;text-align:center">' + val.wafer + '</td>' +
+                                            '<td style="font-size:18px!important;text-align:center">' + val.wafer + '</td>' +
+                                            '<td style="font-size:18px!important;text-align:center">' + val.teststep + '</td>' +
                                             '</tr>';
                             $('#coupontab').append(appendstr);
                         });
@@ -83,7 +84,8 @@
 
                         $.each(output.waferlist, function (i, val) {
                             var appendstr = '<tr style="align-content:center">' +
-                                            '<td style="font-size:24px!important;text-align:center">' + val.wafer + '</td>' +
+                                            '<td style="font-size:18px!important;text-align:center">' + val.wafer + '</td>' +
+                                            '<td style="font-size:18px!important;text-align:center">' + val.teststep + '</td>' +
                                             '</tr>';
                             $('#coupontab').append(appendstr);
                         });

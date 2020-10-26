@@ -3380,8 +3380,8 @@ namespace WAT.Controllers
         {
             var waferlist = new List<object>();
 
-            waferlist.Add(new { wafer = "62024-261-040E0807" });
-            waferlist.Add(new { wafer = "62024-261-040E0814" });
+            waferlist.Add(new { wafer = "62024-261-040E0807", teststep = "Post_Test" });
+            waferlist.Add(new { wafer = "62024-261-040E0814", teststep = "Post_HTOL1"});
 
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
