@@ -3360,6 +3360,8 @@ namespace WAT.Controllers
                     if (!WuxiWATData4MG.CheckWATDataUniform(cp.CouponID, cp.TestStep, cp.TestTime
                         , zerolevel,zerocnt,filterlevel,filtercnt))
                     {
+                        WebLog.Log(cp.CouponID, "WDOGCATCH", cp.TestStep + " " + cp.TestTime);
+
                         waferlist.Add(new { wafer = cp.CouponID
                             ,teststep = cp.TestStep
                             ,tester = cp.Comment});

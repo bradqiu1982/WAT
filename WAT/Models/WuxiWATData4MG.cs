@@ -413,7 +413,8 @@ namespace WAT.Models
             dict.Add("@endtime", endtime);
 
             var containcond = @"  Containername like '%E08%'  or Containername like '%R08%'  or Containername like '%T08%' 
-                                or Containername like '%E09%'  or Containername like '%R09%'  or Containername like '%T09%'  ";
+                                or Containername like '%E09%'  or Containername like '%R09%'  or Containername like '%T09%'
+                                or Containername like '%E10%'  or Containername like '%R10%'  or Containername like '%T10%' ";
 
             var sql = @"select distinct left(Containername,14),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
 	                    where len(Containername) = 20  and TestTimeStamp > @starttime and TestTimeStamp < @endtime
