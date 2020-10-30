@@ -11,7 +11,7 @@ APPEMAILPWD:::abc@12345
 EMAILSERVER:::sny-mrs.ads.finisar.com
 EMAILSSL:::FALSE
 
-DIESORTWARINGLIST:::brad.qiu@finisar.com;tyler.zhang@finisar.com
+DIESORTWARINGLIST:::brad.qiu@II-VI.COM;tyler.zhang@II-VI.COM
 
 DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
 DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
@@ -90,7 +90,7 @@ WATCAPACITY:::2020-01-01:10,2020-05-07:13,2020-06-04:16,2020-07-02:19,2020-08-27
 1x4SLOT:::14
 1x12SLOT:::43
 
-WATJOBCHECKLIST:::brad.qiu@finisar.com;tyler.zhang@finisar.com;mick.wang@finisar.com;jintao.yao@finisar.com;sean.huang@finisar.com;lance.chen@finisar.com
+WATJOBCHECKLIST:::brad.qiu@II-VI.COM;tyler.zhang@II-VI.COM;mick.wang@II-VI.COM;jintao.yao@II-VI.COM;sean.huang@II-VI.COM;lance.chen@II-VI.COM
 
 08_FIRSTTESTSTEP:::PRLL_VCSEL_PRE_BURN_IN_TEST
 09_FIRSTTESTSTEP:::PRLL_VCSEL_PRE_BURN_IN_TEST

@@ -126,7 +126,7 @@ namespace WAT.Controllers
                 var report = new
                 {
                     time = wreportlist[0].CommentDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                    reporter = wreportlist[0].Reporter.ToUpper().Replace("@FINISAR.COM", ""),
+                    reporter = wreportlist[0].Reporter.ToUpper().Replace("@FINISAR.COM", "").Replace("@II-VI.COM", ""),
                     content = wreportlist[0].Comment
                 };
                 var ret = new JsonResult();

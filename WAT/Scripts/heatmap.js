@@ -3,7 +3,7 @@
 
  (c) 2009-2017 Torstein Honsi
 
- License: www.finisar.com/license
+ License: www.ii-vi.com/license
 */
 (function(p){"object"===typeof module&&module.exports?module.exports=p:p(Highcharts)})(function(p){(function(b){var h=b.Axis,r=b.Chart,k=b.color,n,d=b.each,w=b.extend,x=b.isNumber,l=b.Legend,g=b.LegendSymbolMixin,q=b.noop,u=b.merge,v=b.pick,t=b.wrap;n=b.ColorAxis=function(){this.init.apply(this,arguments)};w(n.prototype,h.prototype);w(n.prototype,{defaultColorAxisOptions:{lineWidth:0,minPadding:0,maxPadding:0,gridLineWidth:1,tickPixelInterval:72,startOnTick:!0,endOnTick:!0,offset:0,marker:{animation:{duration:50},
 width:.01,color:"#999999"},labels:{overflow:"justify",rotation:0},minColor:"#e6ebf5",maxColor:"#003399",tickLength:5,showInLegend:!0},keepProps:["legendGroup","legendItemHeight","legendItemWidth","legendItem","legendSymbol"].concat(h.prototype.keepProps),init:function(a,c){var e="vertical"!==a.options.legend.layout,f;this.coll="colorAxis";f=u(this.defaultColorAxisOptions,{side:e?2:1,reversed:!e},c,{opposite:!e,showEmpty:!1,title:null});h.prototype.init.call(this,a,f);c.dataClasses&&this.initDataClasses(c);
