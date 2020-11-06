@@ -38,6 +38,10 @@ namespace WXLogic
                 if (ignoredict.ContainsKey(key))
                 { continue; }
 
+                key = item.Containername.ToUpper() + ":::" + item.ChannelInfo;
+                if (ignoredict.ContainsKey(key))
+                { continue; }
+
                 if (!coupondict.ContainsKey(item.Containername))
                 { coupondict.Add(item.Containername, true); }
 

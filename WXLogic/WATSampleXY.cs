@@ -497,7 +497,7 @@ namespace WXLogic
 
             if (string.Compare(array, "1") == 0)
             {
-                CorrectChannelIndex(ret, 1);
+                //CorrectChannelIndex(ret, 1);
                 return ret;
             }
             else
@@ -518,7 +518,7 @@ namespace WXLogic
                     }
                 }
 
-                CorrectChannelIndex(newret, arraysize);
+                //CorrectChannelIndex(newret, arraysize);
                 return newret;
             }
 

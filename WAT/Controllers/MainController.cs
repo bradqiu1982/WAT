@@ -678,7 +678,7 @@ namespace WAT.Controllers
             var username = WXWATIgnoreDie.GetUserName(Request.UserHostName);
             if (waferxy.Length == 3) {
                 WXWATIgnoreDie.UpdateIgnoreDie(waferxy[0], Models.UT.O2I(waferxy[1].ToUpper().Replace("X","").Replace("Y","")).ToString()
-                    , Models.UT.O2I(waferxy[2].ToUpper().Replace("X", "").Replace("Y", "")).ToString(), "Wrong bin", username);
+                    , Models.UT.O2I(waferxy[2].ToUpper().Replace("X", "").Replace("Y", "")).ToString(), "Wrong bin", username,"");
             }
 
             var ret = new JsonResult();
@@ -1123,6 +1123,42 @@ namespace WAT.Controllers
         public ActionResult WatchDogDemo()
         {
             return View();
+        }
+
+
+        public ActionResult UpdateIgnoreDie()
+        {
+            var waferlist = new List<string>();
+
+            var sql = "select distinct wafer from [EngrData].[dbo].[WXWATIgnoreDie]";
+            var dbret = Models.DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            { waferlist.Add(Models.UT.O2S(line[0])); }
+
+            foreach (var wf in waferlist)
+            {
+                var igwfdict = new Dictionary<string, bool>();
+                sql = "select X,Y from [EngrData].[dbo].[WXWATIgnoreDie] where wafer = '" + wf + "'";
+                dbret = Models.DBUtility.ExeLocalSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    igwfdict.Add(Models.UT.O2I(line[0]) + ":::" + Models.UT.O2I(line[1]), true);
+                }//foreach
+
+                var spdata = WXLogic.WATSampleXY.GetSampleXYByCouponGroup(wf);
+                foreach (var sp in spdata)
+                {
+                    var key = sp.X + ":::" + sp.Y;
+                    if (igwfdict.ContainsKey(key))
+                    {
+                        sql = "update[EngrData].[dbo].[WXWATIgnoreDie] set[CouponCH] = '" + sp.CouponID + ":::" + sp.ChannelInfo + "' where wafer = '" + wf
+                            + "' and CONVERT(int, X) = " + sp.X + " and CONVERT(int, Y) = " + sp.Y;
+                        Models.DBUtility.ExeLocalSqlNoRes(sql);
+                    }
+                }//end foreach
+            }
+
+            return View("HeartBeat");
         }
 
     }

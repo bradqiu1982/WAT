@@ -804,6 +804,8 @@ namespace WAT.Models
 
             CouponID = item.Containername;
             CH = item.ChannelInfo;
+            var CouponCH = CouponID.ToUpper() + ":::" + CH;
+
             X = item.X;
             Y = item.Y;
             BVR_LD_A = UT.O2D(item.BVR_LD_A).ToString();
@@ -849,6 +851,13 @@ namespace WAT.Models
                 Comment = ignoredict[key].Reason;
                 Atta = ignoredict[key].Atta;
                 Operator = ignoredict[key].UserName;
+            }
+            else if (ignoredict.ContainsKey(CouponCH))
+            {
+                IgnoredFlag = "COMMENTLINE";
+                Comment = ignoredict[CouponCH].Reason;
+                Atta = ignoredict[CouponCH].Atta;
+                Operator = ignoredict[CouponCH].UserName;
             }
             else
             {

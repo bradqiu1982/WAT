@@ -892,7 +892,7 @@
                             tempstr += '<tr>';
                         }
 
-                        tempstr += '<td><input type="checkbox" class="diecheck" myid="' + val.CouponID + '_' + val.X + '_' + val.Y + '"></td>' +
+                        tempstr += '<td><input type="checkbox" class="diecheck" myid="' + val.CouponID + '_' + val.X + '_' + val.Y + '_' + val.CH + '"></td>' +
                             '<td>' + val.CouponID + '</td>' +
                             '<td>' + val.CH + '</td>' +
                             '<td>' + val.X + '</td>' +

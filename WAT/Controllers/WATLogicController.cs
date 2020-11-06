@@ -425,7 +425,6 @@ namespace WAT.Controllers
 
         public JsonResult IgnoreWATDie()
         {
-
             var ignoredies = Request.Form["ignoredies"].Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries).ToList();
             var reason = Request.Form["reason"];
             var username = WXWATIgnoreDie.GetUserName(Request.UserHostName);
@@ -433,9 +432,10 @@ namespace WAT.Controllers
             foreach (var die in ignoredies)
             {
                 var waferxy = die.ToUpper().Split(new string[] { "E","R","T","_" }, StringSplitOptions.RemoveEmptyEntries);
-                if (waferxy.Length == 4)
+                if (waferxy.Length == 5)
                 {
-                    WXWATIgnoreDie.UpdateIgnoreDie(waferxy[0], waferxy[2], waferxy[3], reason, username);
+                    var coupon = die.ToUpper().Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0];
+                    WXWATIgnoreDie.UpdateIgnoreDie(waferxy[0], waferxy[2], waferxy[3], reason, username, coupon+":::"+ waferxy[4]);
                 }
             }
 
@@ -448,7 +448,7 @@ namespace WAT.Controllers
         {
             var ignoredies = Request.Form["igid"];
             var waferxy = ignoredies.ToUpper().Split(new string[] { "E", "R", "T", "_" }, StringSplitOptions.RemoveEmptyEntries);
-            if (waferxy.Length == 4)
+            if (waferxy.Length == 5)
             {
                 try
                 {

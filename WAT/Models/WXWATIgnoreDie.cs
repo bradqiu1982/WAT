@@ -32,7 +32,7 @@ namespace WAT.Models
             { return machine; }
         }
 
-        public static void UpdateIgnoreDie(string wafer, string x, string y, string reason, string username)
+        public static void UpdateIgnoreDie(string wafer, string x, string y, string reason, string username,string couponch)
         {
             var sql = "delete from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer=@Wafer and X=@X and Y=@Y";
             var dict = new Dictionary<string, string>();
@@ -41,10 +41,25 @@ namespace WAT.Models
             dict.Add("@Y", y);
             DBUtility.ExeLocalSqlNoRes(sql, dict);
 
+            if (!string.IsNullOrEmpty(couponch))
+            {
+                sql = "delete from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer=@Wafer and CouponCH=@CouponCH";
+                dict = new Dictionary<string, string>();
+                dict.Add("@Wafer", wafer);
+                dict.Add("@CouponCH", couponch);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+            }
+
+
+            dict = new Dictionary<string, string>();
+            dict.Add("@Wafer", wafer);
+            dict.Add("@X", x);
+            dict.Add("@Y", y);
             dict.Add("@Reason",reason);
             dict.Add("@UserName",username);
+            dict.Add("@CouponCH", couponch);
 
-            sql = "insert into [EngrData].[dbo].[WXWATIgnoreDie](Wafer,X,Y,Reason,UserName) values(@Wafer,@X,@Y,@Reason,@UserName)";
+            sql = "insert into [EngrData].[dbo].[WXWATIgnoreDie](Wafer,X,Y,Reason,UserName,CouponCH) values(@Wafer,@X,@Y,@Reason,@UserName,@CouponCH)";
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
@@ -68,9 +83,17 @@ namespace WAT.Models
 
             foreach (var item in dielist)
             {
-                var key = item.X + ":" + item.Y;
-                if (!ret.ContainsKey(key))
-                { ret.Add(key, item); }
+                if (string.IsNullOrEmpty(item.CouponCH))
+                {
+                    var key = item.X + ":" + item.Y;
+                    if (!ret.ContainsKey(key))
+                    { ret.Add(key, item); }
+                }
+                else
+                {
+                    if (!ret.ContainsKey(item.CouponCH))
+                    { ret.Add(item.CouponCH, item); }
+                }
             }
 
             return ret;
@@ -80,7 +103,7 @@ namespace WAT.Models
         {
             var ret = new List<WXWATIgnoreDie>();
 
-            var sql = "select Wafer,X,Y,Reason,UserName,Atta from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer = @Wafer";
+            var sql = "select Wafer,X,Y,Reason,UserName,Atta,CouponCH from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer = @Wafer";
             var dict = new Dictionary<string, string>();
             dict.Add("@Wafer", wafer);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
@@ -93,6 +116,7 @@ namespace WAT.Models
                 tempvm.Reason = Convert.ToString(line[3]);
                 tempvm.UserName = Convert.ToString(line[4]);
                 tempvm.Atta = UT.O2S(line[5]);
+                tempvm.CouponCH = UT.O2S(line[6]).ToUpper();
                 ret.Add(tempvm);
             }
 
@@ -108,6 +132,7 @@ namespace WAT.Models
             Reason = "";
             UserName = "";
             Atta = "";
+            CouponCH = "";
         }
 
         public string Wafer { set; get; }
@@ -116,5 +141,6 @@ namespace WAT.Models
         public string Reason { set; get; }
         public string UserName { set; get; }
         public string Atta { set; get;}
+        public string CouponCH { set; get; }
     }
 }

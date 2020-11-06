@@ -308,6 +308,104 @@ namespace WAT.Models
             return ret;
         }
 
+        public List<List<int>> SixInchArray2SingletCoord(string prodfam,List<string> xlist,List<string> ylist)
+        {
+            var ret = new List<List<int>>();
+
+            var xcond = string.Join(",", xlist);
+            var ycond = string.Join(",", ylist);
+            var dict = new Dictionary<string, string>();
+            dict.Add("@Comma_Delimited_Xs", xcond.ToUpper().Replace("X", "").Replace("Y", ""));
+            dict.Add("@Comma_Delimited_Ys", ycond.ToUpper().Replace("X", "").Replace("Y", ""));
+            dict.Add("@Array_Product_Family", prodfam);
+            dict.Add("@True_For_Singlet_Output_False_For_Array", "1");
+            var dbret = DBUtility.ExeShermanStoreProcedureWithRes("Convert_Coords", dict);
+
+            var ridx = 0;
+            var xidx = 5;
+            var yidx = 6;
+
+            var tempxlist = new List<int>();
+            var tempylist = new List<int>();
+
+            foreach (var line in dbret)
+            {
+                if (ridx == 0)
+                {
+                    var colidx = 0;
+                    foreach (var item in line)
+                    {
+                        var cname = UT.O2S(item).ToUpper();
+                        if (string.Compare(cname, "SingletX", true) == 0 
+                            || string.Compare(cname, "Singlet X", true) == 0)
+                        { xidx = colidx; }
+                        if (string.Compare(cname, "SingletY", true) == 0 
+                            || string.Compare(cname, "Singlet Y", true) == 0)
+                        { yidx = colidx; }
+                        colidx++;
+                    }//end foreach
+                    ridx++;
+                    continue;
+                }
+
+                tempxlist.Add(UT.O2I(line[xidx]));
+                tempylist.Add(UT.O2I(line[yidx]));
+            }
+
+            ret.Add(tempxlist);
+            ret.Add(tempylist);
+            return ret;
+        }
+
+        public List<List<int>> SixInchSinglet2ArrayCoord(string prodfam, List<string> xlist, List<string> ylist)
+        {
+            var ret = new List<List<int>>();
+
+            var xcond = string.Join(",", xlist);
+            var ycond = string.Join(",", ylist);
+            var dict = new Dictionary<string, string>();
+            dict.Add("@Comma_Delimited_Xs", xcond.ToUpper().Replace("X", "").Replace("Y", ""));
+            dict.Add("@Comma_Delimited_Ys", ycond.ToUpper().Replace("X", "").Replace("Y", ""));
+            dict.Add("@Array_Product_Family", prodfam);
+            dict.Add("@True_For_Singlet_Output_False_For_Array", "0");
+            var dbret = DBUtility.ExeShermanStoreProcedureWithRes("Convert_Coords", dict);
+
+            var ridx = 0;
+            var xidx = 3;
+            var yidx = 4;
+
+            var tempxlist = new List<int>();
+            var tempylist = new List<int>();
+
+            foreach (var line in dbret)
+            {
+                if (ridx == 0)
+                {
+                    var colidx = 0;
+                    foreach (var item in line)
+                    {
+                        var cname = UT.O2S(item).ToUpper();
+                        if (string.Compare(cname, "ArrayX", true) == 0
+                            || string.Compare(cname, "Array X", true) == 0)
+                        { xidx = colidx; }
+                        if (string.Compare(cname, "ArrayY", true) == 0
+                            || string.Compare(cname, "Array Y", true) == 0)
+                        { yidx = colidx; }
+                        colidx++;
+                    }//end foreach
+                    ridx++;
+                    continue;
+                }
+
+                tempxlist.Add(UT.O2I(line[xidx]));
+                tempylist.Add(UT.O2I(line[yidx]));
+            }
+
+            ret.Add(tempxlist);
+            ret.Add(tempylist);
+            return ret;
+        }
+
         public static bool PrepareProbeData(string WaferNum)
         {
             var srclist = new List<WXProbeData>();

@@ -15,9 +15,17 @@ namespace WXLogic
 
             foreach (var item in dielist)
             {
-                var key = item.X + ":" + item.Y;
-                if (!ret.ContainsKey(key))
-                { ret.Add(key, item); }
+                if (string.IsNullOrEmpty(item.CouponCH))
+                {
+                    var key = item.X + ":" + item.Y;
+                    if (!ret.ContainsKey(key))
+                    { ret.Add(key, item); }
+                }
+                else
+                {
+                    if (!ret.ContainsKey(item.CouponCH))
+                    { ret.Add(item.CouponCH, item); }
+                }
             }
 
             return ret;
@@ -27,7 +35,7 @@ namespace WXLogic
         {
             var ret = new List<WXWATIgnoreDie>();
 
-            var sql = "select Wafer,X,Y,Reason,UserName from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer = @Wafer";
+            var sql = "select Wafer,X,Y,Reason,UserName,CouponCH from [EngrData].[dbo].[WXWATIgnoreDie] where Wafer = @Wafer";
             var dict = new Dictionary<string, string>();
             dict.Add("@Wafer", wafer);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
@@ -39,6 +47,7 @@ namespace WXLogic
                 tempvm.Y = Convert.ToString(line[2]);
                 tempvm.Reason = Convert.ToString(line[3]);
                 tempvm.UserName = Convert.ToString(line[4]);
+                tempvm.CouponCH = Convert.ToString(line[5]).ToUpper();
                 ret.Add(tempvm);
             }
 
@@ -53,6 +62,7 @@ namespace WXLogic
             Y = "";
             Reason = "";
             UserName = "";
+            CouponCH = "";
         }
 
         public string Wafer { set; get; }
@@ -60,5 +70,6 @@ namespace WXLogic
         public string Y { set; get; }
         public string Reason { set; get; }
         public string UserName { set; get; }
+        public string CouponCH { set; get; }
     }
 }
