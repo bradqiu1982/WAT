@@ -265,6 +265,8 @@ namespace WAT.Models
                 command = conn.CreateCommand();
                 command.CommandText = sql;
                 command.CommandText = "SET ARITHABORT ON;" + command.CommandText;
+                command.CommandTimeout = 120;
+
                 if (parameters != null)
                 {
                     foreach (var param in parameters)
@@ -437,7 +439,8 @@ namespace WAT.Models
                 command = conn.CreateCommand();
                 command.CommandText = sql;
                 command.CommandText = "SET ARITHABORT ON;" + command.CommandText;
-                command.CommandTimeout = 100;
+                command.CommandTimeout = 120;
+
                 if (parameters != null)
                 {
                     foreach (var param in parameters)

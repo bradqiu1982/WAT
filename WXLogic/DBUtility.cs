@@ -262,6 +262,9 @@ namespace WXLogic
             {
                 command = conn.CreateCommand();
                 command.CommandText = sql;
+                command.CommandText = "SET ARITHABORT ON;" + command.CommandText;
+                command.CommandTimeout = 120;
+
                 if (parameters != null)
                 {
                     foreach (var param in parameters)
@@ -433,6 +436,9 @@ namespace WXLogic
             {
                 command = conn.CreateCommand();
                 command.CommandText = sql;
+                command.CommandText = "SET ARITHABORT ON;" + command.CommandText;
+                command.CommandTimeout = 120;
+
                 if (parameters != null)
                 {
                     foreach (var param in parameters)

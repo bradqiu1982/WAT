@@ -151,6 +151,12 @@ namespace WXLogic
                     var sharelist = rkv.Value;
                     foreach (var data in sharelist)
                     {
+                        if (double.IsNaN(data.TestValue)
+                            || double.IsInfinity(data.TestValue))
+                        {
+                            continue;
+                        }
+
                         var sql = @"insert into [EngrData].[dbo].[WUX_WATShareData](TimeStamp,ContainerNum,ToolName,RP,UnitNum,X,Y,CommonTestName,TestValue,ProbeValue,BinNum,BinName) 
                                       values(@TimeStamp,@ContainerNum,@ToolName,@RP,@UnitNum,@X,@Y,@CommonTestName,@TestValue,@ProbeValue,@BinNum,@BinName)";
                         var dict = new Dictionary<string, string>();
