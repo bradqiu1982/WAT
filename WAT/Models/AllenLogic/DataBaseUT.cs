@@ -70,13 +70,13 @@ namespace WAT.Models
             }
             catch (SqlException ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database:" + ex.Message);
+                logthdinfo("fail to connect to the allen database:" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
             catch (Exception ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database" + ex.Message);
+                logthdinfo("fail to connect to the allen database" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }

@@ -76,14 +76,14 @@ namespace WXLogic
             catch (SqlException ex)
             {
                 //System.Windows.MessageBox.Show(ex.ToString());
-                logthdinfo("open connect exception: " + ex.Message + "\r\n");
+                logthdinfo("open WAT connect exception: " + ex.Message + "\r\n");
                 CloseConnector(conn);
                 return null;
             }
             catch (Exception ex)
             {
                 //System.Windows.MessageBox.Show(ex.ToString());
-                logthdinfo("open connect exception: " + ex.Message + "\r\n");
+                logthdinfo("open WAT connect exception: " + ex.Message + "\r\n");
                 CloseConnector(conn);
                 return null;
             }
@@ -763,13 +763,13 @@ namespace WXLogic
             }
             catch (SqlException ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database:" + ex.Message);
+                logthdinfo("fail to connect to NPI database:" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
             catch (Exception ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database" + ex.Message);
+                logthdinfo("fail to connect to NPI database" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
@@ -923,13 +923,13 @@ namespace WXLogic
             }
             catch (SqlException ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database:" + ex.Message);
+                logthdinfo("fail to connect to NEBULA database:" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
             catch (Exception ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database" + ex.Message);
+                logthdinfo("fail to connect to NEBULA database" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }

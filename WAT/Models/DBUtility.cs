@@ -78,14 +78,14 @@ namespace WAT.Models
             catch (SqlException ex)
             {
                 //System.Windows.MessageBox.Show(ex.ToString());
-                logthdinfo("open connect exception: " + ex.Message + "\r\n");
+                logthdinfo("open WAT connect exception: " + ex.Message + "\r\n");
                 CloseConnector(conn);
                 return null;
             }
             catch (Exception ex)
             {
                 //System.Windows.MessageBox.Show(ex.ToString());
-                logthdinfo("open connect exception: " + ex.Message + "\r\n");
+                logthdinfo("open WAT connect exception: " + ex.Message + "\r\n");
                 CloseConnector(conn);
                 return null;
             }
@@ -926,13 +926,13 @@ namespace WAT.Models
             }
             catch (SqlException ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database:" + ex.Message);
+                logthdinfo("fail to connect to the NPI TRACE database:" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
             catch (Exception ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database" + ex.Message);
+                logthdinfo("fail to connect to the NPI TRACE database" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
@@ -1086,13 +1086,13 @@ namespace WAT.Models
             }
             catch (SqlException ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database:" + ex.Message);
+                logthdinfo("fail to connect to the NEBULA database:" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
             catch (Exception ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database" + ex.Message);
+                logthdinfo("fail to connect to the NEBULA database" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
@@ -1666,13 +1666,13 @@ namespace WAT.Models
             }
             catch (SqlException ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database:" + ex.Message);
+                logthdinfo("fail to connect to the mes report database:" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
             catch (Exception ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database" + ex.Message);
+                logthdinfo("fail to connect to the mes report database" + ex.Message);
                 //System.Windows.MessageBox.Show(ex.ToString());
                 return null;
             }
@@ -1924,12 +1924,12 @@ namespace WAT.Models
             }
             catch (SqlException ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database:" + ex.Message);
+                logthdinfo("fail to connect to the "+machine+" OVEN database:" + ex.Message);
                 return null;
             }
             catch (Exception ex)
             {
-                logthdinfo("fail to connect to the mes report pdms database" + ex.Message);
+                logthdinfo("fail to connect to the "+machine+" OVEN database" + ex.Message);
                 return null;
             }
         }

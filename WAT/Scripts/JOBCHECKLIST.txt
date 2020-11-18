@@ -8,3 +8,4 @@ WATTEST:6:测试人员了解板子出炉后要等到冷却到常温再测试:FAL
 WATTEST:7:技术员知道要定期给打金线送空白样例COUPON板:FALSE
 WATTEST:8:GOLDEN SAMPLE 测试时的温度(Temperature):TRUE
 WATTEST:9:GOLDEN SAMPLE 测试时的湿度(Moisture):TRUE
+WATTEST:10:每隔两周进行TRAY盘的ESD送样:FALSE

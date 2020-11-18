@@ -17,7 +17,7 @@ namespace WXLogic
                 var syscfgdict = WXCfg.GetSysCfg();
                 var folderpwd = syscfgdict["SHAREFOLDERPWD"];
 
-                using (NativeMethods cv = new NativeMethods("brad.qiu", "china", folderpwd))
+                using (NativeMethods cv = new NativeMethods(syscfgdict["SHAREFOLDERUSER"], syscfgdict["SHAREFOLDERDOMIN"], folderpwd))
                 {
                     var ret = new Dictionary<string, string>();
                     var nofolderfiles = Directory.GetFiles(dirname);
@@ -70,7 +70,7 @@ namespace WXLogic
             var syscfgdict = WXCfg.GetSysCfg();
 
             var folderpwd = syscfgdict["SHAREFOLDERPWD"];
-            using (NativeMethods cv = new NativeMethods("brad.qiu", "china", folderpwd))
+            using (NativeMethods cv = new NativeMethods(syscfgdict["SHAREFOLDERUSER"], syscfgdict["SHAREFOLDERDOMIN"], folderpwd))
             {
                 var doc = new XmlDocument();
                 doc.Load(FileName);

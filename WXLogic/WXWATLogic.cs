@@ -379,7 +379,7 @@ namespace WXLogic
             {
                 try
                 {
-                    using (NativeMethods cv = new NativeMethods("brad.qiu", "china", cfg["SHAREFOLDERPWD"]))
+                    using (NativeMethods cv = new NativeMethods(cfg["SHAREFOLDERUSER"], cfg["SHAREFOLDERDOMIN"], cfg["SHAREFOLDERPWD"]))
                     {
                         MoveOriginalMapFile(containerinfo.wafer,containerinfo.ProdFam, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
                     }
@@ -1162,7 +1162,7 @@ namespace WXLogic
             //{
             //    try
             //    {
-            //        using (NativeMethods cv = new NativeMethods("brad.qiu", "china", cfg["SHAREFOLDERPWD"]))
+            //        using (NativeMethods cv = new NativeMethods(cfg["SHAREFOLDERUSER"], cfg["SHAREFOLDERDOMIN"], cfg["SHAREFOLDERPWD"]))
             //        {
             //            MoveOriginalMapFile(containerinfo.wafer, containerinfo.ProdFam, cfg["DIESORTFOLDER"], cfg["DIESORT100PCT"]);
             //        }
