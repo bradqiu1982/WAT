@@ -406,6 +406,54 @@ namespace WXLogic
             return ret;
         }
 
+        public static Dictionary<string, int> GetBinDistribution(string wafer)
+        {
+            var ret = new Dictionary<string, int>();
+
+            var typename = "Wafer Final";
+            var sql = "SELECT X,Y,BIN_NUMBER,BIN_NAME FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
+            var dbret = DBUtility.ExeShermanSqlWithRes(sql);
+            if (dbret.Count > 0)
+            {
+                foreach (var line in dbret)
+                {
+                    var binname = UT.O2S(line[3]).ToUpper();
+                    if (binname.Contains("GOOD"))
+                    {
+                        var bin = UT.O2S(line[2]);
+                        if (!ret.ContainsKey(bin))
+                        { ret.Add(bin, 1); }
+                        else
+                        { ret[bin] += 1; }
+                    }
+                }
+            }
+            else
+            {
+                var ProdFam = WXEvalPN.GetProductFamilyFromSherman(wafer);
+                var ArraySize = UT.O2I(GetWaferArrayInfoByPF(ProdFam));
+                typename = "Final Probe AVI Merge";
+                if (ArraySize != 1)
+                { typename = "Final Bins AVI Merged"; }
+                sql = "SELECT X,Y,BIN_NUMBER,BIN_NAME FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
+                dbret = DBUtility.ExeShermanSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    var binname = UT.O2S(line[3]).ToUpper();
+                    if (binname.Contains("GOOD"))
+                    {
+                        var bin = UT.O2S(line[2]);
+                        if (!ret.ContainsKey(bin))
+                        { ret.Add(bin, 1); }
+                        else
+                        { ret[bin] += 1; }
+                    }
+                }
+            }
+
+            return ret;
+        }
+
         private static string GetWaferArrayInfoByPF(string productfm)
         {
             var dict = new Dictionary<string, string>();

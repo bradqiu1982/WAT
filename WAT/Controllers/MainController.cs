@@ -785,28 +785,86 @@ namespace WAT.Controllers
 
             var marks = Request.Form["marks"];
             List<string> wflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
-            var wfcond = "('" + string.Join("','", wflist) + "')";
-            var sql = @" select b.wafer_id,b.prodfam,b.DS,b.[Good -54],b.[Good -55] ,b.[GOOD -56] ,b.[GOOD -57],b.[GOOD -58],b.[GOOD -59] from [Insite].[insite].[100PCT_BIN] b
-                        left join (select wafer_id,max(ds) as maxtime from [Insite].[insite].[100PCT_BIN] where wafer_id in <wfcond> group by wafer_id) c
-                         on b.wafer_id = c.wafer_id and b.DS = c.maxtime
-                         where b.wafer_id in  <wfcond>
-                         and c.wafer_id is not null";
-            sql = sql.Replace("<wfcond>", wfcond);
-            var dbret = Models.DBUtility.ExeAllenSqlWithRes(sql);
-            foreach (var line in dbret)
+            var w4list = new List<string>();
+            var w6list = new List<string>();
+
+            foreach (var w in wflist)
             {
-                datalist.Add(new
-                {
-                    wafer = Models.UT.O2S(line[0]),
-                    product = Models.UT.O2S(line[1]),
-                    bin54 = Models.UT.O2S(line[3]),
-                    bin55 = Models.UT.O2S(line[4]),
-                    bin56 = Models.UT.O2S(line[5]),
-                    bin57 = Models.UT.O2S(line[6]),
-                    bin58 = Models.UT.O2S(line[7]),
-                    bin59 = Models.UT.O2S(line[8])
-                });
+                if (w.Length == 9)
+                { w4list.Add(w); }
+                if (w.Length == 13)
+                { w6list.Add(w); }
             }
+
+            if (w4list.Count > 0)
+            {
+                var wfcond = "('" + string.Join("','", w4list) + "')";
+                var sql = @" select b.wafer_id,b.prodfam,b.DS,b.[Good -50],b.[Good -51],b.[Good -52],b.[Good -53],b.[Good -54],b.[Good -55] ,b.[GOOD -56] ,b.[GOOD -57],b.[GOOD -58],b.[GOOD -59] from [Insite].[insite].[100PCT_BIN] b
+                            left join (select wafer_id,max(ds) as maxtime from [Insite].[insite].[100PCT_BIN] where wafer_id in <wfcond> group by wafer_id) c
+                             on b.wafer_id = c.wafer_id and b.DS = c.maxtime
+                             where b.wafer_id in  <wfcond>
+                             and c.wafer_id is not null";
+                sql = sql.Replace("<wfcond>", wfcond);
+                var dbret = Models.DBUtility.ExeAllenSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    datalist.Add(new
+                    {
+                        wafer = Models.UT.O2S(line[0]),
+                        product = Models.UT.O2S(line[1]),
+                        bin50 = Models.UT.O2S(line[3]),
+                        bin51 = Models.UT.O2S(line[4]),
+                        bin52 = Models.UT.O2S(line[5]),
+                        bin53 = Models.UT.O2S(line[6]),
+                        bin54 = Models.UT.O2S(line[7]),
+                        bin55 = Models.UT.O2S(line[8]),
+                        bin56 = Models.UT.O2S(line[9]),
+                        bin57 = Models.UT.O2S(line[10]),
+                        bin58 = Models.UT.O2S(line[11]),
+                        bin59 = Models.UT.O2S(line[12])
+                    });
+                }
+            }
+
+            if (w6list.Count > 0)
+            {
+                foreach (var w in w6list)
+                {
+                    var prodfam = Models.WXEvalPN.GetProductFamilyFromSherman(w);
+                    var bindict = WXLogic.SixIMapFile.GetBinDistribution(w);
+                    if (bindict.Count > 0)
+                    {
+                        int bin50 = 0, bin51 = 0, bin52 = 0, bin53 = 0
+                            , bin54 = 0, bin55 = 0, bin56 = 0
+                            , bin57 = 0, bin58 = 0, bin59 = 0;
+                        if (bindict.ContainsKey("50")) { bin50 = bindict["50"]; }
+                        if (bindict.ContainsKey("51")) { bin51 = bindict["51"]; }
+                        if (bindict.ContainsKey("52")) { bin52 = bindict["52"]; }
+                        if (bindict.ContainsKey("53")) { bin53 = bindict["53"]; }
+                        if (bindict.ContainsKey("54")) { bin54 = bindict["54"]; }
+                        if (bindict.ContainsKey("55")) { bin55 = bindict["55"]; }
+                        if (bindict.ContainsKey("56")) { bin56 = bindict["56"]; }
+                        if (bindict.ContainsKey("57")) { bin57 = bindict["57"]; }
+                        if (bindict.ContainsKey("58")) { bin58 = bindict["58"]; }
+                        if (bindict.ContainsKey("59")) { bin59 = bindict["59"]; }
+                        datalist.Add(new
+                        {
+                            wafer = w,
+                            product = prodfam,
+                            bin50 = bin50,
+                            bin51 = bin51,
+                            bin52 = bin52,
+                            bin53 = bin53,
+                            bin54 = bin54,
+                            bin55 = bin55,
+                            bin56 = bin56,
+                            bin57 = bin57,
+                            bin58 = bin58,
+                            bin59 = bin59
+                        });
+                    }//end if
+                }//end foreach
+            }//end if
 
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;

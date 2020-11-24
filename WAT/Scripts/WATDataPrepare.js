@@ -529,6 +529,10 @@
                    var appendstr = '<tr">';
                    appendstr += '<td>' + val.wafer + '</td>'
                    appendstr += '<td>' + val.product + '</td>'
+                   appendstr += '<td>' + val.bin50 + '</td>'
+                   appendstr += '<td>' + val.bin51 + '</td>'
+                   appendstr += '<td>' + val.bin52 + '</td>'
+                   appendstr += '<td>' + val.bin53 + '</td>'
                    appendstr += '<td>' + val.bin54 + '</td>'
                    appendstr += '<td>' + val.bin55 + '</td>'
                    appendstr += '<td>' + val.bin56 + '</td>'
