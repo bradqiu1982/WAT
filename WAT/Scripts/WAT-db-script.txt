@@ -193,6 +193,7 @@ CREATE TABLE  [BI_Specification](
              PRIMARY KEY ([Plan],[Version]),
        );
 
+
 CREATE USER WATTester FOR LOGIN WATTester
 GRANT INSERT, SELECT ON Insite.dbo.BI_Specification TO WATTester
 
