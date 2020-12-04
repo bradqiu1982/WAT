@@ -349,15 +349,32 @@ namespace WAT.Controllers
 
             //vtype
             var vtypedict = new Dictionary<string, bool>();
+            var vproddict = new Dictionary<string, bool>();
             foreach (var cap in capvmlist)
             {
                 if (!vtypedict.ContainsKey(cap.VType))
                 { vtypedict.Add(cap.VType, true); }
+
+                foreach (var wk in weeklist)
+                {
+                    if (cap.WFDate >= wk && cap.WFDate < wk.AddDays(7))
+                    {
+                        var wafer = cap.Wafer.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0];
+                        if (wfproddict.ContainsKey(wafer))
+                        { cap.Prod = wfproddict[wafer]; }
+
+                        if (!vproddict.ContainsKey(cap.Prod))
+                        { vproddict.Add(cap.Prod, true); }
+                    }
+                }
             }
 
             //by week
             var weekdata = new Dictionary<DateTime, Dictionary<string, int>>();
             var weekpassdata = new Dictionary<DateTime, Dictionary<string, int>>();
+
+            var weekdataProd = new Dictionary<DateTime, Dictionary<string, int>>();
+            var weekpassdataProd = new Dictionary<DateTime, Dictionary<string, int>>();
 
             foreach (var cap in capvmlist)
             {
@@ -370,8 +387,10 @@ namespace WAT.Controllers
 
                         cap.WKStr = wk.ToString("yy/MM/dd");
                         cap.PN = GetPNByWafer(cap.Wafer, wfproddict, pndict);
+
                         weekpassfailcap.Add(cap);
 
+                        //vtype
                         if (weekdata.ContainsKey(wk))
                         {
                             weekdata[wk][cap.VType] += 1;
@@ -393,6 +412,30 @@ namespace WAT.Controllers
                             { tmpvtypedict[cap.VType] = 1; }
                             weekpassdata.Add(wk, tmpvtypedict);
                         }
+
+                        //prod
+                        if (weekdataProd.ContainsKey(wk))
+                        {
+                            weekdataProd[wk][cap.Prod] += 1;
+                            if (cap.Pass.Contains("PASS"))
+                            { weekpassdataProd[wk][cap.Prod] += 1; }
+                        }
+                        else
+                        {
+                            var tmpproddict = new Dictionary<string, int>();
+                            foreach (var kv in vproddict)
+                            { tmpproddict.Add(kv.Key, 0); }
+                            tmpproddict[cap.Prod] = 1;
+                            weekdataProd.Add(wk, tmpproddict);
+
+                            tmpproddict = new Dictionary<string, int>();
+                            foreach (var kv in vproddict)
+                            { tmpproddict.Add(kv.Key, 0); }
+                            if (cap.Pass.Contains("PASS"))
+                            { tmpproddict[cap.Prod] = 1; }
+                            weekpassdataProd.Add(wk, tmpproddict);
+                        }
+
                     }//in the week
                 }
             }
@@ -476,9 +519,78 @@ namespace WAT.Controllers
             }
             table.Add(tlist);
 
+
+            colsum = new List<int>();
+            colpasssum = new List<int>();
+
+            var pklist = vproddict.Keys.ToList();
+            pklist.Sort();
+            var tableprod = new List<List<string>>();
+            foreach (var kv in pklist)
+            {
+                var tmplist = new List<string>();
+                tmplist.Add(kv);
+                var cntlist = new List<int>();
+                var cntpasslist = new List<int>();
+
+                foreach (var wk in realweeklist)
+                {
+                    tmplist.Add(weekdataProd[wk][kv].ToString() + "/" + weekpassdataProd[wk][kv].ToString());
+                    cntlist.Add(weekdataProd[wk][kv]);
+                    cntpasslist.Add(weekpassdataProd[wk][kv]);
+                }
+                tmplist.Add(cntlist.Sum().ToString() + "/" + cntpasslist.Sum().ToString());
+
+                if (colsum.Count == 0)
+                {
+                    colsum.AddRange(cntlist);
+                    colsum.Add(cntlist.Sum());
+
+                    colpasssum.AddRange(cntpasslist);
+                    colpasssum.Add(cntpasslist.Sum());
+                }
+                else
+                {
+                    for (var idx = 0; idx < cntlist.Count; idx++)
+                    {
+                        colsum[idx] += cntlist[idx];
+                        colpasssum[idx] += cntpasslist[idx];
+                    }
+                    colsum[cntlist.Count] += cntlist.Sum();
+                    colpasssum[cntlist.Count] += cntpasslist.Sum();
+                }
+
+                tableprod.Add(tmplist);
+            }
+
+
+            //get usage
+            tlist = new List<string>();
+            tlist.Add("SUM INPUT");
+            foreach (var val in colsum)
+            { tlist.Add(val.ToString()); }
+            tableprod.Add(tlist);
+
+            tlist = new List<string>();
+            tlist.Add("SUM PASS");
+            foreach (var val in colpasssum)
+            { tlist.Add(val.ToString()); }
+            tableprod.Add(tlist);
+
+            tlist = new List<string>();
+            tlist.Add("YIELD");
+            ix = 0;
+            foreach (var val in colsum)
+            {
+                tlist.Add(Math.Round((double)colpasssum[ix] / (double)val * 100.0, 1).ToString() + "%");
+                ix++;
+            }
+            tableprod.Add(tlist);
+
             ret.Add(title);
             ret.Add(table);
             ret.Add(weekpassfailcap);
+            ret.Add(tableprod);
 
             return ret;
         }
@@ -685,6 +797,7 @@ namespace WAT.Controllers
             var title = (List<string>)yieldtable[0];
             var table = (List<List<string>>)yieldtable[1];
             var weekpassfailcap = (List<WATCapacity>)yieldtable[2];
+            var tableprod = (List<List<string>>)yieldtable[3];
 
             //var chartdata = GetCapacityChart(title, table);
 
@@ -694,7 +807,8 @@ namespace WAT.Controllers
             {
                 title = title,
                 table = table,
-                passfailcap = weekpassfailcap
+                passfailcap = weekpassfailcap,
+                tableprod = tableprod
                 //,chartdata = chartdata
             };
             return ret;

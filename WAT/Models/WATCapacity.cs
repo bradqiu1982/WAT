@@ -302,6 +302,7 @@ namespace WAT.Models
             Step = "";
             OvenSlot = 10;
             PN = "";
+            Prod = " ";
         }
         public string Wafer { set; get; }
         public DateTime WFDate { set; get; }
@@ -313,5 +314,6 @@ namespace WAT.Models
         public string Step { set; get; }
         public int OvenSlot { set; get; }
         public string PN { set; get; }
+        public string Prod { set; get; }
     }
 }

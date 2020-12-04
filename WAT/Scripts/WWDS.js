@@ -801,6 +801,7 @@
         $('.date').datepicker({ autoclose: true, viewMode: "months", minViewMode: "months", pickerPosition: "bottom-left" });
         var wafertable = null;
         var wattable = null;
+        var wafertableprod = null;
 
         function searchdata() {
             var sdate = $.trim($('#sdate').val());
@@ -860,6 +861,46 @@
                 });
 
 
+                if (wafertableprod) {
+                    wafertableprod.destroy();
+                    wafertableprod = null;
+                }
+                $("#waferheadprod").empty();
+                $("#wafercontentprod").empty();
+
+                var appstr = '<tr>';
+                $.each(output.title, function (i, val) {
+                    appstr += '<th>' + val + '</th>';
+                });
+                appstr += '</tr>';
+                $("#waferheadprod").append(appstr);
+
+                $.each(output.tableprod, function (i, line) {
+                    appstr = '<tr>';
+                    $.each(line, function (i, val) {
+                        if (val == '0/0') {
+                            appstr += '<td></td>';
+                        }
+                        else { appstr += '<td>' + val + '</td>'; }
+                    });
+                    appstr += '</tr>';
+                    $("#wafercontentprod").append(appstr);
+                });
+
+
+                wafertableprod = $('#wafertableprod').DataTable({
+                    'iDisplayLength': 50,
+                    'aLengthMenu': [[20, 50, 100, -1],
+                    [20, 50, 100, "All"]],
+                    "columnDefs": [
+                        { "className": "dt-center", "targets": "_all", "bSortable": false }
+                    ],
+                    "aaSorting": [],
+                    "order": [],
+                    dom: 'lBfrtip',
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                });
+
                 if (wattable) {
                     wattable.destroy();
                     wattable = null;
@@ -870,6 +911,7 @@
                     $("#watcontent").append(
                         '<tr class="' + val.Pass + '">' +
                         '<td>' + val.Wafer + '</td>' +
+                        '<td>' + val.Prod + '</td>' +
                         '<td>' + val.VType + '</td>' +
                         '<td>' + val.PN + '</td>' +
                         '<td>' + val.WKStr + '</td>' +
