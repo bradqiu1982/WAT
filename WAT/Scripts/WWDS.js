@@ -857,9 +857,15 @@
                     "aaSorting": [],
                     "order": [],
                     dom: 'lBfrtip',
-                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5'],
+                    //scrollY: true,
+                    //scrollX: true,
+                    //scrollCollapse: true,
+                    //paging: false,
+                    //fixedColumns: {
+                    //    leftColumns: 1
+                    //}
                 });
-
 
                 if (wafertableprod) {
                     wafertableprod.destroy();
@@ -898,7 +904,8 @@
                     "aaSorting": [],
                     "order": [],
                     dom: 'lBfrtip',
-                    buttons: ['copyHtml5', 'csv', 'excelHtml5']
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5'],
+                    //scrollX: true,
                 });
 
                 if (wattable) {

@@ -444,7 +444,7 @@ namespace WAT.Controllers
             realweeklist.Sort();
             var fourwkago = DateTime.Now.AddDays(-28);
             var title = new List<string>();
-            title.Add("WAFER YIELD");
+            title.Add("TYPE");
             foreach (var wk in realweeklist)
             {
                 if (wk > fourwkago)
