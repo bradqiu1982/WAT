@@ -1219,5 +1219,32 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult CheckDataUniform()
+        {
+            var syscfg = CfgUtility.GetSysConfig(this);
+
+            var zerolevel = WAT.Models.UT.O2D(syscfg["WATDATAWDOGZEROLEVEL"]);
+            var zerocnt = WAT.Models.UT.O2I(syscfg["WDOGZEROCNT"]);
+
+            var filterlevel = syscfg["WATDATAWDOGFILTERLEVEL"];
+            var filtercnt = syscfg["WDOGFILTERCNT"];
+
+            var dict = new Dictionary<string, bool>();
+
+            var allcoupon = WuxiWATData4MG.GetRecentWATCouponID("2020-12-23 10:50:17", "2020-12-23 11:00:17");
+            foreach (var cp in allcoupon)
+            {
+                var key = cp.CouponID.ToUpper() + "_" + cp.TestStep.ToUpper();
+                if (!dict.ContainsKey(key))
+                {
+                    dict.Add(key, true);
+                    var ret = WuxiWATData4MG.CheckWATDataUniform(cp.CouponID, cp.TestStep, cp.TestTime
+                        , zerolevel, zerocnt, filterlevel, filtercnt);
+                }
+            }
+            return View("HeartBeat");
+        }
+
+
     }
 }

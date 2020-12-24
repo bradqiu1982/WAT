@@ -417,17 +417,61 @@ namespace WAT.Models
                                 or Containername like '%E10%'  or Containername like '%R10%'  or Containername like '%T10%' ";
 
             var sql = @"select distinct left(Containername,14),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
-	                    where len(Containername) = 20  and TestTimeStamp > @starttime and TestTimeStamp < @endtime
+	                    where len(Containername) = 20  and TestTimeStamp >= @starttime and TestTimeStamp <= @endtime
 	                    and ( " + containcond + ") group by left(Containername,14),TestStep,TestStation order by latesttime desc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql,dict);
 
             sql = @"select distinct left(Containername,18),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
-                      where len(Containername) = 24 and TestTimeStamp > @starttime and TestTimeStamp < @endtime
+                      where len(Containername) = 24 and TestTimeStamp >= @starttime and TestTimeStamp <= @endtime
                       and (" + containcond + ") group by left(Containername,18),TestStep,TestStation order by latesttime desc";
             var dbret1 = DBUtility.ExeLocalSqlWithRes(sql, dict);
 
             sql = @"select distinct left(Containername,11),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
-                       where len(Containername) = 17  and TestTimeStamp > @starttime and TestTimeStamp < @endtime
+                       where len(Containername) = 17  and TestTimeStamp >= @starttime and TestTimeStamp <= @endtime
+                    and (" + containcond + " ) group by left(Containername,11),TestStep,TestStation order by latesttime desc";
+            var dbret2 = DBUtility.ExeLocalSqlWithRes(sql, dict);
+
+            dbret.AddRange(dbret1);
+            dbret.AddRange(dbret2);
+
+            foreach (var line in dbret)
+            {
+                var tempvm = new WuxiWATData4MG();
+                tempvm.CouponID = UT.O2S(line[0]);
+                tempvm.TestStep = UT.O2S(line[1]);
+                tempvm.TestTime = UT.O2T(line[2]).ToString("yyyy-MM-dd HH:mm:ss");
+                tempvm.Comment = UT.O2S(line[3]);
+                ret.Add(tempvm);
+            }
+
+            return ret;
+        }
+
+        public static List<WuxiWATData4MG> GetRecentWATCouponID(string starttime,string endtime)
+        {
+            var ret = new List<WuxiWATData4MG>();
+
+            //var endtime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            var dict = new Dictionary<string, string>();
+            dict.Add("@starttime", starttime);
+            dict.Add("@endtime", endtime);
+
+            var containcond = @"  Containername like '%E08%'  or Containername like '%R08%'  or Containername like '%T08%' 
+                                or Containername like '%E09%'  or Containername like '%R09%'  or Containername like '%T09%'
+                                or Containername like '%E10%'  or Containername like '%R10%'  or Containername like '%T10%' ";
+
+            var sql = @"select distinct left(Containername,14),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
+	                    where len(Containername) = 20  and TestTimeStamp >= @starttime and TestTimeStamp <= @endtime
+	                    and ( " + containcond + ") group by left(Containername,14),TestStep,TestStation order by latesttime desc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+
+            sql = @"select distinct left(Containername,18),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
+                      where len(Containername) = 24 and TestTimeStamp >= @starttime and TestTimeStamp <= @endtime
+                      and (" + containcond + ") group by left(Containername,18),TestStep,TestStation order by latesttime desc";
+            var dbret1 = DBUtility.ExeLocalSqlWithRes(sql, dict);
+
+            sql = @"select distinct left(Containername,11),TestStep,MAX(TestTimeStamp) latesttime,TestStation from insite.dbo.ProductionResult
+                       where len(Containername) = 17  and TestTimeStamp >= @starttime and TestTimeStamp <= @endtime
                     and (" + containcond + " ) group by left(Containername,11),TestStep,TestStation order by latesttime desc";
             var dbret2 = DBUtility.ExeLocalSqlWithRes(sql, dict);
 

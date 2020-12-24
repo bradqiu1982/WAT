@@ -755,6 +755,102 @@ namespace WXLogic
             }
         }
 
+        public static List<List<object>> ExeShermanStoreProcedureWithRes(string sql, Dictionary<string, string> parameters = null)
+        {
+            var ret = new List<List<object>>();
+            var conn = GetShermanConnector();
+            if (conn == null)
+                return ret;
+            SqlDataReader sqlreader = null;
+            SqlCommand command = null;
+
+            try
+            {
+                command = conn.CreateCommand();
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = 180;
+                command.CommandText = sql;
+
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        SqlParameter parameter = new SqlParameter();
+                        parameter.ParameterName = param.Key;
+                        parameter.SqlDbType = SqlDbType.NVarChar;
+                        parameter.Value = param.Value;
+                        command.Parameters.Add(parameter);
+                    }
+                }
+                sqlreader = command.ExecuteReader();
+                if (sqlreader.HasRows)
+                {
+                    var headname = new List<object>();
+                    for (int i = 0; i < sqlreader.FieldCount; i++)
+                    { headname.Add(sqlreader.GetName(i)); }
+                    if (headname.Count > 0)
+                    { ret.Add(headname); }
+
+                    while (sqlreader.Read())
+                    {
+                        Object[] values = new Object[sqlreader.FieldCount];
+                        sqlreader.GetValues(values);
+                        ret.Add(values.ToList<object>());
+                    }
+
+                }
+
+                sqlreader.Close();
+                CloseConnector(conn);
+                return ret;
+            }
+            catch (SqlException ex)
+            {
+                logthdinfo("execute exception: " + sql + "\r\n" + ex.Message + "\r\n");
+
+                try
+                {
+                    if (sqlreader != null)
+                    {
+                        sqlreader.Close();
+                    }
+                    if (command != null)
+                    {
+                        command.Dispose();
+                    }
+                }
+                catch (Exception e)
+                { }
+
+                CloseConnector(conn);
+
+                ret.Clear();
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                logthdinfo("execute exception: " + sql + "\r\n" + ex.Message + "\r\n");
+
+                try
+                {
+                    if (sqlreader != null)
+                    {
+                        sqlreader.Close();
+                    }
+                    if (command != null)
+                    {
+                        command.Dispose();
+                    }
+                }
+                catch (Exception e)
+                { }
+
+                CloseConnector(conn);
+
+                ret.Clear();
+                return ret;
+            }
+        }
 
 
 

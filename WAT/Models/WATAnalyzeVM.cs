@@ -438,21 +438,6 @@ namespace WAT.Models
             return ret;
         }
 
-        public static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
-        {
-            var new_x = ((arrayx - DIE_ONE_X
-                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
-                + DIE_ONE_FIELD_MIN_X;
-            if (Array_Count != 1)
-            {
-                return (int)Math.Round(new_x, 0) - 1;
-            }
-            else
-            {
-                return (int)Math.Round(new_x, 0);
-            }
-        }
-
         public static List<int> GetDieOneOfWafer(string wafer, Controller ctrl)
         {
             var ret = new List<int>();
@@ -612,102 +597,6 @@ namespace WAT.Models
 
         }
 
-        //public static Dictionary<string, bool> GetWaferCoordinate(string wafer,Controller ctrl)
-        //{
-        //    var ret = new Dictionary<string, bool>();
-        //    var array = WXLogic.WATSampleXY.GetArrayFromDieSort(wafer);
-        //    if (string.IsNullOrEmpty(array))
-        //    { array = WXLogic.WATSampleXY.GetArrayFromAllenSherman(wafer); }
-        //    if (string.IsNullOrEmpty(array))
-        //    { return ret; }
-        //    var arraysize = UT.O2I(array);
-
-
-        //    var syscfgdict = CfgUtility.GetSysConfig(ctrl);
-        //    var reviewfolder = syscfgdict["DIESORTREVIEW"];
-        //    var allfiles = ExternalDataCollector.DirectoryEnumerateAllFiles(ctrl, reviewfolder);
-        //    var fs = "";
-        //    foreach (var f in allfiles)
-        //    {
-        //        if (f.Contains(wafer))
-        //        {
-        //            fs = f;
-        //            break;
-        //        }
-        //    }
-        //    var matchfiles = new List<string>();
-        //    if (string.IsNullOrEmpty(fs))
-        //    {
-        //        allfiles = DieSortVM.GetAllWaferFile(ctrl);
-        //        foreach (var f in allfiles)
-        //        {
-        //            if (f.Contains(wafer))
-        //            {
-        //                fs = f;
-        //                matchfiles.Add(f);
-        //            }
-        //        }
-        //    }
-
-        //    if (string.IsNullOrEmpty(fs))
-        //    { return ret; }
-
-        //    bool xy1x1 = false;
-        //    System.IO.FileInfo fi = new System.IO.FileInfo(fs);
-        //    if (wafer.Length == 9 && fi.Length > 3000000)
-        //    { xy1x1 = true; }
-
-        //    var dieonex = new List<int>();
-        //    if (!xy1x1)
-        //    {
-        //        dieonex = AdminFileOperations.GetDieOneByFile(fs);
-        //        if (dieonex.Count == 0)
-        //        { return ret; }
-        //    }
-
-
-        //    var folderuser = syscfgdict["SHAREFOLDERUSER"];
-        //    var folderdomin = syscfgdict["SHAREFOLDERDOMIN"];
-        //    var folderpwd = syscfgdict["SHAREFOLDERPWD"];
-        //    using (NativeMethods cv = new NativeMethods(folderuser, folderdomin, folderpwd))
-        //    {
-        //        var doc = new XmlDocument();
-        //        doc.Load(fs);
-        //        var namesp = doc.DocumentElement.GetAttribute("xmlns");
-        //        doc = DieSortVM.StripNamespace(doc);
-        //        XmlElement root = doc.DocumentElement;
-        //        var bincodelist = root.SelectNodes("//BinCode[@X and @Y]");
-        //        foreach (XmlElement nd in bincodelist)
-        //        {
-        //            try
-        //            {
-        //                var ax = nd.GetAttribute("X");
-        //                var y = nd.GetAttribute("Y");
-        //                var x = ax;
-        //                if (!xy1x1)
-        //                { x = Get_First_Singlet_From_Array_Coord(dieonex[0], dieonex[1], UT.O2I(ax), arraysize).ToString(); }
-
-        //                if (arraysize == 1)
-        //                {
-        //                    var k = x + ":::" + y;
-        //                    if (!ret.ContainsKey(k))
-        //                    { ret.Add(k, true); }
-        //                }
-        //                else
-        //                {
-        //                    for (var die = 0; die < arraysize; die++)
-        //                    {
-        //                        var k = (UT.O2I(x)+die) + ":::" + y;
-        //                        if (!ret.ContainsKey(k))
-        //                        { ret.Add(k, true); }
-        //                    }
-        //                }
-        //            }
-        //            catch (Exception ex) { }
-        //        }
-        //    }
-        //    return ret;
-        //}
 
     }
 

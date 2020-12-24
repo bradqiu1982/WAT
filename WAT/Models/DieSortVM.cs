@@ -1583,13 +1583,17 @@ namespace WAT.Models
             var new_x = ((arrayx - DIE_ONE_X
                 + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
                 + DIE_ONE_FIELD_MIN_X;
-            if (Array_Count != 1)
+            if (Array_Count == 1)
             {
-                return (int)Math.Round(new_x, 0) - 1;
+                return (int)Math.Round(new_x, 0);
+            }
+            else if (Array_Count == 12)
+            {
+                return (int)Math.Round(new_x, 0)-11;
             }
             else
             {
-                return (int)Math.Round(new_x, 0);
+                return (int)Math.Round(new_x, 0) - 1;
             }
         }
 
@@ -2415,21 +2419,6 @@ namespace WAT.Models
             catch (Exception ex) { return 0; }
         }
 
-        public static Coord<short, short> Get_Array_Coord_From_Singlet_Coord(short DIE_ONE_X, short DIE_ONE_FIELD_MIN_X, Coord<short, short> singlet_coord, int Array_Count)
-        {
-            var new_x = DIE_ONE_X +
-                Math.Floor((double)(singlet_coord.X - DIE_ONE_FIELD_MIN_X) / Array_Count) -
-                Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count);
-            return new Coord<short, short>((short)Math.Round(new_x, 0), singlet_coord.Y);
-        }
-
-        public static Coord<short, short> Get_First_Singlet_From_Array_Coord(short DIE_ONE_X, short DIE_ONE_FIELD_MIN_X, Coord<short, short> array_coord, int Array_Count)
-        {
-            var new_x = ((array_coord.X - DIE_ONE_X
-                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
-                + DIE_ONE_FIELD_MIN_X;
-            return new Coord<short, short>((short)Math.Round(new_x, 0), array_coord.Y);
-        }
 
         public DieSortVM()
         {
