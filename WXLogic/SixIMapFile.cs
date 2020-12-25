@@ -253,19 +253,41 @@ namespace WXLogic
                 }
                 else
                 {
+                    var axlist = new List<string>();
+                    var aylist = new List<string>();
                     foreach (var bc in BaseArrayCoordinate)
                     {
-                        var x = Get_First_Singlet_From_Array_Coord(DieOne.X, DieOneMin.X, bc.X, ArraySize);
+                        axlist.Add(bc.X.ToString());
+                        aylist.Add(bc.Y.ToString());
+                        //var x = Get_First_Singlet_From_Array_Coord(DieOne.X, DieOneMin.X, bc.X, ArraySize);
+                        //for(var die = 0; die < ArraySize; die++)
+                        //{
+                        //    var tempvm = new SixInchMapData();
+                        //    tempvm.X = x + die;
+                        //    tempvm.Y = bc.Y;
+                        //    tempvm.Bin = bc.Bin;
+                        //    tempvm.BinName = bc.BinName;
+                        //    ret.Add(tempvm);
+                        //}
+                    }//end foreach
+
+                    var xylist = SixInchArray2SingletCoord(ProdFam, axlist, aylist);
+                    var xlist = xylist[0];
+                    var ylist = xylist[1];
+                    var idx = 0;
+                    foreach (var bc in BaseArrayCoordinate)
+                    {
                         for (var die = 0; die < ArraySize; die++)
                         {
                             var tempvm = new SixIMapData();
-                            tempvm.X = x + die;
+                            tempvm.X = xlist[idx] + die;
                             tempvm.Y = bc.Y;
                             tempvm.Bin = bc.Bin;
                             tempvm.BinName = bc.BinName;
                             ret.Add(tempvm);
                         }
-                    }//end foreach
+                        idx++;
+                    }
                 }
             }
             return ret;
@@ -433,25 +455,6 @@ namespace WXLogic
             ret.Add(tempxlist);
             ret.Add(tempylist);
             return ret;
-        }
-
-        private static int Get_First_Singlet_From_Array_Coord(int DIE_ONE_X, int DIE_ONE_FIELD_MIN_X, int arrayx, int Array_Count)
-        {
-            var new_x = ((arrayx - DIE_ONE_X
-                + Math.Floor((double)(DIE_ONE_X - DIE_ONE_FIELD_MIN_X) / Array_Count)) * Array_Count)
-                + DIE_ONE_FIELD_MIN_X;
-            if (Array_Count == 1)
-            {
-                return (int)Math.Round(new_x, 0);
-            }
-            else if (Array_Count == 12)
-            {
-                return (int)Math.Round(new_x, 0) - 11;
-            }
-            else
-            {
-                return (int)Math.Round(new_x, 0) - 1;
-            }
         }
 
         private static List<SixIMapData> GetBaseArrayCoordinate(string prodfam)

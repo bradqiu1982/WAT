@@ -1548,32 +1548,55 @@ namespace WAT.Models
             }
             else
             {
-                var dieone = WATAnalyzeVM.GetDieOneOfWafer(wf, ctrl);
-                if (dieone.Count == 0)
-                { return ret; }
-
-                var templist = new List<DieSortVM>();
-                foreach (var item in samplelist)
+                if (wf.Length == 13)
                 {
-                    var arrayx = Models.UT.O2I(item.XX.Replace("X", "").Replace("x", ""));
-                    var singlex = Get_First_Singlet_From_Array_Coord(dieone[0], dieone[1], arrayx, array);
-                    for (var die = 0; die < array; die++)
+                    var prodfam = WXEvalPN.GetProductFamilyFromSherman(wf);
+                    var axlist = new List<string>();
+                    var aylist = new List<string>();
+                    foreach (var item in samplelist)
                     {
-                        var x = (singlex + die).ToString();
-                        var y = Models.UT.O2I(item.YY.Replace("Y", "").Replace("y", "")).ToString();
-                        var key =  x + ":::" + y;
-                        if (!ret.ContainsKey(key))
-                        { ret.Add(key, true); }
-
-                        var temp = new DieSortVM();
-                        temp.Wafer = wf;
-                        temp.XX = x;
-                        temp.YY = y;
-                        templist.Add(temp);
+                        axlist.Add(item.XX.Replace("X", "").Replace("x", "").Trim());
+                        aylist.Add(item.YY.Replace("Y", "").Replace("y", "").Trim());
+                    }
+                    var xylist = SixInchMapFileData.SixInchArray2SingletCoord(prodfam, axlist, aylist);
+                    var xlist = xylist[0];
+                    var ylist = xylist[1];
+                    var idx = 0;
+                    foreach (var item in samplelist)
+                    {
+                        for (var die = 0; die < array; die++)
+                        {
+                            var x = (xlist[idx] + die).ToString();
+                            var y = ylist[idx].ToString();
+                            var key = x + ":::" + y;
+                            if (!ret.ContainsKey(key))
+                            { ret.Add(key, true); }
+                            idx++;
+                        }
                     }
                 }
+                else
+                {
+                    var dieone = WATAnalyzeVM.GetDieOneOfWafer(wf, ctrl);
+                    if (dieone.Count == 0)
+                    { return ret; }
 
-                //SortSampleSingleCoor(wf, templist);
+                    foreach (var item in samplelist)
+                    {
+                        var arrayx = Models.UT.O2I(item.XX.Replace("X", "").Replace("x", ""));
+                        var singlex = Get_First_Singlet_From_Array_Coord(dieone[0], dieone[1], arrayx, array);
+                        for (var die = 0; die < array; die++)
+                        {
+                            var x = (singlex + die).ToString();
+                            var y = Models.UT.O2I(item.YY.Replace("Y", "").Replace("y", "")).ToString();
+                            var key =  x + ":::" + y;
+                            if (!ret.ContainsKey(key))
+                            { ret.Add(key, true); }
+
+                        }
+                    }
+                }//end else
+
             }
             return ret;
         }
