@@ -80,7 +80,7 @@ namespace WAT.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@Machine", machine);
 
-            var pretime = DateTime.Now.AddMinutes(-60);
+            var pretime = DateTime.Now.AddSeconds(-3600);
             var sql = "select top 1 UpdateTime from WebLog where MSGType='WATDATAWDOG' and Machine=@Machine order by UpdateTime desc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql,dict);
 

@@ -407,7 +407,11 @@ namespace WAT.Models
         {
             var ret = new List<WuxiWATData4MG>();
 
-            var endtime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            //var starttime = UT.O2T(stime).AddMinutes(-1).ToString("yyyy-MM-dd HH:mm:ss");
+            var etime = UT.O2T(starttime).AddMinutes(20);
+            if (etime < DateTime.Now) { etime = DateTime.Now.AddMinutes(20); }
+            var endtime = etime.ToString("yyyy-MM-dd HH:mm:ss");
+
             var dict = new Dictionary<string, string>();
             dict.Add("@starttime", starttime);
             dict.Add("@endtime", endtime);

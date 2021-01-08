@@ -558,3 +558,20 @@ CREATE TABLE [WAT].[dbo].[SampleSingleCoor](
 	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL
 )
+
+CREATE TABLE [dbo].[WaferTrace] (
+	[WaferNum]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Priority]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Product]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[PN]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[TraceID]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[TraceCompany]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[DeliverStatus]   NVARCHAR (300) DEFAULT ('') NOT NULL,
+	[ArriveDate]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Assemblyed]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[TestStuatus]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[UpdateTime]   DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+	[Appv_5]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Appv_6]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Appv_7]   DATETIME       DEFAULT ('1982-05-06 10:00:00') NOT NULL
+);

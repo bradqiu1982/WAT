@@ -1,0 +1,132 @@
+﻿
+@{
+    ViewBag.Title = "WaferTraceSYS";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    th.dt-center, td.dt-center {
+        text-align: center;
+    }
+
+    .ARRIVED {
+        background-color: darksalmon !important;
+    }
+    .ASSEMBLYED {
+    
+    }
+    
+    .TESTING {
+    
+    }
+</style>
+
+
+
+<script type="text/javascript" src="~/Scripts/wafertrace.js"></script>
+<script type="text/javascript">
+        $(function(){
+            WTRACE.TRACEINIT();
+        })
+</script>
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <div class="col-xs-3"></div>
+                    <div class="col-xs-6">
+                        <h2>WAFER TRACE SYSTEM</h2>
+                    </div>
+                    <div class="col-xs-3"> </div>
+                </div>
+                <hr/>
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="label label-default" style="display:inline-block;font-size:18px!important">WAFER</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="text" class="form-control" id="wafer" name="wafer">
+                    </div>
+                    <div class="col-xs-2">
+                        <label class="label label-default" style="display:inline-block;font-size:18px!important">TRACE ID</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="text" class="form-control" id="traceid" name="traceid">
+                    </div>
+                </div>
+
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="label label-default"style="display:inline-block;font-size:18px!important">PRODUCT</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="text" class="form-control" id="prod" name="prod">
+                    </div>
+                    <div class="col-xs-2">
+                        <label class="label label-default" style="display:inline-block;font-size:18px!important">PN</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <input type="text" class="form-control" id="pn" name="pn">
+                    </div>
+                </div>
+
+                <div class="row row-margin">
+                    <div class="col-xs-2">
+                        <label class="label label-default" style="display:inline-block;font-size:18px!important">DELIEVER</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <select class="form-control" id="deliever" name="deliever">
+                            <option value="FEDEX" selected>FEDEX</option>
+                            <option value="UPS">UPS</option>
+                            <option value="SF-EXP">SF-EXP</option>
+                        </select>
+                    </div>
+                    <div class="col-xs-2">
+                        <label class="label label-default" style="display:inline-block;font-size:18px!important">PRIORITY</label>
+                    </div>
+                    <div class="col-xs-4">
+                        <select class="form-control" id="priority" name="priority">
+                            <option value="P1" selected>P1</option>
+                            <option value="P2">P2</option>
+                            <option value="P3">P3</option>
+                            <option value="P4">P4</option>
+                            <option value="P5">P5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row row-margin">
+                    <div class="col-xs-9"></div>
+                    <div class="col-xs-3">
+                        <input class="form-control btn btn-success" style="height:3em" name="btn-search" id="btn-search" type="button" value="COMMIT">
+                    </div>
+                </div>
+
+            </div>
+            <div class="v-content">
+                <table class="table table-hover  table-condensed table-striped" id="watdatatable" style="margin-top:1%">
+                    <caption class="tb-caption">WAFER TRACE DATA</caption>
+                    <thead>
+                        <tr>
+                            <th>WaferNum</th>
+                            <th>Priority</th>
+                            <th>Product</th>
+                            <th>PN</th>
+                            <th>EXP-INC</th>
+                            <th>TraceID</th>
+                            <th>DeliverStatus</th>
+                            <th>Date</th>
+                            <th>Assembly</th>
+                            <th>TestStatus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="watdatacontent"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
