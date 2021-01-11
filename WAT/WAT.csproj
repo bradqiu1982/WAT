@@ -940,6 +940,7 @@
     <Content Include="Scripts\sixprodtype.cfg" />
     <None Include="TrackServiceWebReference\TrackServiceDefinitions.wsdl" />
     <Content Include="Views\Main\WaferTraceSYS.cshtml" />
+    <Content Include="Views\Main\StartWATJO.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

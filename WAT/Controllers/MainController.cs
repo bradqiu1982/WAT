@@ -7,6 +7,11 @@ using WAT.Models;
 using WXLogic;
 using System.Web.Routing;
 using System.IO;
+using RestSharp;
+
+using System.Web.Services.Protocols;
+using System.Net;
+using TrackWebServiceClient.TrackServiceWebReference;
 
 namespace WAT.Controllers
 {
@@ -1231,7 +1236,7 @@ namespace WAT.Controllers
 
             var dict = new Dictionary<string, bool>();
 
-            var allcoupon = WuxiWATData4MG.GetRecentWATCouponID("2020-12-23 10:50:17", "2020-12-23 11:00:17");
+            var allcoupon = WuxiWATData4MG.GetRecentWATCouponID("2020-12-27 13:43:34", "2020-12-27 13:53:34");
             foreach (var cp in allcoupon)
             {
                 var key = cp.CouponID.ToUpper() + "_" + cp.TestStep.ToUpper();
@@ -1245,6 +1250,275 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+
+        //public ActionResult CheckTraceID()
+        //{
+        //    ServicePointManager.Expect100Continue = true;
+        //    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+        //    TrackRequest request = CreateTrackRequest();
+        //    TrackService service = new TrackService();
+        //    service.Url = "https://wsbeta.fedex.com:443/web-services/track";
+        //    try
+        //    {
+        //        var tracestatus = "";
+        //        var latestevent = "";
+        //        var latesteventtime = "";
+
+        //        TrackReply reply = service.track(request);
+        //        if (reply.HighestSeverity == NotificationSeverityType.SUCCESS || reply.HighestSeverity == NotificationSeverityType.NOTE || reply.HighestSeverity == NotificationSeverityType.WARNING)
+        //        {
+        //            foreach (CompletedTrackDetail completedTrackDetail in reply.CompletedTrackDetails)
+        //            {
+        //                foreach (TrackDetail trackDetail in completedTrackDetail.TrackDetails)
+        //                {
+        //                    tracestatus = trackDetail.StatusDetail.Description;
+
+        //                    if (trackDetail.Events != null)
+        //                    {
+        //                        //Console.WriteLine("Track Events:");
+        //                        foreach (TrackEvent trackevent in trackDetail.Events)
+        //                        {
+        //                            if (trackevent.TimestampSpecified)
+        //                            {
+        //                                latesteventtime = trackevent.Timestamp.ToString("yyyy-MM-dd HH:mm:ss");
+        //                            }
+        //                            latestevent = trackevent.EventDescription;
+        //                            break;
+        //                            //Console.WriteLine("***");
+        //                        }
+        //                        //Console.WriteLine();
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex) { }
+
+        //    return View("HeartBeat");
+        //}
+
+        //private static TrackRequest CreateTrackRequest()
+        //{
+        //    // Build the TrackRequest
+        //    TrackRequest request = new TrackRequest();
+        //    //
+        //    request.WebAuthenticationDetail = new WebAuthenticationDetail();
+        //    request.WebAuthenticationDetail.UserCredential = new WebAuthenticationCredential();
+        //    request.WebAuthenticationDetail.UserCredential.Key = "3jbeGywUe3xc0Vo6"; // Replace "XXX" with the Key
+        //    request.WebAuthenticationDetail.UserCredential.Password = "WJ1P0OVH4RuJylkC63Kxpq1QG "; // Replace "XXX" with the Password
+        //    request.WebAuthenticationDetail.ParentCredential = new WebAuthenticationCredential();
+        //    request.WebAuthenticationDetail.ParentCredential.Key = "3jbeGywUe3xc0Vo6"; // Replace "XXX" with the Key
+        //    request.WebAuthenticationDetail.ParentCredential.Password = "WJ1P0OVH4RuJylkC63Kxpq1QG "; // Replace "XXX"
+        //    //if (usePropertyFile()) //Set values from a file for testing purposes
+        //    //{
+        //    //    request.WebAuthenticationDetail.UserCredential.Key = getProperty("key");
+        //    //    request.WebAuthenticationDetail.UserCredential.Password = getProperty("password");
+        //    //    request.WebAuthenticationDetail.ParentCredential.Key = getProperty("parentkey");
+        //    //    request.WebAuthenticationDetail.ParentCredential.Password = getProperty("parentpassword");
+        //    //}
+        //    //
+        //    request.ClientDetail = new ClientDetail();
+        //    request.ClientDetail.AccountNumber = "510087780"; // Replace "XXX" with the client's account number
+        //    request.ClientDetail.MeterNumber = "100495072"; // Replace "XXX" with the client's meter number
+        //    //if (usePropertyFile()) //Set values from a file for testing purposes
+        //    //{
+        //    //    request.ClientDetail.AccountNumber = getProperty("accountnumber");
+        //    //    request.ClientDetail.MeterNumber = getProperty("meternumber");
+        //    //}
+        //    //
+        //    request.TransactionDetail = new TransactionDetail();
+        //    request.TransactionDetail.CustomerTransactionId = "II-VI";  //This is a reference field for the customer.  Any value can be used and will be provided in the response.
+        //    //
+        //    request.Version = new VersionId();
+        //    //
+        //    // Tracking information
+        //    request.SelectionDetails = new TrackSelectionDetail[1] { new TrackSelectionDetail() };
+        //    request.SelectionDetails[0].PackageIdentifier = new TrackPackageIdentifier();
+        //    request.SelectionDetails[0].PackageIdentifier.Value = "772395610600 "; // Replace "XXX" with tracking number or door tag
+        //    //if (usePropertyFile()) //Set values from a file for testing purposes
+        //    //{
+        //    //    request.SelectionDetails[0].PackageIdentifier.Value = getProperty("trackingnumber");
+        //    //}
+        //    request.SelectionDetails[0].PackageIdentifier.Type = TrackIdentifierType.TRACKING_NUMBER_OR_DOORTAG;
+        //    //
+        //    // Date range is optional.
+        //    // If omitted, set to false
+        //    request.SelectionDetails[0].ShipDateRangeBegin = DateTime.Parse("06/18/2012"); //MM/DD/YYYY
+        //    request.SelectionDetails[0].ShipDateRangeEnd = request.SelectionDetails[0].ShipDateRangeBegin.AddDays(0);
+        //    request.SelectionDetails[0].ShipDateRangeBeginSpecified = false;
+        //    request.SelectionDetails[0].ShipDateRangeEndSpecified = false;
+        //    //
+        //    // Include detailed scans is optional.
+        //    // If omitted, set to false
+        //    request.ProcessingOptions = new TrackRequestProcessingOptionType[1];
+        //    request.ProcessingOptions[0] = TrackRequestProcessingOptionType.INCLUDE_DETAILED_SCANS;
+        //    return request;
+        //}
+
+
+        public ActionResult WaferTraceSYS()
+        {
+            return View();
+        }
+
+        public JsonResult CommitWaferTraceData()
+        {
+            var prodpndict = CfgUtility.GetSixInchProdPN(this);
+            var wafer = Request.Form["wafer"].Trim().ToUpper();
+            var traceid = Request.Form["traceid"].Trim().Replace(" ", "");
+            var deliever = Request.Form["deliever"];
+            var priority = Request.Form["priority"];
+
+            if (!WaferTrace.CheckValidWafer(wafer))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    res = false,
+                    msg = "wafer number already exist! try to use suffix R08 or T08 or E09."
+                };
+                return ret;
+            }
+
+            var prod = "";
+            var wf = wafer.Split(new string[] { "E", "R", "T" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            if (wf.Length == 13)
+            {
+                prod = Models.WXEvalPN.GetProductFamilyFromSherman(wf);
+            }
+            else
+            {
+                prod = Models.WXEvalPN.GetProductFamilyFromAllen(wf);
+                if (string.IsNullOrEmpty(prod))
+                {
+                    prod = Models.WXEvalPN.GetProductFamilyFromSherman(wf);
+                }
+            }
+
+            if (string.IsNullOrEmpty(prod))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    res = false,
+                    msg = "failed to get product family, check wafer number."
+                };
+                return ret;
+            }
+
+            var pn = "";
+            if (prodpndict.ContainsKey(prod))
+            { pn = prodpndict[prod]; }
+
+            if (string.IsNullOrEmpty(prod))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    res = false,
+                    msg = "failed to get part number from prod:"+prod+"."
+                };
+                return ret;
+            }
+
+            var traceinfo = WaferTrace.GetTraceStatus(traceid, this);
+            if (string.IsNullOrEmpty(traceinfo[0]))
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    res = false,
+                    msg = "we failed to get deliever info from the trace id, please check the trace id."
+                };
+                return ret;
+            }
+
+            var wtrace = new WaferTrace();
+            wtrace.WaferNum = wafer;
+            wtrace.TraceID = traceid;
+            wtrace.TraceCompany = deliever;
+            wtrace.Product = prod;
+            wtrace.PN = pn;
+            wtrace.Priority = priority;
+
+            var tracestatus = traceinfo[0];
+            var traceevent = traceinfo[1];
+            var tracedate = traceinfo[2];
+            if (tracestatus.Contains("DELIVERED"))
+            {
+                wtrace.DeliverStatus = "DELIVERED";
+                wtrace.ArriveDate = tracedate;
+            }
+            else
+            {
+                wtrace.DeliverStatus = (traceevent.Length > 100)?traceevent.Substring(0,100):traceevent;
+                wtrace.ArriveDate = tracedate;
+            }
+
+            wtrace.StoreData();
+            WaferTrace.UpdateTraceStatus(wtrace.TraceID, wtrace.DeliverStatus, wtrace.ArriveDate);
+
+            if (tracestatus.Contains("DELIVERED"))
+            {
+                WaferTrace.SendJOEmail(wtrace, this);
+            }
+
+            var rets = new JsonResult();
+            rets.MaxJsonLength = Int32.MaxValue;
+            rets.Data = new
+            {
+                res = true,
+                msg = ""
+            };
+            return rets;
+        }
+
+        public JsonResult LoadWaferTraceData()
+        {
+            var wafertracelist = WaferTrace.GetAllData(this);
+            var rets = new JsonResult();
+            rets.MaxJsonLength = Int32.MaxValue;
+            rets.Data = new
+            {
+                wafertracelist = wafertracelist
+            };
+            return rets;
+        }
+
+        public JsonResult RefreshWaferLogis()
+        {
+            WaferTrace.RefreshDelievery(this);
+            var rets = new JsonResult();
+            rets.MaxJsonLength = Int32.MaxValue;
+            rets.Data = new
+            {
+                res = true
+            };
+            return rets;
+        }
+
+        public JsonResult RefreshWaferTrace()
+        {
+            WaferTrace.DailyUpdate(this);
+            var rets = new JsonResult();
+            rets.MaxJsonLength = Int32.MaxValue;
+            rets.Data = new
+            {
+                res = true
+            };
+            return rets;
+        }
+
+        public ActionResult StartWATJO(string wf)
+        {
+            if (!string.IsNullOrEmpty(wf))
+            { WaferTrace.UpdateAssemblyStatus(wf); }
+            return View();
+        }
 
     }
 }

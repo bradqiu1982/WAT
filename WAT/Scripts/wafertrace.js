@@ -5,13 +5,11 @@
         function commitwafer() {
             var wafer = $('#wafer').val();
             var traceid = $('#traceid').val();
-            var prod = $('#prod').val();
-            var pn = $('#pn').val();
             var deliever = $('#deliever').val();
             var priority = $('#priority').val();
 
-            if (wafer == '' || traceid == '' || prod == '')
-            { alert('wafer number,trace id, product should not be empty!'); return false; }
+            if (wafer == '' || traceid == '')
+            { alert('wafer number,trace id should not be empty!'); return false; }
 
 
             wafer = wafer.toUpperCase();
@@ -23,14 +21,24 @@
             if(waferfail)
             { alert('wafer number should contains suffix E08 or E09 ...!'); return false;}
 
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
             $.post('/Main/CommitWaferTraceData', {
                 wafer: wafer,
                 traceid: traceid,
-                prod: prod,
-                pn: pn,
                 deliever: deliever,
                 priority: priority
             }, function (output) {
+                $.bootstrapLoading.end();
+
                 if (output.res)
                 { window.location.reload(true); }
                 else
@@ -47,6 +55,42 @@
         $.fn.dataTable.ext.buttons.logist = {
             text: 'Refresh Logistics',
             action: function (e, dt, node, config) {
+
+                var options = {
+                    loadingTips: "loading data......",
+                    backgroundColor: "#aaa",
+                    borderColor: "#fff",
+                    opacity: 0.8,
+                    borderColor: "#fff",
+                    TipsColor: "#000",
+                }
+                $.bootstrapLoading.start(options);
+
+                $.post('/Main/RefreshWaferLogis', {}, function (output) {
+                    $.bootstrapLoading.end();
+                    window.location.reload(true);
+                });
+            }
+        };
+
+        $.fn.dataTable.ext.buttons.refreshall = {
+            text: 'Refresh All',
+            action: function (e, dt, node, config) {
+
+                var options = {
+                    loadingTips: "loading data......",
+                    backgroundColor: "#aaa",
+                    borderColor: "#fff",
+                    opacity: 0.8,
+                    borderColor: "#fff",
+                    TipsColor: "#000",
+                }
+                $.bootstrapLoading.start(options);
+
+                $.post('/Main/RefreshWaferTrace', {}, function (output) {
+                    $.bootstrapLoading.end();
+                    window.location.reload(true);
+                });
             }
         };
 
@@ -61,8 +105,14 @@
                 
                 $.each(output.wafertracelist, function (i, val) {
                     var tempstr = '';
+
+                    var cla = '';
+                    if (val.DeliverStatus.indexOf('DELIVERED') != -1) { cla = 'ARRIVED'; }
+                    if (val.Assemblyed != '') { cla = 'ASSEMBLYED'; }
+                    if (val.TestStuatus != '') { cla = 'TESTING'; }
+
                     tempstr += '<tr>';
-                    tempstr += '<td>' + val.WaferNum + '</td>' +
+                    tempstr += '<td class="'+cla+'">' + val.WaferNum + '</td>' +
                             '<td>' + val.Priority + '</td>' +
                             '<td>' + val.Product + '</td>' +
                             '<td>' + val.PN + '</td>' +
@@ -86,7 +136,7 @@
                     "aaSorting": [],
                     "order": [],
                     dom: 'lBfrtip',
-                    buttons: ['copyHtml5', 'csv', 'excelHtml5', 'logist']
+                    buttons: ['copyHtml5', 'csv', 'excelHtml5', 'logist', 'refreshall']
                 });
 
             })
