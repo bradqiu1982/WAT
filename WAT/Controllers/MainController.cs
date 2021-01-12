@@ -1541,5 +1541,41 @@ namespace WAT.Controllers
             return View();
         }
 
+        public JsonResult WaferTracePriority()
+        {
+            var act = Request.Form["act"];
+            var wf = Request.Form["wf"];
+
+            var prt = WaferTrace.GetPriority(wf);
+            var pt = Models.UT.O2I(prt.Replace("P", ""));
+
+            var res = false;
+            var py = "";
+            if (act.Contains("UP") && pt > 1)
+            {
+                py = "P" + (pt - 1);
+                res = true;
+                WaferTrace.UpdatePriority(wf, py);
+            }
+
+            if (act.Contains("DOWN") && pt < 5)
+            {
+                py = "P" + (pt + 1);
+                res = true;
+                WaferTrace.UpdatePriority(wf, py);
+
+            }
+
+            var rets = new JsonResult();
+            rets.MaxJsonLength = Int32.MaxValue;
+            rets.Data = new
+            {
+                res = res,
+                py = py
+            };
+            return rets;
+        }
+
+
     }
 }

@@ -219,6 +219,27 @@ namespace WAT.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
+        public static void UpdatePriority(string wafer, string priority)
+        {
+            var sql = "update [WAT].[dbo].[WaferTrace] set Priority = @Priority where WaferNum = @WaferNum";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafer);
+            dict.Add("@Priority", priority);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
+
+        public static string GetPriority(string wafer)
+        {
+            var sql = "select Priority from [WAT].[dbo].[WaferTrace] where WaferNum = @WaferNum";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafer);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            { return UT.O2S(line[0]); }
+            return string.Empty;
+        }
+
         private static void UpdateEMAILStatus(string wafer)
         {
             var sql = "update [WAT].[dbo].[WaferTrace] set Appv_5 = 'EMAILED' where WaferNum = @WaferNum";

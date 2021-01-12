@@ -113,7 +113,11 @@
 
                     tempstr += '<tr>';
                     tempstr += '<td class="'+cla+'">' + val.WaferNum + '</td>' +
-                            '<td>' + val.Priority + '</td>' +
+
+                            '<td><span id="' + val.WaferNum + 'PY">' + val.Priority + '</span>&nbsp;&nbsp;<span class="glyphicon glyphicon-arrow-up PYUP" myval="' + val.WaferNum
+                            + '" aria-hidden="true"></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="glyphicon glyphicon-arrow-down PYDOWN" myval="' + val.WaferNum
+                            +'" aria-hidden="true"></span>' + '</td>' +
+
                             '<td>' + val.Product + '</td>' +
                             '<td>' + val.PN + '</td>' +
                             '<td>' + val.TraceCompany + '</td>' +
@@ -145,6 +149,34 @@
         $(function () {
             loadtracedata();
         });
+
+        $('body').on('click', '.PYUP', function () {
+            var wf = $(this).attr("myval");
+
+            $.post('/Main/WaferTracePriority', {
+                act: 'UP',
+                wf:wf
+            }, function (output) {
+                if (output.res)
+                { $('#' + wf + 'PY').html(output.py); }
+            });
+            
+
+        })
+
+        $('body').on('click', '.PYDOWN', function () {
+
+            var wf = $(this).attr("myval");
+
+            $.post('/Main/WaferTracePriority', {
+                act: 'DOWN',
+                wf: wf
+            }, function (output) {
+                if (output.res)
+                { $('#' + wf + 'PY').html(output.py); }
+            });
+
+        })
     }
 
     return {
