@@ -8,8 +8,8 @@
             var deliever = $('#deliever').val();
             var priority = $('#priority').val();
 
-            if (wafer == '' || traceid == '')
-            { alert('wafer number,trace id should not be empty!'); return false; }
+            if (wafer == '' || traceid == ''|| priority == '')
+            { alert('wafer number,trace id,priority should not be empty!'); return false; }
 
 
             wafer = wafer.toUpperCase();

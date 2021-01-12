@@ -12,15 +12,15 @@ namespace WAT.Models
     {
         public static bool CheckValidWafer(string wafernum)
         {
-            //var sql = "select top 1 containername from [Insite].[dbo].[ProductionResult] where Containername like '<wafernum>%'";
-            //sql = sql.Replace("<wafernum>", wafernum.Replace("'", ""));
-            //var dbret = DBUtility.ExeLocalSqlWithRes(sql);
-            //if (dbret.Count > 0)
-            //{ return false; }
-
-            var sql = "select top 1 WaferNum from [WAT].[dbo].[WaferTrace] where WaferNum = '<wafernum>'";
+            var sql = "select top 1 containername from [Insite].[dbo].[ProductionResult] where Containername like '<wafernum>%'";
             sql = sql.Replace("<wafernum>", wafernum.Replace("'", ""));
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            if (dbret.Count > 0)
+            { return false; }
+
+            sql = "select top 1 WaferNum from [WAT].[dbo].[WaferTrace] where WaferNum = '<wafernum>'";
+            sql = sql.Replace("<wafernum>", wafernum.Replace("'", ""));
+            dbret = DBUtility.ExeLocalSqlWithRes(sql);
             if (dbret.Count > 0)
             { return false; }
 

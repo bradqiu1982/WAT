@@ -121,6 +121,26 @@ namespace WAT.Controllers
 
                 try
                 {
+                    heartbeatlog("WaferTrace.DailyUpdate(this)");
+
+                    var fouram = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 04:00:00");
+                    var fiveam = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 05:30:00");
+                    if (DateTime.Now >= fouram && DateTime.Now <= fiveam)
+                    {
+                        WaferTrace.DailyUpdate(this);
+                    }
+
+                    var onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 13:00:00");
+                    var threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 14:30:00");
+                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
+                    {
+                        WaferTrace.DailyUpdate(this);
+                    }
+                }
+                catch (Exception ex) { }
+
+                try
+                {
                     WATOven.RefreshDailyOvenData(this);
                 }
                 catch (Exception ex) { }
@@ -143,6 +163,7 @@ namespace WAT.Controllers
                 }
                 catch (Exception ex) { }
 
+                
                 //heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
                 //try
                 //{
