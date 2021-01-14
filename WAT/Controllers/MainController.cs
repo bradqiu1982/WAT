@@ -121,12 +121,12 @@ namespace WAT.Controllers
 
                 try
                 {
-                    heartbeatlog("WaferTrace.DailyUpdate(this)");
 
                     var fouram = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 04:00:00");
                     var fiveam = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 05:30:00");
                     if (DateTime.Now >= fouram && DateTime.Now <= fiveam)
                     {
+                        heartbeatlog("WaferTrace.DailyUpdate(this)");
                         WaferTrace.DailyUpdate(this);
                     }
 
@@ -134,6 +134,7 @@ namespace WAT.Controllers
                     var threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 14:30:00");
                     if (DateTime.Now >= onepm && DateTime.Now <= threepm)
                     {
+                        heartbeatlog("WaferTrace.DailyUpdate(this)");
                         WaferTrace.DailyUpdate(this);
                     }
                 }
@@ -1547,23 +1548,25 @@ namespace WAT.Controllers
             var wf = Request.Form["wf"];
 
             var prt = WaferTrace.GetPriority(wf);
-            var pt = Models.UT.O2I(prt.Replace("P", ""));
-
             var res = false;
             var py = "";
-            if (act.Contains("UP") && pt > 1)
-            {
-                py = "P" + (pt - 1);
-                res = true;
-                WaferTrace.UpdatePriority(wf, py);
-            }
 
-            if (act.Contains("DOWN") && pt < 5)
+            if (!string.IsNullOrEmpty(prt))
             {
-                py = "P" + (pt + 1);
-                res = true;
-                WaferTrace.UpdatePriority(wf, py);
+                var pt = Models.UT.O2I(prt.Replace("P", ""));
+                if (act.Contains("UP") && pt > 1)
+                {
+                    py = "P" + (pt - 1);
+                    res = true;
+                    WaferTrace.UpdatePriority(wf, py);
+                }
 
+                if (act.Contains("DOWN") && pt < 5)
+                {
+                    py = "P" + (pt + 1);
+                    res = true;
+                    WaferTrace.UpdatePriority(wf, py);
+                }
             }
 
             var rets = new JsonResult();

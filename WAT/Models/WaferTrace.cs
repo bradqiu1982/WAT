@@ -231,7 +231,7 @@ namespace WAT.Models
 
         public static string GetPriority(string wafer)
         {
-            var sql = "select Priority from [WAT].[dbo].[WaferTrace] where WaferNum = @WaferNum";
+            var sql = "select Priority from [WAT].[dbo].[WaferTrace] where WaferNum = @WaferNum and Assemblyed='' and TestStuatus=''";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", wafer);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
