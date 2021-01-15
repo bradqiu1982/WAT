@@ -306,6 +306,35 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<WaferTrace> GetWaferTraceDataByTraceID(string traceid)
+        {
+            var ret = new List<WaferTrace>();
+
+            var sql = "select WaferNum,Priority,Product,PN,TraceID,TraceCompany,DeliverStatus,ArriveDate,Assemblyed,TestStuatus from  [WAT].[dbo].[WaferTrace] where TraceID = @TraceID";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@TraceID", traceid);
+
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql,dict);
+            foreach (var line in dbret)
+            {
+                var tempvm = new WaferTrace();
+                tempvm.WaferNum = UT.O2S(line[0]);
+                tempvm.Priority = UT.O2S(line[1]);
+                tempvm.Product = UT.O2S(line[2]);
+                tempvm.PN = UT.O2S(line[3]);
+                tempvm.TraceID = UT.O2S(line[4]);
+                tempvm.TraceCompany = UT.O2S(line[5]);
+                tempvm.DeliverStatus = UT.O2S(line[6]);
+                tempvm.ArriveDate = UT.O2T(line[7]).ToString("yyyy-MM-dd");
+                tempvm.Assemblyed = UT.O2S(line[8]);
+                tempvm.TestStuatus = UT.O2S(line[9]);
+
+                ret.Add(tempvm);
+            }
+
+            return ret;
+        }
+
         public static bool CheckAssemblyed(string wafer)
         {
             var sql = "select top 1 sn from [WAT].[dbo].[OGPFatherImg] where sn like '%<wafer>%'";
@@ -393,10 +422,12 @@ namespace WAT.Models
 
                     WaferTrace.UpdateTraceStatus(id, wtrace.DeliverStatus, wtrace.ArriveDate);
 
-                    if (tracestatus.Contains("DELIVERED") && email)
-                    {
-                        WaferTrace.SendJOEmail(wtrace, ctrl);
-                    }
+                    //if (tracestatus.Contains("DELIVERED") && email)
+                    //{
+                    //    var datalist = GetWaferTraceDataByTraceID(id);
+                    //    foreach (var dt in datalist)
+                    //    { WaferTrace.SendJOEmail(dt, ctrl); }
+                    //}
                 }//end if
             }//end foreach
 

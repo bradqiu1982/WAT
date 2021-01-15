@@ -16,10 +16,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>02/22/2013 08:43:40</publishTime>
     </File>
     <File Include="bin/App_global.asax.compiled">
-      <publishTime>01/12/2021 14:45:05</publishTime>
+      <publishTime>01/15/2021 08:50:27</publishTime>
     </File>
     <File Include="bin/App_global.asax.dll">
-      <publishTime>01/12/2021 14:45:05</publishTime>
+      <publishTime>01/15/2021 08:50:27</publishTime>
     </File>
     <File Include="bin/CsvHelper.dll">
       <publishTime>01/28/2019 22:44:34</publishTime>
@@ -178,7 +178,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>01/28/2015 04:04:30</publishTime>
     </File>
     <File Include="bin/WAT.dll">
-      <publishTime>01/12/2021 14:45:02</publishTime>
+      <publishTime>01/15/2021 08:50:23</publishTime>
     </File>
     <File Include="bin/WATMoveDLL.dll">
       <publishTime>05/25/2020 08:59:09</publishTime>
@@ -1564,7 +1564,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>01/06/2021 15:14:09</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>01/12/2021 14:45:03</publishTime>
+      <publishTime>01/15/2021 08:50:25</publishTime>
     </File>
     <File Include="Scripts/ajaxfileupload.js">
       <publishTime>06/28/2018 10:27:19</publishTime>
@@ -1807,7 +1807,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>01/08/2021 15:05:24</publishTime>
     </File>
     <File Include="Scripts/WATCfg.txt">
-      <publishTime>01/12/2021 11:42:27</publishTime>
+      <publishTime>01/15/2021 08:48:41</publishTime>
     </File>
     <File Include="Scripts/watchdog.js">
       <publishTime>10/26/2020 10:20:07</publishTime>
