@@ -373,7 +373,7 @@ namespace WAT.Models
             foreach (var id in traceidlist)
             {
                 var traceinfo = WaferTrace.GetTraceStatus(id, ctrl);
-                if (string.IsNullOrEmpty(traceinfo[0]))
+                if (!string.IsNullOrEmpty(traceinfo[0]))
                 {
                     var tracestatus = traceinfo[0];
                     var traceevent = traceinfo[1];
@@ -391,7 +391,7 @@ namespace WAT.Models
                         wtrace.ArriveDate = tracedate;
                     }
 
-                    WaferTrace.UpdateTraceStatus(wtrace.TraceID, wtrace.DeliverStatus, wtrace.ArriveDate);
+                    WaferTrace.UpdateTraceStatus(id, wtrace.DeliverStatus, wtrace.ArriveDate);
 
                     if (tracestatus.Contains("DELIVERED") && email)
                     {

@@ -11,7 +11,7 @@ APPEMAILPWD:::abc@12345
 EMAILSERVER:::sny-mrs.ads.finisar.com
 EMAILSSL:::FALSE
 
-DIESORTWARINGLIST:::brad.qiu@II-VI.COM;tyler.zhang@II-VI.COM
+DIESORTWARINGLIST:::brad.qiu@II-VI.COM;tyler.zhang@II-VI.COM;mick.wang@II-VI.COM;jintao.yao@II-VI.COM;sean.huang@II-VI.COM
 
 DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
 DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
