@@ -833,7 +833,7 @@ namespace WAT.Controllers
             var wfdatedict = new Dictionary<string, DateTime>();
             var wftypedict = new Dictionary<string, string>();
             var capvmlist = WATCapacity.GetWATCapacity(datafrom);
-            var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict();
+            var passfailwfdict = WuxiWATData4MG.GetPassFailWaferDict4WIP();
             foreach (var capvm in capvmlist)
             {
                 if (passfailwfdict.ContainsKey(capvm.Wafer))
@@ -847,7 +847,7 @@ namespace WAT.Controllers
             }
 
             var wflist = new List<string>();
-            var onemonthago = DateTime.Now.AddDays(-30);
+            var onemonthago = DateTime.Now.AddDays(-46);
             foreach (var cap in capvmlist)
             {
                 if (cap.Pass.Contains("PENDING") && cap.WFDate > onemonthago)

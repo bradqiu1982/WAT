@@ -1489,18 +1489,7 @@
                 colorAxis: {
                     min: line_data.datamin,
                     max: line_data.datamax,
-                    stops: [
-                    [0, '#c8c8c8'],
-                    [0.1, '#0000ff'],
-                    [0.2, '#0080ff'],
-                    [0.3, '#00ffff'],
-                    [0.4, '#00ff80'],
-                    [0.5, '#00ff00'],
-                    [0.6, '#80ff00'],
-                    [0.7, '#ffff00'],
-                    [0.8, '#ff8000'],
-                    [0.9, '#ff0000']
-                    ]
+                    stops: line_data.stops
                 },
                 series: line_data.serial,
                 exporting: {

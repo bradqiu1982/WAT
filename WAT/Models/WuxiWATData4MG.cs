@@ -845,6 +845,58 @@ namespace WAT.Models
             return ret;
         }
 
+        public static Dictionary<string, string> GetPassFailWaferDict4WIP()
+        {
+            var ret = new Dictionary<string, string>();
+            var cond08 = @" and  (wafer like '%E08%'  or wafer like '%R08%'  or wafer like '%T08%') ";
+            var cond09 = @" and  (wafer like '%E09%'  or wafer like '%R09%'  or wafer like '%T09%') ";
+
+            var sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL4JUDGEMENT'" + cond09;
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            sql = "select distinct wafer,result FROM [WAT].[dbo].[WATResult] where teststep ='POSTHTOL2JUDGEMENT'" + cond08;
+            var dbret2 = DBUtility.ExeLocalSqlWithRes(sql);
+
+            dbret.AddRange(dbret2);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]).ToUpper();
+                var passfail = UT.O2S(line[1]).ToUpper();
+
+                if (!ret.ContainsKey(wf))
+                {
+                    if (passfail.Contains("PASS"))
+                    { ret.Add(wf, "PASS"); }
+                    else if (passfail.Contains("GREAT THAN"))
+                    { ret.Add(wf, "PENDING"); }
+                    else
+                    { ret.Add(wf, "FAIL"); }
+                }
+            }
+
+
+            sql = "select distinct wafer,result,CONVERT(datetime,AppVal1) FROM [WAT].[dbo].[WATResult] where teststep like '%HTOL%' and teststep <> 'POSTHTOL4JUDGEMENT'" + cond09 + " order by CONVERT(datetime,AppVal1) DESC";
+            dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            sql = "select distinct wafer,result,CONVERT(datetime,AppVal1) FROM [WAT].[dbo].[WATResult] where teststep like '%HTOL%' and teststep <> 'POSTHTOL2JUDGEMENT'" + cond08 + " order by CONVERT(datetime,AppVal1) DESC";
+            dbret2 = DBUtility.ExeLocalSqlWithRes(sql);
+
+            dbret.AddRange(dbret2);
+            foreach (var line in dbret)
+            {
+                var wf = UT.O2S(line[0]).ToUpper();
+                var passfail = UT.O2S(line[1]).ToUpper();
+                if (!ret.ContainsKey(wf))
+                {
+                    if (!passfail.Contains("PASS") && !passfail.Contains("GREAT THAN"))
+                    { ret.Add(wf, "FAIL"); }
+                    else if(passfail.Contains("PASS"))
+                    { ret.Add(wf, "PENDING"); }
+                }
+            }
+
+            return ret;
+        }
+
+
         public WuxiWATData4MG(WXLogic.WXOriginalWATData item, Dictionary<string, WXLogic.WXProbeData> probedict
             ,Dictionary<string,string> specdict,Dictionary<string,WXWATIgnoreDie> ignoredict)
         {

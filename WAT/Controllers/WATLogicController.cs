@@ -1302,6 +1302,14 @@ namespace WAT.Controllers
         private JsonResult WATDataXYChart(string param, List<string> wflist, string rp
     , double lowlimit, double highlimit, double lowrange, double highrange, int rd, Dictionary<string, bool> vcselxy, bool raw)
         {
+            var dvf = false;
+            var pold = false;
+            if (param.ToUpper().Contains("VF_LD_V_AD_REF"))
+            { dvf = true; }
+            else if (param.ToUpper().Contains("PO_LD_W"))
+            { pold = true; }
+
+
             Dictionary<string, List<XYVAL>> wuxiwatdatadict = new Dictionary<string, List<XYVAL>>();
             if (raw)
             { wuxiwatdatadict = WATAnalyzeVM.GetWUXIWATRawData(param, wflist, rp, lowrange, highrange); }
@@ -1330,7 +1338,7 @@ namespace WAT.Controllers
             }
 
             var vallist = new List<double>();
-            var data = new List<List<object>>();
+            var sample = new List<object>();
             var xlist = new List<int>();
             var ylist = new List<int>();
             var xlistdict = new Dictionary<int, bool>();
@@ -1343,12 +1351,32 @@ namespace WAT.Controllers
                 var Y = Models.UT.O2I(xystr[1]);
                 if (valdict.ContainsKey(kv.Key))
                 {
-                    var templist = new List<object>();
-                    templist.Add(X);
-                    templist.Add(Y);
-                    templist.Add(valdict[kv.Key]);
                     vallist.Add(valdict[kv.Key]);
-                    data.Add(templist);
+
+                    if (dvf && valdict[kv.Key] > 0.05)
+                    {
+                        var templist = new List<object>();
+                        templist.Add(X);
+                        templist.Add(Y);
+                        templist.Add(0.8);
+                        sample.Add(templist);
+                    }
+                    else if (pold && valdict[kv.Key] < 0.0008)
+                    {
+                        var templist = new List<object>();
+                        templist.Add(X);
+                        templist.Add(Y);
+                        templist.Add(-0.01);
+                        sample.Add(templist);
+                    }
+                    else
+                    {
+                        var templist = new List<object>();
+                        templist.Add(X);
+                        templist.Add(Y);
+                        templist.Add(valdict[kv.Key]);
+                        sample.Add(templist);
+                    }
                 }
                 else
                 {
@@ -1356,7 +1384,7 @@ namespace WAT.Controllers
                     templist.Add(X);
                     templist.Add(Y);
                     templist.Add(null);
-                    data.Add(templist);
+                    sample.Add(templist);
                 }
 
                 if (!xlistdict.ContainsKey(X))
@@ -1376,15 +1404,29 @@ namespace WAT.Controllers
            var serial = new List<object>();
             serial.Add(new
             {
-                name = "Die Sort",
-                data = data,
+                type = "heatmap",
+                name = "Sample",
+                data = sample,
                 boostThreshold = 100,
                 borderWidth = 0,
                 nullColor = "#e5e5e5",//"#EFEFEF",
-                turboThreshold = 100
+                turboThreshold = 100,
+                visible = true
             });
 
 
+            var stops = new List<object>();
+            var clist = new string[] { "#0000ff","#00ffff","#00ff00","#ffff00","#ff0000"}.ToList();
+            if (pold) { clist.Reverse(); }
+            var val = 0.0;
+            foreach (var c in clist)
+            {
+                var colorlist = new List<object>();
+                colorlist.Add(val);colorlist.Add(c);
+                stops.Add(colorlist);
+                val += 0.2;
+            }
+            
             var id = param.Replace(" ", "_") + "_id";
             var title = param + "_" + rp + " Distribution by Wafer";
             var xydata = new
@@ -1395,7 +1437,8 @@ namespace WAT.Controllers
                 xmax = xlist[xlist.Count - 1] + 10,
                 ymax = ylist[ylist.Count - 1] + 10,
                 datamin = vallist[0],
-                datamax = vallist[vallist.Count -1]
+                datamax = vallist[vallist.Count - 1],
+                stops = stops
             };
 
 
