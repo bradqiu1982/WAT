@@ -29,7 +29,7 @@ namespace WXLogic
         public static bool GenerateMapFile(string wafer, string binfile)
         {
             var smapfile = SixIMapFile.LoadMapFileData(wafer);
-            if (smapfile.BaseArrayCoordinate.Count > 0 && smapfile.BinArrayCoordinate.Count > 0)
+            if (smapfile.BaseArrayCoordinate.Count > 0 && smapfile.GoodBinArrayCoordinate.Count > 0)
             {
                 return smapfile.RealGenerateMapFile(binfile);
             }
@@ -74,7 +74,7 @@ namespace WXLogic
                 ret.DieOneMin.Y = ret.DieOne.Y;
             }
 
-            ret.BinArrayCoordinate = GetBinArrayCoordinate(ret.ArraySize, wafer);
+            ret.GoodBinArrayCoordinate = GetGoodBinArrayCoordinate(ret.ArraySize, wafer);
             ret.Wafer = wafer;
 
             return ret;
@@ -88,7 +88,7 @@ namespace WXLogic
 
             var xygooddict = new Dictionary<string, SixIMapData>();
             var goodbincount = new Dictionary<string, int>();
-            foreach (var bc in BinArrayCoordinate)
+            foreach (var bc in GoodBinArrayCoordinate)
             {
                 var key = UT.O2S(bc.X) + ":::" + UT.O2S(bc.Y);
                 if (!xygooddict.ContainsKey(key))
@@ -300,7 +300,7 @@ namespace WXLogic
             var xydict = new Dictionary<string, string>();
             var sampledict = new Dictionary<string, string>();
             var maxtimes = samplesize * 100;
-            foreach (var bc in BinArrayCoordinate)
+            foreach (var bc in GoodBinArrayCoordinate)
             {
                 xlist.Add(bc.X);
                 ylist.Add(bc.Y);
@@ -480,7 +480,7 @@ namespace WXLogic
             return ret;
         }
 
-        private static List<SixIMapData> GetBinArrayCoordinate(int arraysize, string wafer)
+        private static List<SixIMapData> GetGoodBinArrayCoordinate(int arraysize, string wafer)
         {
             var ret = new List<SixIMapData>();
 
@@ -578,7 +578,7 @@ namespace WXLogic
         public SixIMapFile()
         {
             BaseArrayCoordinate = new List<SixIMapData>();
-            BinArrayCoordinate = new List<SixIMapData>();
+            GoodBinArrayCoordinate = new List<SixIMapData>();
             ArraySize = 1;
             ProdFam = "";
             DieOne = new SixIMapData();
@@ -588,7 +588,7 @@ namespace WXLogic
         }
 
         public List<SixIMapData> BaseArrayCoordinate { set; get; }
-        public List<SixIMapData> BinArrayCoordinate { set; get; }
+        public List<SixIMapData> GoodBinArrayCoordinate { set; get; }
         public int ArraySize { set; get; }
         public string ProdFam { set; get; }
         public SixIMapData DieOne { set; get; }

@@ -529,8 +529,7 @@ namespace WAT.Models
         {
             if (wafer.Length == 13)
             {
-                var mapfile = SixInchMapFileData.LoadMapFileData(wafer);
-                var singlexy = mapfile.GetBaseSingleCoordinate();
+                var singlexy = SixInchMapFileData.GetBaseSingleCoordinate(wafer);
                 var ret = new Dictionary<string, bool>();
                 foreach (var bc in singlexy)
                 {

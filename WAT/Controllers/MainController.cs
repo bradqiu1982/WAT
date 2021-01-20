@@ -621,7 +621,7 @@ namespace WAT.Controllers
             if (ocrdata.Count == 0)
             { MSG = "No OCR coordinate data!"; }
 
-            var bindict = Models.WXProbeData.GetBinDictByWafer(wafer, ocrdata);
+            var bindict = Models.WXProbeData.GetBinDictByWafer(wafer);
 
             //MSG = DieSortVM.GetAllBinFromMapFile(wafer,bindict, this);
             if (bindict.Count == 0)
@@ -1095,10 +1095,112 @@ namespace WAT.Controllers
         public JsonResult IIVIBinData()
         {
             var gh = Request.Form["gh"];
-            var wafernum = Request.Form["wafernum"];
+            var wafernum = Request.Form["wafernum"].Trim();
             var marks = Request.Form["marks"];
-            List<string> allwflist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            List<string> allxylist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
 
+            if (wafernum.Length == 13)
+            {
+                return sixinchbincheck_(wafernum, allxylist, gh);
+            }
+            else
+            {
+                return iivibincheck_(wafernum, allxylist, gh);
+            }
+        }
+
+        private JsonResult sixinchbincheck_(string wafernum, List<string> allxylist, string gh)
+        {
+            var wfdatalist = new List<object>();
+            var MSG = "";
+
+            var xydict = SixInchMapFileData.GetBinDict(wafernum);
+            if (xydict.Count == 0)
+            {
+                MSG = "没有对应的WAFER BIN 信息!";
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    wfdatalist = wfdatalist,
+                    MSG = MSG
+                };
+                return ret1;
+            }
+
+            var loglist = new List<WebLog>();
+
+            foreach (var xy in allxylist)
+            {
+                var xystr = xy.Trim().Split(new string[] { ",", " ", "\t" }, StringSplitOptions.RemoveEmptyEntries);
+                if (xystr.Length == 2)
+                {
+                    var x = Models.UT.O2I(xystr[0]).ToString();
+                    var y = Models.UT.O2I(xystr[1]).ToString();
+                    var k = x + ":::" + y;
+                    if (xydict.ContainsKey(k))
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wafernum,
+                            x = x,
+                            y = y,
+                            bin = xydict[k]
+                        });
+
+                        var tempvm = new WebLog();
+                        tempvm.IIVIWafer = wafernum;
+                        tempvm.Name = gh;
+                        tempvm.MSG = k + ",bin "+ xydict[k];
+                        loglist.Add(tempvm);
+                    }
+                    else
+                    {
+                        wfdatalist.Add(new
+                        {
+                            wf = wafernum,
+                            x = x,
+                            y = y,
+                            bin = "no bin"
+                        });
+
+                        var tempvm = new WebLog();
+                        tempvm.IIVIWafer = wafernum;
+                        tempvm.Name = gh;
+                        tempvm.MSG = k + ", no bin";
+                        loglist.Add(tempvm);
+                    }
+                }//end if
+            }
+
+            if (wfdatalist.Count == 0)
+            {
+                MSG = "坐标输入格式有误!";
+                var ret1 = new JsonResult();
+                ret1.MaxJsonLength = Int32.MaxValue;
+                ret1.Data = new
+                {
+                    wfdatalist = wfdatalist,
+                    MSG = MSG
+                };
+                return ret1;
+            }
+
+            foreach (var item in loglist)
+            { WebLog.LogIIVIQuery(item.IIVIWafer, item.Name, item.MSG); }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                wfdatalist = wfdatalist,
+                MSG = MSG
+            };
+            return ret;
+        }
+
+        private JsonResult iivibincheck_(string wafernum, List<string> allxylist, string gh)
+        {
             var wfdatalist = new List<object>();
             var MSG = "";
 
@@ -1118,14 +1220,14 @@ namespace WAT.Controllers
 
             var loglist = new List<WebLog>();
 
-            foreach (var xy in allwflist)
+            foreach (var xy in allxylist)
             {
-                var xystr = xy.Trim().Split(new string[] { ",", " ","\t" }, StringSplitOptions.RemoveEmptyEntries);
+                var xystr = xy.Trim().Split(new string[] { ",", " ", "\t" }, StringSplitOptions.RemoveEmptyEntries);
                 if (xystr.Length == 2)
                 {
                     var x = Models.UT.O2I(xystr[0]).ToString();
                     var y = Models.UT.O2I(xystr[1]).ToString();
-                    var k =  x+ ":::" +y ;
+                    var k = x + ":::" + y;
                     if (xydict.ContainsKey(k))
                     {
                         wfdatalist.Add(new
@@ -1187,9 +1289,10 @@ namespace WAT.Controllers
             return ret;
         }
 
+
         public JsonResult IIVIBinHistory()
         {
-            var wafernum = Request.Form["wf"];
+            var wafernum = Request.Form["wf"].Trim();
             var wfdatalist = WebLog.GetIIVIQuery(wafernum);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;

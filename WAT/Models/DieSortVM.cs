@@ -564,7 +564,7 @@ namespace WAT.Models
                 var fpn = "";
                 var product = "";
 
-                if (smapfile.BinArrayCoordinate.Count == 0)
+                if (smapfile.GoodBinArrayCoordinate.Count == 0)
                 {
                     if (!WebLog.CheckEmailRecord(wafer, "EM-PASSBIN"))
                     {
@@ -606,7 +606,7 @@ namespace WAT.Models
                 foreach (var s in selectxydict)
                 { allselectdict.Add(s.Key, s.Value); }
                 var passedbinxydict = new Dictionary<string, string>();
-                foreach (var bc in smapfile.BinArrayCoordinate)
+                foreach (var bc in smapfile.GoodBinArrayCoordinate)
                 {
                     var key = UT.O2S(bc.X) + ":::" + UT.O2S(bc.Y);
                     if (!passedbinxydict.ContainsKey(key))

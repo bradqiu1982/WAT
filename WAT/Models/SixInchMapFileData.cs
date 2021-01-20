@@ -64,48 +64,40 @@ namespace WAT.Models
                 ret.DieOneMin.Y = ret.DieOne.Y;
             }
 
-            ret.BinArrayCoordinate = GetBinArrayCoordinate(ret.ArraySize, wafer);
+            ret.GetBinArrayCoordinate(ret.ArraySize, wafer);
             ret.Wafer = wafer;
 
             return ret;
         }
 
-        public List<SixInchMapData> GetBaseSingleCoordinate()
+        //for wafer distribution
+        public static List<SixInchMapData> GetBaseSingleCoordinate(string wafer)
         {
+            var mapfile = SixInchMapFileData.LoadMapFileData(wafer);
             var ret = new List<SixInchMapData>();
-            if (BaseArrayCoordinate.Count > 0)
+            if (mapfile.BaseArrayCoordinate.Count > 0)
             {
-                if (ArraySize == 1)
+                if (mapfile.ArraySize == 1)
                 {
-                    return BaseArrayCoordinate;
+                    return mapfile.BaseArrayCoordinate;
                 }
                 else
                 {
                     var axlist = new List<string>();
                     var aylist = new List<string>();
-                    foreach (var bc in BaseArrayCoordinate)
+                    foreach (var bc in mapfile.BaseArrayCoordinate)
                     {
                         axlist.Add(bc.X.ToString());
                         aylist.Add(bc.Y.ToString());
-                        //var x = Get_First_Singlet_From_Array_Coord(DieOne.X, DieOneMin.X, bc.X, ArraySize);
-                        //for(var die = 0; die < ArraySize; die++)
-                        //{
-                        //    var tempvm = new SixInchMapData();
-                        //    tempvm.X = x + die;
-                        //    tempvm.Y = bc.Y;
-                        //    tempvm.Bin = bc.Bin;
-                        //    tempvm.BinName = bc.BinName;
-                        //    ret.Add(tempvm);
-                        //}
                     }//end foreach
 
-                    var xylist = SixInchArray2SingletCoord(ProdFam, axlist, aylist);
+                    var xylist = SixInchArray2SingletCoord(mapfile.ProdFam, axlist, aylist);
                     var xlist = xylist[0];
                     var ylist = xylist[1];
                     var idx = 0;
-                    foreach (var bc in BaseArrayCoordinate)
+                    foreach (var bc in mapfile.BaseArrayCoordinate)
                     {
-                        for (var die = 0; die < ArraySize; die++)
+                        for (var die = 0; die < mapfile.ArraySize; die++)
                         {
                             var tempvm = new SixInchMapData();
                             tempvm.X = xlist[idx] + die;
@@ -121,13 +113,66 @@ namespace WAT.Models
             return ret;
         }
 
+
+        //for bin check
+        public static Dictionary<string, string> GetBinDict(string wafer)
+        {
+            var mapfile = SixInchMapFileData.LoadMapFileData(wafer);
+
+            var singlexy = new List<SixInchMapData>();
+            if (mapfile.AllBinArrayCoordinate.Count > 0)
+            {
+                if (mapfile.ArraySize == 1)
+                {
+                    singlexy = mapfile.AllBinArrayCoordinate;
+                }
+                else
+                {
+                    var axlist = new List<string>();
+                    var aylist = new List<string>();
+                    foreach (var bc in mapfile.AllBinArrayCoordinate)
+                    {
+                        axlist.Add(bc.X.ToString());
+                        aylist.Add(bc.Y.ToString());
+                    }//end foreach
+
+                    var xylist = SixInchArray2SingletCoord(mapfile.ProdFam, axlist, aylist);
+                    var xlist = xylist[0];
+                    var ylist = xylist[1];
+                    var idx = 0;
+                    foreach (var bc in mapfile.AllBinArrayCoordinate)
+                    {
+                        for (var die = 0; die < mapfile.ArraySize; die++)
+                        {
+                            var tempvm = new SixInchMapData();
+                            tempvm.X = xlist[idx] + die;
+                            tempvm.Y = bc.Y;
+                            tempvm.Bin = bc.Bin;
+                            tempvm.BinName = bc.BinName;
+                            singlexy.Add(tempvm);
+                        }
+                        idx++;
+                    }
+                }
+            }
+
+            var ret = new Dictionary<string, string>();
+            foreach (var bc in singlexy)
+            {
+                var k = bc.X + ":::" + bc.Y;
+                if (!ret.ContainsKey(k))
+                { ret.Add(k, bc.Bin); }
+            }
+            return ret;
+        }
+
         public bool GenerateMapFile(Dictionary<string,string> sampledict,string reviewfile,string diesortnewfile)
         {
             var ret = true;
 
             var xygooddict = new Dictionary<string, SixInchMapData>();
             var goodbincount = new Dictionary<string, int>();
-            foreach (var bc in BinArrayCoordinate)
+            foreach (var bc in GoodBinArrayCoordinate)
             {
                 var key = UT.O2S(bc.X) + ":::" + UT.O2S(bc.Y);
                 if (!xygooddict.ContainsKey(key)) {
@@ -277,7 +322,7 @@ namespace WAT.Models
 
             try
             {
-                var gdbcnt = BinArrayCoordinate.Count;
+                var gdbcnt = GoodBinArrayCoordinate.Count;
                 var allcnt = BaseArrayCoordinate.Count;
                 var yield = Math.Round(((double)gdbcnt/(double)allcnt) * 100.0, 2).ToString();
                 DieSortVM.CleanWaferSrcData(Wafer);
@@ -303,7 +348,7 @@ namespace WAT.Models
             var xydict = new Dictionary<string, string>();
             var sampledict = new Dictionary<string, string>();
             var maxtimes = samplesize * 100;
-            foreach (var bc in BinArrayCoordinate)
+            foreach (var bc in GoodBinArrayCoordinate)
             {
                 xlist.Add(bc.X);
                 ylist.Add(bc.Y);
@@ -483,9 +528,8 @@ namespace WAT.Models
             return ret;
         }
 
-        private static List<SixInchMapData> GetBinArrayCoordinate(int arraysize, string wafer)
+        private void GetBinArrayCoordinate(int arraysize, string wafer)
         {
-            var ret = new List<SixInchMapData>();
 
             var typename = "Final Probe AVI Merge";
             if (arraysize != 1)
@@ -496,18 +540,22 @@ namespace WAT.Models
             foreach (var line in dbret)
             {
                 var binname = UT.O2S(line[22]).ToUpper();
+
+                var tempvm = new SixInchMapData();
+                tempvm.X = UT.O2I(line[19]);
+                tempvm.Y = UT.O2I(line[20]);
+                tempvm.Bin = UT.O2S(line[21]);
+                tempvm.BinName = binname;
+                tempvm.PN = UT.O2S(line[5]);
+
                 if (binname.Contains("GOOD"))
                 {
-                    var tempvm = new SixInchMapData();
-                    tempvm.X = UT.O2I(line[19]);
-                    tempvm.Y = UT.O2I(line[20]);
-                    tempvm.Bin = UT.O2S(line[21]);
-                    tempvm.BinName = binname;
-                    tempvm.PN = UT.O2S(line[5]);
-                    ret.Add(tempvm);
+                    GoodBinArrayCoordinate.Add(tempvm);
                 }
+
+                AllBinArrayCoordinate.Add(tempvm);
             }
-            return ret;
+
         }
 
         private static string GetWaferArrayInfoByPF(string productfm)
@@ -529,7 +577,8 @@ namespace WAT.Models
         public SixInchMapFileData()
         {
             BaseArrayCoordinate = new List<SixInchMapData>();
-            BinArrayCoordinate = new List<SixInchMapData>();
+            GoodBinArrayCoordinate = new List<SixInchMapData>();
+            AllBinArrayCoordinate = new List<SixInchMapData>();
             ArraySize = 1;
             ProdFam = "";
             DieOne = new SixInchMapData();
@@ -539,7 +588,8 @@ namespace WAT.Models
         }
 
         public List<SixInchMapData> BaseArrayCoordinate { set; get; }
-        public List<SixInchMapData> BinArrayCoordinate { set; get; }
+        public List<SixInchMapData> GoodBinArrayCoordinate { set; get; }
+        public List<SixInchMapData> AllBinArrayCoordinate { set; get; }
         public int ArraySize { set; get; }
         public string ProdFam { set; get; }
         public SixInchMapData DieOne { set; get; }
