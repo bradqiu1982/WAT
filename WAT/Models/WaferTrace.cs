@@ -355,13 +355,12 @@ namespace WAT.Models
             return false;
         }
 
-        public static string GetTestStatus(string wafer)
+        public static string GetTestStatus(string wafer,Dictionary<string,string> wfpassfaildict)
         {
-            var wfpassfaildict = WuxiWATData4MG.GetPassFailWaferDict();
             if (wfpassfaildict.ContainsKey(wafer))
             {
                 var stat = wfpassfaildict[wafer];
-                if (stat.Contains("PASS") || stat.Contains("SCRAP"))
+                if (stat.Contains("PASS") || stat.Contains("FAIL"))
                 { return stat; }
             }
             return "TESTING";
@@ -461,11 +460,13 @@ namespace WAT.Models
                 wflist.Add(UT.O2S(line[0]));
             }
 
+            var wfpassfaildict = WuxiWATData4MG.GetPassFailWaferDict();
+
             foreach (var wf in wflist)
             {
                 if (CheckTesting(wf))
                 {
-                    var stat = GetTestStatus(wf);
+                    var stat = GetTestStatus(wf,wfpassfaildict);
                     UpdateTestStatus(wf, stat);
                 }
             }

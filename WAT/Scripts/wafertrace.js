@@ -124,9 +124,14 @@
                             '<td>' + val.TraceID + '</td>' +
                             '<td>' + val.DeliverStatus + '</td>' +
                             '<td>' + val.ArriveDate + '</td>' +
-                            '<td>' + val.Assemblyed + '</td>' +
-                            '<td>' + val.TestStuatus + '</td>' +
-                            '</tr>';
+                            '<td>' + val.Assemblyed + '</td>';
+
+                    if (val.TestStuatus.indexOf('PASS') != -1 || val.TestStuatus.indexOf('FAIL') != -1)
+                    { tempstr += '<td class="' + val.TestStuatus + '">' + val.TestStuatus + '</td>'; }
+                    else
+                    { tempstr += '<td>' + val.TestStuatus + '</td>'; }
+
+                    tempstr += '</tr>';
                     $("#watdatacontent").append(tempstr);
                 });
 

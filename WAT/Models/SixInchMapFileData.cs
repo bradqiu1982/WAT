@@ -530,13 +530,19 @@ namespace WAT.Models
 
         private void GetBinArrayCoordinate(int arraysize, string wafer)
         {
-
-            var typename = "Final Probe AVI Merge";
-            if (arraysize != 1)
-            { typename = "Final Bins AVI Merged"; }
-
-            var sql = "SELECT * FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
+            var typename = "Wafer Final";
+            var sql = "SELECT X,Y,BIN_NUMBER,BIN_NAME FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
             var dbret = DBUtility.ExeShermanSqlWithRes(sql);
+            if (dbret.Count < 2)
+            {
+                typename = "Final Probe AVI Merge";
+                if (arraysize != 1)
+                { typename = "Final Bins AVI Merged"; }
+
+                sql = "SELECT * FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
+                dbret = DBUtility.ExeShermanSqlWithRes(sql);
+            }
+
             foreach (var line in dbret)
             {
                 var binname = UT.O2S(line[22]).ToUpper();
