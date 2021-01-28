@@ -2061,6 +2061,11 @@ namespace WAT.Models
 
             PrepareEvalPN(wafer);
 
+            
+            var arraysize = WXEvalPN.GetLocalWaferArray(wafer).Trim();
+            if (!syscfgdict.ContainsKey("IPOHE01CNT" + arraysize) || !syscfgdict.ContainsKey("IPOHE07CNT" + arraysize))
+            { return "configure file doesn't contain sample size for array 1x"+arraysize; }
+
             try
             {
                 //get modify information
@@ -2097,7 +2102,7 @@ namespace WAT.Models
                 var bin1dict = new Dictionary<string, string>();
                 var bin2dict = new Dictionary<string, string>();
                 GetIPOHSelectedXYDict(passedbinxydict, bin1dict, bin2dict
-                    , UT.O2I(syscfgdict["IPOHE01CNT"]), UT.O2I(syscfgdict["IPOHE07CNT"]));
+                    , UT.O2I(syscfgdict["IPOHE01CNT"+arraysize]), UT.O2I(syscfgdict["IPOHE07CNT"+arraysize]));
 
                 if (bin1dict.Count == 0)
                 {
