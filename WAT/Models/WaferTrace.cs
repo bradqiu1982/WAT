@@ -453,7 +453,7 @@ namespace WAT.Models
 
             //update test status
             wflist = new List<string>();
-            sql = "select distinct WaferNum from [WAT].[dbo].[WaferTrace] where TestStuatus <> 'PASS' and TestStuatus <> 'SCRAP'";
+            sql = "select distinct WaferNum from [WAT].[dbo].[WaferTrace] where UpdateTime > '"+DateTime.Now.AddMonths(-3).ToString("yyyy-MM-dd HH:mm:ss")+"'";
             dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
