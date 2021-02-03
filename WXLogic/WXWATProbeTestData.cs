@@ -34,11 +34,11 @@ namespace WXLogic
 
             foreach (var item in oringaldata)
             {
-                var key = item.X + ":" + item.Y;
-                if (ignoredict.ContainsKey(key))
+                var ikey = item.Containername.ToUpper() + ":::" + item.ChannelInfo;
+                if (ignoredict.ContainsKey(ikey))
                 { continue; }
 
-                key = item.Containername.ToUpper() + ":::" + item.ChannelInfo;
+                var key = item.X + ":" + item.Y;
                 if (ignoredict.ContainsKey(key))
                 { continue; }
 
