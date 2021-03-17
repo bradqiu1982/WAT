@@ -531,7 +531,7 @@ namespace WAT.Models
         private void GetBinArrayCoordinate(int arraysize, string wafer)
         {
             var typename = "Wafer Final";
-            var sql = "SELECT X,Y,BIN_NUMBER,BIN_NAME FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
+            var sql = "SELECT X,Y,BIN_NUMBER,BIN_NAME,PRODUCT_ID FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
             var dbret = DBUtility.ExeShermanSqlWithRes(sql);
             if (dbret.Count < 2)
             {
@@ -539,20 +539,19 @@ namespace WAT.Models
                 if (arraysize != 1)
                 { typename = "Final Bins AVI Merged"; }
 
-                sql = "SELECT * FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
+                sql = "SELECT X,Y,BIN_NUMBER,BIN_NAME,PRODUCT_ID FROM [dbo].[Get_Probe_Bins] ( '" + wafer + "' ,'" + typename + "')";
                 dbret = DBUtility.ExeShermanSqlWithRes(sql);
             }
 
             foreach (var line in dbret)
             {
-                var binname = UT.O2S(line[22]).ToUpper();
-
+                var binname = UT.O2S(line[3]).ToUpper();
                 var tempvm = new SixInchMapData();
-                tempvm.X = UT.O2I(line[19]);
-                tempvm.Y = UT.O2I(line[20]);
-                tempvm.Bin = UT.O2S(line[21]);
+                tempvm.X = UT.O2I(line[0]);
+                tempvm.Y = UT.O2I(line[1]);
+                tempvm.Bin = UT.O2S(line[2]);
                 tempvm.BinName = binname;
-                tempvm.PN = UT.O2S(line[5]);
+                tempvm.PN = UT.O2S(line[4]);
 
                 if (binname.Contains("GOOD"))
                 {
