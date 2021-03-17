@@ -148,6 +148,12 @@ namespace WAT.Controllers
 
                 try
                 {
+                    SHTOLvm.RefreshDailySHTOLData(this);
+                }
+                catch (Exception ex) { }
+
+                try
+                {
                     var onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 13:00:00");
                     var threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 15:00:00");
                     if (DateTime.Now >= onepm && DateTime.Now <= threepm)
@@ -456,6 +462,12 @@ namespace WAT.Controllers
         public ActionResult RefreshDailyOvenData()
         {
             WATOven.RefreshDailyOvenData(this);
+            return View("HeartBeat");
+        }
+
+        public ActionResult RefreshDailySHTOLData()
+        {
+            SHTOLvm.RefreshDailySHTOLData(this);
             return View("HeartBeat");
         }
 
@@ -825,9 +837,11 @@ namespace WAT.Controllers
 
             if (w4list.Count > 0)
             {
+                var famdict = Models.WXEvalPN.GetProdFamByWaferListAllen(w4list);
+
                 var wfcond = "('" + string.Join("','", w4list) + "')";
                 var sql = @" select b.wafer_id,b.prodfam,b.DS,b.[Good -50],b.[Good -51],b.[Good -52],b.[Good -53],b.[Good -54],b.[Good -55] ,b.[GOOD -56] ,b.[GOOD -57],b.[GOOD -58],b.[GOOD -59] from [Insite].[insite].[100PCT_BIN] b
-                            left join (select wafer_id,max(ds) as maxtime from [Insite].[insite].[100PCT_BIN] where wafer_id in <wfcond> group by wafer_id) c
+                            left join (select wafer_id,max(ds) as maxtime from [Insite].[insite].[100PCT_BIN] where wafer_id in <wfcond>  and ([Good -55] is not null or [Good -54] is not null) group by wafer_id) c
                              on b.wafer_id = c.wafer_id and b.DS = c.maxtime
                              where b.wafer_id in  <wfcond>
                              and c.wafer_id is not null";
@@ -835,6 +849,12 @@ namespace WAT.Controllers
                 var dbret = Models.DBUtility.ExeAllenSqlWithRes(sql);
                 foreach (var line in dbret)
                 {
+                    var w = Models.UT.O2S(line[0]);
+                    var p = Models.UT.O2S(line[1]);
+                    if (!famdict.ContainsKey(w)) { continue; }
+                    var fam = famdict[w];
+                    if (!p.Contains(fam)) { continue; }
+
                     datalist.Add(new
                     {
                         wafer = Models.UT.O2S(line[0]),

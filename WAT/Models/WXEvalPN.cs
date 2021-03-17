@@ -26,6 +26,39 @@ namespace WAT.Models
             return string.Empty;
         }
 
+        private static string GetProdFamByWaferNum(string wafernum)
+        {
+            var sql = "select Product from WAT.dbo.WXEvalPN where WaferNum = '<WaferNum>'";
+            sql = sql.Replace("<WaferNum>", wafernum);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            { return UT.O2S(line[0]); }
+
+            return "";
+        }
+
+        public static Dictionary<string, string> GetProdFamByWaferListAllen(List<string> wflist)
+        {
+            var dict = new Dictionary<string, string>();
+            foreach (var wf in wflist)
+            {
+                var fam = GetProdFamByWaferNum(wf);
+                if (!string.IsNullOrEmpty(fam) && !dict.ContainsKey(wf))
+                {
+                    dict.Add(wf, fam);
+                }
+                else if (!string.IsNullOrEmpty(fam))
+                {
+                    fam = GetProductFamilyFromAllen(wf);
+                    if (!string.IsNullOrEmpty(fam) && !dict.ContainsKey(wf))
+                    {
+                        dict.Add(wf, fam);
+                    }
+                }
+            }
+            return dict;
+        }
+
         private static void UpdateLotTypeFromAllen(string wafernum)
         {
             var sql = @"select containertype from insite.insite.container  where containername = @wafernum";

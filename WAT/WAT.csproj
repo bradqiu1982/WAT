@@ -282,6 +282,7 @@
     <Compile Include="Models\MachineUserMap.cs" />
     <Compile Include="Models\OGPSNXYVM.cs" />
     <Compile Include="Models\PassFailCoupon4Comparing.cs" />
+    <Compile Include="Models\SHTOLvm.cs" />
     <Compile Include="Models\SixInchMapFileData.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />
@@ -300,6 +301,7 @@
     <Compile Include="Models\WATSampleXY.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
+    <Compile Include="Models\WKSpan.cs" />
     <Compile Include="Models\WUXIWATBIN.cs" />
     <Compile Include="Models\WuxiWATData4MG.cs" />
     <Compile Include="Models\WUXIWATWIP.cs" />
@@ -941,6 +943,7 @@
     <None Include="TrackServiceWebReference\TrackServiceDefinitions.wsdl" />
     <Content Include="Views\Main\WaferTraceSYS.cshtml" />
     <Content Include="Views\Main\StartWATJO.cshtml" />
+    <Content Include="Views\DashBoard\SHTOLDash.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

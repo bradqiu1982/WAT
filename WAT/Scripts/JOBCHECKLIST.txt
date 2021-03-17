@@ -10,3 +10,4 @@ WATTEST:8:GOLDEN SAMPLE 测试时的温度(Temperature):TRUE
 WATTEST:9:GOLDEN SAMPLE 测试时的湿度(Moisture):TRUE
 WATTEST:10:每隔两周进行TRAY盘的ESD送样:FALSE
 WATTEST:11:每隔两个月进行测试台测试软板的更换:FALSE
+WATTEST:12:复测一定要在不同的机台上进行复测:FALSE
