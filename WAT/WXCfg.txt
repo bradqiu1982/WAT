@@ -22,7 +22,7 @@ DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
 DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
 DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
 
-SHAREFOLDERPWD:::wangle@4567890
+SHAREFOLDERPWD:::wangle@4567891
 SHAREFOLDERUSER:::brad.qiu
 SHAREFOLDERDOMIN:::chn
 

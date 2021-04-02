@@ -610,7 +610,7 @@ namespace WAT.Controllers
 
             var wf = Request.Form["wf"].Trim();
             var mapfolder = syscfg["IIVIMAPFILE"];
-            var IIVIPNs = syscfg["IIVIPDPN"].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            var IIVIPNs = syscfg["IIVIPDPN"].Split(new string[] { ",",";" }, StringSplitOptions.RemoveEmptyEntries);
             var IIVIPNDict = new Dictionary<string, string>();
             foreach (var ip in IIVIPNs)
             {

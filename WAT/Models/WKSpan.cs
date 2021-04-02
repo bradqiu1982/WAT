@@ -71,7 +71,7 @@ namespace WAT.Models
             var sdate = DateTime.Parse(DateTime.Parse(startdate).ToString("yyyy-MM-dd") + " 00:00:00");
             if (sdate.DayOfWeek < DayOfWeek.Monday)
             {
-                sdate = sdate.AddDays(4 - (int)sdate.DayOfWeek);
+                sdate = sdate.AddDays(1 - (int)sdate.DayOfWeek);
                 return DateTime.Parse(sdate.ToString("yyyy-MM-dd") + " 00:00:00");
             }
             else if (sdate.DayOfWeek == DayOfWeek.Monday)
@@ -80,7 +80,7 @@ namespace WAT.Models
             }
             else
             {
-                sdate = sdate.AddDays(11 - (int)sdate.DayOfWeek);
+                sdate = sdate.AddDays(8 - (int)sdate.DayOfWeek);
                 return DateTime.Parse(sdate.ToString("yyyy-MM-dd") + " 00:00:00");
             }
         }

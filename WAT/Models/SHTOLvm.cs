@@ -104,9 +104,7 @@ namespace WAT.Models
         {
             var ret = new Dictionary<string, int>();
             var sql = "select product,Count(sn) from ( select distinct product,sn from [Insite].[dbo].[SHTOLvm] "
-                       +" where load_time > '"+ starttime + "' and load_time < '"+ endtime + "' and sn in "
-                        +" (select distinct sn from [Insite].[dbo].[SHTOLvm] where load_time > '"+ starttime  + "' and  load_time < '"+ endtime 
-                        + "' and (Stat = 'Done' or Stat = 'PAUSE')) ) as a group by product ";
+                       +" where load_time > '"+ starttime + "' and load_time < '"+ endtime + "' and (Stat = 'Done' or Stat = 'PAUSE')) as a group by product ";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {

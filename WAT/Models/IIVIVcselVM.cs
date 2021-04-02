@@ -128,7 +128,10 @@ namespace WAT.Models
             { return "PD MAP FILE HAS NO DATA!"; }
 
             var coords = coordlines[1].Trim().Split(new string[] { "_", " " }, StringSplitOptions.RemoveEmptyEntries);
-            var arraysize = UT.O2I(coords[2]) - UT.O2I(coords[0]) + 1;
+
+            var arraysize = 1;
+            if (coords.Length > 2)
+            { arraysize = UT.O2I(coords[2]) - UT.O2I(coords[0]) + 1; }
 
             var idx = 0;
             foreach (var line in coordlines)
@@ -165,12 +168,16 @@ namespace WAT.Models
 
                     DieSortVM.StoreWaferSrcData(wf, wf, "1", goodbinxylist.Count.ToString(), "Pass", "GOOD", "true", "100", pn, "");
 
-                    var arraysize = 0;
+                    StoreIIVICoord(wf, "", "", 0, "", true);
+
+                    var arraysize = 1;
                     var bidx = 1;
                     foreach (var gb in goodbinxylist)
                     {
                         var coords = coordlines[bidx].Trim().Split(new string[] { "_", " " }, StringSplitOptions.RemoveEmptyEntries);
-                        arraysize = UT.O2I(coords[2]) - UT.O2I(coords[0]) + 1;
+
+                        if (coords.Length > 2)
+                        { arraysize = UT.O2I(coords[2]) - UT.O2I(coords[0]) + 1; }
                         var coordstr = coords[0] + ":::" + coords[1];
 
                         var sampled = "";
@@ -179,7 +186,7 @@ namespace WAT.Models
                             sampled = "TRUE";
                             StoreIIVISampleData(wf, wf, coords[0], coords[3], arraysize, pn);
                         }
-                        StoreIIVICoord(wf, gb, coordstr, arraysize, sampled, dataexist);
+                        StoreIIVICoord(wf, gb, coordstr, arraysize, sampled, false);
                         bidx++;
                     }
 
@@ -227,14 +234,19 @@ namespace WAT.Models
             { return false; }
         }
 
-        private static void StoreIIVICoord(string wf,string colrow,string xy,int arraysize,string sampled,bool dataexist)
+        private static void StoreIIVICoord(string wf,string colrow,string xy,int arraysize,string sampled,bool delete)
         {
-            if (dataexist)
+            if (delete)
             {
-                var sql = "update [WAT].[dbo].[IIVICoord] set Sampled =@Sampled  where Wafer = @Wafer";
+                //var sql = "update [WAT].[dbo].[IIVICoord] set Sampled =@Sampled  where Wafer = @Wafer";
+                //var dict = new Dictionary<string, string>();
+                //dict.Add("@Wafer", wf);
+                //dict.Add("@Sampled", sampled);
+                //DBUtility.ExeLocalSqlNoRes(sql, dict);
+
+                var sql = "delete from [WAT].[dbo].[IIVICoord] where Wafer = @Wafer";
                 var dict = new Dictionary<string, string>();
                 dict.Add("@Wafer", wf);
-                dict.Add("@Sampled", sampled);
                 DBUtility.ExeLocalSqlNoRes(sql, dict);
             }
             else
