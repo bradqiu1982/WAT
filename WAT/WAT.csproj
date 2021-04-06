@@ -282,6 +282,7 @@
     <Compile Include="Models\MachineUserMap.cs" />
     <Compile Include="Models\OGPSNXYVM.cs" />
     <Compile Include="Models\PassFailCoupon4Comparing.cs" />
+    <Compile Include="Models\SHTOLAnalyzer.cs" />
     <Compile Include="Models\SHTOLvm.cs" />
     <Compile Include="Models\SixInchMapFileData.cs" />
     <Compile Include="Models\UT.cs" />

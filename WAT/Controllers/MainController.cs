@@ -471,6 +471,12 @@ namespace WAT.Controllers
             return View("HeartBeat");
         }
 
+        public ActionResult RefreshDailySHTOLAnalyze()
+        {
+            SHTOLAnalyzer.AnalyzeData(this, "2021-03-31 00:00:00", "2021-04-01 00:00:00");
+            return View("HeartBeat");
+        }
+
         public ActionResult Welcome(string url)
         {
             ViewBag.url = url;

@@ -577,7 +577,7 @@ CREATE TABLE [dbo].[WaferTrace] (
 );
 
 
-CREATE TABLE [dbo].[SHTOLvm] (
+CREATE TABLE [Insite].[dbo].[SHTOLvm] (
 	[SN]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[Product]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[Stat]   NVARCHAR (200) DEFAULT ('') NOT NULL,
@@ -592,3 +592,30 @@ CREATE TABLE [dbo].[SHTOLvm] (
 	[Appv_3]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 );
 
+
+CREATE TABLE [Insite].[dbo].[SHTOLAnalyzer](
+	[SN]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Product]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[DataField]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[MXVal]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[MNVal]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Reason]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[CreateTime]	DATETIME  DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+	[FinishTime]	DATETIME  DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
+);
+
+create index snidx on [Insite].[dbo].[SHTOLAnalyzer]([SN])
+create index fidx on [Insite].[dbo].[SHTOLAnalyzer]([FinishTime])
+create index pidx on [Insite].[dbo].[SHTOLAnalyzer]([Product])
+
+
+CREATE TABLE [Insite].[dbo].[SHTOLAnalyzed](
+	[SN]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[FinishTime]	DATETIME  DEFAULT ('1982-05-06 10:00:00') NOT NULL,
+	[AppVal1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[AppVal3]   NVARCHAR (200) DEFAULT ('') NOT NULL
+);
