@@ -232,6 +232,25 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<double> GetSNTemp(string sn)
+        {
+            var ret = new List<double>();
+            var dict = new Dictionary<string, string>();
+            dict.Add("@sn", sn);
+            dict.Add("@field", "TEMPERATURE");
+            var sql = "SELECT [Val] FROM [Insite].[dbo].[SHTOLvm] where sn = @sn and ValName = @field and ISNUMERIC(val) =1  order by Load_Time asc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            var datalist = new List<double>();
+            var idx = 0;
+            foreach (var line in dbret)
+            {
+                if (idx < 10) { idx++; continue; }
+                ret.Add(UT.O2D(line[0]));
+            }
+            return ret;
+        }
+
+
         public SHTOLAnalyzer()
         {
             SN = "";

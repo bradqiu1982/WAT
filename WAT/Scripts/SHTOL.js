@@ -358,7 +358,8 @@
             var options = {
                 chart: {
                     zoomType: 'xy',
-                    type: 'line'
+                    type: 'line',
+                    alignTicks: false
                 },
                 title: {
                     text: col_data.title
@@ -369,11 +370,21 @@
                 legend: {
                     enabled: true,
                 },
-                yAxis: {
+                yAxis: [{
                     title: {
                         text: 'DBm'
                     }
-                },
+                }, { // Secondary yAxis
+                    labels: {
+                        format: '{value}°C',
+                    },
+                    title: {
+                    text: 'Temperature'
+                  },
+                  opposite: true,
+                  min: 60,
+                  max: 80
+                }],
                 tooltip: {
                     headerFormat: '',
                     pointFormatter: function () {

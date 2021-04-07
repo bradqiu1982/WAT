@@ -180,6 +180,14 @@ namespace WAT.Controllers
                 });
             }
 
+            var tplist = SHTOLAnalyzer.GetSNTemp(sn);
+            slist.Add(new {
+                name = "TEMP",
+                data = tplist,
+                yAxis = 1,
+                visible = false
+            });
+
             var dtlist = new List<string>();
             for (var idx = 0;idx < maxpoint;idx++)
             { dtlist.Add(idx.ToString()); }
