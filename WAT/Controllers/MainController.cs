@@ -170,7 +170,26 @@ namespace WAT.Controllers
                 }
                 catch (Exception ex) { }
 
-                
+                try
+                {
+                    var startdate = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+                    var enddate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + " 00:00:00";
+
+                    var onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 9:00:00");
+                    var threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 11:00:00");
+                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
+                    { SHTOLAnalyzer.AnalyzeData(this,startdate,enddate); }
+                    onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 14:00:00");
+                    threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 16:00:00");
+                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
+                    { SHTOLAnalyzer.AnalyzeData(this, startdate, enddate); }
+                    onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 20:00:00");
+                    threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 23:00:00");
+                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
+                    { SHTOLAnalyzer.AnalyzeData(this, startdate, enddate); }
+                }
+                catch (Exception ex) { }
+
                 //heartbeatlog("WaferQUALVM.LoadWUXIWaferQUAL");
                 //try
                 //{
@@ -473,7 +492,11 @@ namespace WAT.Controllers
 
         public ActionResult RefreshDailySHTOLAnalyze()
         {
-            SHTOLAnalyzer.AnalyzeData(this, "2021-03-31 00:00:00", "2021-04-01 00:00:00");
+            var startdate = WAT.Models.UT.O2T("2021-04-06 00:00:00");
+            for (var idx = 0; idx < 1; idx++) {
+                SHTOLAnalyzer.AnalyzeData(this, startdate.ToString("yyyy-MM-dd HH:mm:ss"), startdate.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss"));
+                startdate = startdate.AddDays(1);
+            }
             return View("HeartBeat");
         }
 

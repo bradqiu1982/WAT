@@ -102,7 +102,8 @@
                     watdatatable.destroy();
                     watdatatable = null;
                 }
-                
+                $("#watdatacontent").empty();
+
                 $.each(output.wafertracelist, function (i, val) {
                     var tempstr = '';
 

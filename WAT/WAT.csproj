@@ -233,6 +233,7 @@
     <Compile Include="Controllers\DieSortController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\MGTLController.cs" />
+    <Compile Include="Controllers\SHTOLController.cs" />
     <Compile Include="Controllers\WaferController.cs" />
     <Compile Include="Controllers\WATLogicController.cs" />
     <Compile Include="Global.asax.cs">
@@ -796,6 +797,7 @@
     <Content Include="Scripts\JobCheckList.js" />
     <Content Include="Scripts\JOBCHECKLIST.txt" />
     <Content Include="Scripts\mapfilewithocr.js" />
+    <Content Include="Scripts\SHTOL.js" />
     <Content Include="Scripts\wafertrace.js" />
     <Content Include="Scripts\watchdog.js" />
     <Content Include="Scripts\WATDataPrepare.js" />
@@ -944,7 +946,9 @@
     <None Include="TrackServiceWebReference\TrackServiceDefinitions.wsdl" />
     <Content Include="Views\Main\WaferTraceSYS.cshtml" />
     <Content Include="Views\Main\StartWATJO.cshtml" />
-    <Content Include="Views\DashBoard\SHTOLDash.cshtml" />
+    <Content Include="Views\SHTOL\SHTOLDash.cshtml" />
+    <Content Include="Views\SHTOL\SHTOLStatus.cshtml" />
+    <Content Include="Views\SHTOL\SHTOLAnalyze.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

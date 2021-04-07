@@ -1,0 +1,65 @@
+﻿
+@{
+    ViewBag.Title = "SHTOLAnalyze";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/SHTOL.js"></script>
+<script type="text/javascript">
+        $(function(){
+            SHTOL.SHTOLAnalyze();
+        })
+</script>
+
+<style type="text/css">
+    th.dt-center, td.dt-center {
+        text-align: center;
+        font-size: 10px !important;
+    }
+
+
+    highcharts-root {
+        border-width: 1px;
+        border-style: solid;
+        border-width: 1px;
+    }
+
+    .v-box {
+        height: 400px;
+        align-items: center;
+        /*border: 1px solid #888;*/
+    }
+
+    .v-lengend {
+        padding-left: 5%;
+    }
+
+    .highcharts-container {
+        border-width: 1px;
+        border-style: solid;
+        border-color: #aaa;
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="row" style="margin-top:10px;">
+    <div class="col-xs-12">
+        <div class="v-container">
+            <div class="v-filter">
+                <div class="row row-margin">
+                    <label class="col-xs-2">Module SN</label>
+                    <div class="col-xs-3">
+                        <input  class="form-control" type="text" id="sn" name="sn" value="@(ViewBag.SN)">
+                    </div>
+                    <div class="col-xs-1 box-search">
+                        <input type="button" class="btn btn-success" name="btn-search" id="btn-search" value="Search">
+                    </div>
+                </div>
+            </div>
+            <div class="v-content" id="v-content1">
+            </div>
+        </div>
+    </div>
+</div>
+

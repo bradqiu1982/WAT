@@ -26,13 +26,14 @@ namespace WAT.Models
                     var mxmn = GetMaxMinDataVal(sn, field);
                     var mx = mxmn[0];
                     var mn = mxmn[1];
+                    var ag = mxmn[2];
 
                     if (mx == -40) { continue; }
 
                     var reason = "";
                     if (Math.Abs(mx - mn) > 0.5)
-                    { reason = "DELTA"; }
-                    if (mx > 3 || mn > 3 || mx < -3 || mn < -3)
+                    { reason = "DELTA,AVG "+Math.Round(ag,3).ToString(); }
+                    else if (mx > 3 || mn > 3 || mx < -3 || mn < -3)
                     { reason = "ABS"; }
 
                     if (!string.IsNullOrEmpty(reason))
@@ -97,8 +98,8 @@ namespace WAT.Models
         public static List<double> GetMaxMinDataVal(string sn, string valname)
         {
             var ret = new List<double>();
-            var sql = @"select max(va) mx,min(va) mn from ( select CONVERT(float,val) as va,row_number() Over(order by Load_Time asc) as rw 
-                 from [Insite].[dbo].[SHTOLvm] where sn = @sn and ValName = @valname and Val is not null ) as subq where rw > 10";
+            var sql = @"select max(va) mx,min(va) mn,avg(va) ag  from ( select CONVERT(float,val) as va,row_number() Over(order by Load_Time asc) as rw 
+                 from [Insite].[dbo].[SHTOLvm] where sn = @sn and ValName = @valname and Val is not null and Stat <> 'PAUSE' ) as subq where rw > 10";
             var dict = new Dictionary<string, string>();
             dict.Add("@sn", sn);
             dict.Add("@valname", valname);
@@ -107,6 +108,7 @@ namespace WAT.Models
             {
                 ret.Add(UT.O2D(line[0]));
                 ret.Add(UT.O2D(line[1]));
+                ret.Add(UT.O2D(line[2]));
             }
             return ret;
         }
@@ -177,6 +179,59 @@ namespace WAT.Models
             return ret;
         }
 
+        public static List<SHTOLAnalyzer> LoadAllSHTOLStat()
+        {
+            var ret = new List<SHTOLAnalyzer>();
+            var sql = "SELECT top 2000 [SN],[Product],[DataField],[MXVal],[MNVal],[Reason],[FinishTime],[AppVal1] FROM [Insite].[dbo].[SHTOLAnalyzer] order by FinishTime desc,SN";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var tempvm = new SHTOLAnalyzer();
+                tempvm.SN = UT.O2S(line[0]);
+                tempvm.Product = UT.O2S(line[1]);
+                tempvm.DataField = UT.O2S(line[2]);
+                tempvm.MXVal = UT.O2D(line[3]);
+                tempvm.MNVal = UT.O2D(line[4]);
+                tempvm.Reason = UT.O2S(line[5]);
+                tempvm.FinishTime = UT.T2S(line[6]);
+                tempvm.CFM = UT.O2S(line[7]);
+                ret.Add(tempvm);
+            }
+            return ret;
+        }
+
+        public static void UpdateSHTOLJudgement(string sn, string stat)
+        {
+            var dict = new Dictionary<string, string>();
+            dict.Add("@SN", sn);
+            dict.Add("@STAT", stat);
+            var sql = "update [Insite].[dbo].[SHTOLAnalyzer] set AppVal1 = @STAT where SN = @SN";
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
+        public static Dictionary<string, List<double>> GetSNPWRData(string sn)
+        {
+            var ret = new Dictionary<string, List<double>>();
+            var fieldlist = GetSNRxFields(sn);
+            foreach (var field in fieldlist)
+            {
+                var dict = new Dictionary<string, string>();
+                dict.Add("@sn", sn);
+                dict.Add("@field", field);
+                var sql = "SELECT [Val] FROM [Insite].[dbo].[SHTOLvm] where sn = @sn and ValName = @field and ISNUMERIC(val) =1  order by Load_Time asc";
+                var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+                var datalist = new List<double>();
+                var idx = 0;
+                foreach (var line in dbret)
+                {
+                    if (idx < 10) { idx++; continue; }
+                    datalist.Add(UT.O2D(line[0]));
+                }
+                ret.Add(field, datalist);
+            }
+            return ret;
+        }
+
         public SHTOLAnalyzer()
         {
             SN = "";
@@ -187,6 +242,7 @@ namespace WAT.Models
             Reason = "";
             CreateTime = "1982-05-06 10:30:00";
             FinishTime = "1982-05-06 10:30:00";
+            CFM = "";
         }
 
 
@@ -198,5 +254,6 @@ namespace WAT.Models
         public string Reason { set; get; }
         public string CreateTime { set; get; }
         public string FinishTime { set; get; }
+        public string CFM { set; get; }
     }
 }

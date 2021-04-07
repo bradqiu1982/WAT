@@ -102,9 +102,6 @@
                                     <li>
                                         @Html.ActionLink("OCR Bin Check", "BinCheckWithOCR", "Main")
                                     </li>
-                                    <li>
-                                        @Html.ActionLink("SHTOL Dash", "SHTOLDash", "DashBoard")
-                                    </li>
                                 </ul>
                             </li>
                             <li class="dropdown">
@@ -217,6 +214,20 @@
                                     </li>
                                     <li>
                                         @Html.ActionLink("WUXI WAT BIN QTY", "WuxiBinInfo", "Main")
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">SHTOL<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        @Html.ActionLink("SHTOL Dash", "SHTOLDash", "SHTOL")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("SHTOL Status", "SHTOLStatus", "SHTOL")
+                                    </li>
+                                    <li>
+                                        @Html.ActionLink("SHTOL Analyze", "SHTOLAnalyze", "SHTOL")
                                     </li>
                                 </ul>
                             </li>
