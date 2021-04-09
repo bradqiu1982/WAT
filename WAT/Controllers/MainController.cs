@@ -142,12 +142,6 @@ namespace WAT.Controllers
 
                 try
                 {
-                    WATOven.RefreshDailyOvenData(this);
-                }
-                catch (Exception ex) { }
-
-                try
-                {
                     SHTOLvm.RefreshDailySHTOLData(this);
                 }
                 catch (Exception ex) { }
@@ -172,21 +166,15 @@ namespace WAT.Controllers
 
                 try
                 {
-                    var startdate = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
-                    var enddate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + " 00:00:00";
+                    heartbeatlog("SHTOLAnalyzer.AnalyzeData");
+                    SHTOLAnalyzer.AnalyzeData(this, "", "");
+                }
+                catch (Exception ex) { }
 
-                    var onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 9:00:00");
-                    var threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 11:00:00");
-                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
-                    { SHTOLAnalyzer.AnalyzeData(this,startdate,enddate); }
-                    onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 14:00:00");
-                    threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 16:00:00");
-                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
-                    { SHTOLAnalyzer.AnalyzeData(this, startdate, enddate); }
-                    onepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 20:00:00");
-                    threepm = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd") + " 23:00:00");
-                    if (DateTime.Now >= onepm && DateTime.Now <= threepm)
-                    { SHTOLAnalyzer.AnalyzeData(this, startdate, enddate); }
+                try
+                {
+                    heartbeatlog(" WATOven.RefreshDailyOvenData");
+                    WATOven.RefreshDailyOvenData(this);
                 }
                 catch (Exception ex) { }
 
@@ -492,11 +480,12 @@ namespace WAT.Controllers
 
         public ActionResult RefreshDailySHTOLAnalyze()
         {
-            var startdate = WAT.Models.UT.O2T("2021-04-06 00:00:00");
-            for (var idx = 0; idx < 1; idx++) {
-                SHTOLAnalyzer.AnalyzeData(this, startdate.ToString("yyyy-MM-dd HH:mm:ss"), startdate.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss"));
-                startdate = startdate.AddDays(1);
-            }
+            //var startdate = WAT.Models.UT.O2T("2021-04-07 00:00:00");
+            //for (var idx = 0; idx < 1; idx++) {
+            //    SHTOLAnalyzer.AnalyzeData(this, startdate.ToString("yyyy-MM-dd HH:mm:ss"), startdate.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss"));
+            //    startdate = startdate.AddDays(1);
+            //}
+            SHTOLAnalyzer.AnalyzeData(this, "", "");
             return View("HeartBeat");
         }
 

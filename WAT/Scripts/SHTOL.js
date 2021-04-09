@@ -241,7 +241,11 @@
             }
             $.bootstrapLoading.start(options);
 
-            $.post('/SHTOL/LoadSHTOLStatus', {}, function (output) {
+            var all = $('#all').val();
+            
+            $.post('/SHTOL/LoadSHTOLStatus', {
+                all:all
+            }, function (output) {
                 $.bootstrapLoading.end();
                 
                 if (watdatatable) {
@@ -252,8 +256,9 @@
 
                 $.each(output.shtolstatdata, function (i, val) {
                     var analyze = '<a href="/SHTOL/SHTOLAnalyze?SN=' + val.SN + '" target="_blank" >Analyze</a>';
-                    var cfm = '<input class="btn btn-success CFMBTN" type="button" sn="' + val.SN + '" value="Confirm"/>'
+                    var cfm = '<input class="btn  btn-danger CFMBTN" type="button" sn="' + val.SN + '" value="Confirm"/>'
                     var ign = '<input class="btn btn-success IGNBTN" type="button" sn="' + val.SN + '" value="Ignore"/>'
+                    var testissue = '<input class="btn btn-default TESTISSUEBTN" type="button" sn="' + val.SN + '" value="TestIssue"/>'
                     $("#shtoldata").append(
                         '<tr class="' + val.CFM + '">' +
                             '<td>' + val.SN + '</td>' +
@@ -263,10 +268,11 @@
                             '<td>' + val.MXVal + '</td>' +
                             '<td>' + val.Reason + '</td>' +
                             '<td>' + val.FinishTime + '</td>' +
+                            '<td>' + val.Tester + '</td>' +
                             '<td>' + analyze + '</td>' +
                             '<td>' + cfm + '</td>' +
                             '<td>' + ign + '</td>' +
-                            //'<td>' + val.Desc + '</td>' +
+                            '<td>' + testissue + '</td>' +
                         '</tr>'
                         );
                 });
@@ -312,6 +318,12 @@
             var sn = $(this).attr('sn');
             if (sn != '')
             { updatejudge(sn, 'IGNORE'); }
+        });
+
+        $('body').on('click', '.TESTISSUEBTN', function () {
+            var sn = $(this).attr('sn');
+            if (sn != '')
+            { updatejudge(sn, 'TESTISSUE'); }
         });
     }
 
@@ -382,8 +394,8 @@
                     text: 'Temperature'
                   },
                   opposite: true,
-                  min: 60,
-                  max: 80
+                  min: col_data.mintemp,
+                  max: col_data.maxtemp
                 }],
                 tooltip: {
                     headerFormat: '',

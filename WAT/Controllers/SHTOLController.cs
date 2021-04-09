@@ -125,12 +125,18 @@ namespace WAT.Controllers
             return ret;
         }
 
-        public ActionResult SHTOLStatus()
-        { return View(); }
+        public ActionResult SHTOLStatus(string all)
+        {
+            ViewBag.all = "";
+            if (!string.IsNullOrEmpty(all))
+            { ViewBag.all = all; }
+            return View();
+        }
 
         public JsonResult LoadSHTOLStatus()
         {
-            var shtolstatdata = SHTOLAnalyzer.LoadAllSHTOLStat();
+            var all = Request.Form["all"];
+            var shtolstatdata = SHTOLAnalyzer.LoadAllSHTOLStat(all);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
@@ -187,6 +193,8 @@ namespace WAT.Controllers
                 yAxis = 1,
                 visible = false
             });
+            var maxtemp = UT.O2I(Math.Round(tplist.Max(), 0)) + 2;
+            var mintemp = UT.O2I(Math.Round(tplist.Min(), 0)) - 2;
 
             var dtlist = new List<string>();
             for (var idx = 0;idx < maxpoint;idx++)
@@ -197,7 +205,9 @@ namespace WAT.Controllers
                 id = "shtoldist",
                 title = sn+" SHTOL POWER TREND",
                 xlist = dtlist,
-                series = slist
+                series = slist,
+                maxtemp = maxtemp,
+                mintemp = mintemp
             };
 
             var ret = new JsonResult();

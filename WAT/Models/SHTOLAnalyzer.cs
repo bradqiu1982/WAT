@@ -8,17 +8,30 @@ namespace WAT.Models
 {
     public class SHTOLAnalyzer
     {
-        public static void AnalyzeData(Controller ctrl,string startdate,string enddate)
+        public static void AnalyzeData(Controller ctrl,string startdate_,string enddate_)
         {
+            var startdate = startdate_;
+            var enddate = enddate_;
+            if (string.IsNullOrEmpty(startdate_))
+            {
+                startdate = GetLatestFinishedSNDate();
+                enddate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd") + " 00:00:00";
+            }
+
+            var registdate = UT.O2T(enddate).AddDays(-1).ToString("yyyy-MM-dd") + " 00:00:00";
+
             var analyzedsnlist = GetFinishedSNs(startdate);
+            var testissuesnlist = GetTestIssueSNs();
 
             var snlist = GetToBeAnalyzeSNs(startdate, enddate);
             foreach (var sn in snlist)
             {
-                if (analyzedsnlist.Contains(sn))
+                if (analyzedsnlist.ContainsKey(sn))
+                { continue; }
+                if (testissuesnlist.ContainsKey(sn))
                 { continue; }
 
-                AddFinishedSN(sn, startdate);
+                AddFinishedSN(sn, registdate);
 
                 var fieldlist = GetSNRxFields(sn);
                 foreach (var field in fieldlist)
@@ -128,12 +141,15 @@ namespace WAT.Models
             foreach (var line in dbret)
             { ret.CreateTime = UT.T2S(line[0]); }
 
-            sql = "select top 1 Load_Time FROM [Insite].[dbo].[SHTOLvm] where sn = @sn and Load_Time >=  @startdate and load_time < @enddate order by Load_Time desc";
+            sql = "select top 1 Load_Time,Tester FROM [Insite].[dbo].[SHTOLvm] where sn = @sn and Load_Time >=  @startdate and load_time < @enddate order by Load_Time desc";
             dict.Add("@startdate", startdate);
             dict.Add("@enddate", enddate);
             dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
-            { ret.FinishTime = UT.T2S(line[0]); }
+            {
+                ret.FinishTime = UT.T2S(line[0]);
+                ret.Tester = UT.O2S(line[1]);
+            }
 
             return ret;
         }
@@ -149,12 +165,13 @@ namespace WAT.Models
             dict.Add("@Reason", Reason);
             dict.Add("@CreateTime", CreateTime);
             dict.Add("@FinishTime", FinishTime);
+            dict.Add("@Tester", Tester);
 
             var sql = @"delete from [Insite].[dbo].[SHTOLAnalyzer] where SN=@SN and DataField=@DataField and AppVal1=''";
             DBUtility.ExeLocalSqlNoRes(sql, dict);
 
-            sql = @"insert into [Insite].[dbo].[SHTOLAnalyzer](SN,Product,DataField,MXVal,MNVal,Reason,CreateTime,FinishTime) 
-                            values(@SN,@Product,@DataField,@MXVal,@MNVal,@Reason,@CreateTime,@FinishTime)";
+            sql = @"insert into [Insite].[dbo].[SHTOLAnalyzer](SN,Product,DataField,MXVal,MNVal,Reason,CreateTime,FinishTime,AppVal2) 
+                            values(@SN,@Product,@DataField,@MXVal,@MNVal,@Reason,@CreateTime,@FinishTime,@Tester)";
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
@@ -167,22 +184,64 @@ namespace WAT.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
-        private static List<string> GetFinishedSNs(string startdate)
+        private static Dictionary<string,bool> GetFinishedSNs(string startdate)
         {
-            var ret = new List<string>();
+            var ret = new Dictionary<string, bool>();
             var dict = new Dictionary<string, string>();
             dict.Add("@startdate", startdate);
             var sql = "select distinct SN from [Insite].[dbo].[SHTOLAnalyzed] where FinishTime >= @startdate";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
             foreach (var line in dbret)
-            { ret.Add(UT.O2S(line[0])); }
+            {
+                var sn = UT.O2S(line[0]);
+                if (!ret.ContainsKey(sn))
+                { ret.Add(sn, true); }
+            }
             return ret;
         }
 
-        public static List<SHTOLAnalyzer> LoadAllSHTOLStat()
+        private static string GetLatestFinishedSNDate()
+        {
+            var ret = "";
+            var sql = "select top 1 [FinishTime] from [Insite].[dbo].[SHTOLAnalyzed] order by [FinishTime] desc";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var ftime = UT.T2S(line[0]);
+                if (string.Compare(ftime, DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00") == 0)
+                { ret = ftime; }
+                else
+                { ret = UT.T2S(UT.O2T(ftime).AddDays(1)); }
+            }
+
+            if (string.IsNullOrEmpty(ret))
+            {
+                ret = DateTime.Now.ToString("yyyy-MM-dd") + " 00:00:00";
+            }
+            return ret;
+        }
+
+        private static Dictionary<string, bool> GetTestIssueSNs()
+        {
+            var ret = new Dictionary<string, bool>();
+            var sql = "select distinct SN  FROM [Insite].[dbo].[SHTOLAnalyzer] where AppVal1 = 'TESTISSUE'";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]);
+                if (!ret.ContainsKey(sn))
+                { ret.Add(sn, true); }
+            }
+            return ret;
+        }
+
+        public static List<SHTOLAnalyzer> LoadAllSHTOLStat(string all)
         {
             var ret = new List<SHTOLAnalyzer>();
-            var sql = "SELECT top 2000 [SN],[Product],[DataField],[MXVal],[MNVal],[Reason],[FinishTime],[AppVal1] FROM [Insite].[dbo].[SHTOLAnalyzer] order by FinishTime desc,SN";
+            var sql = "SELECT top 2000 [SN],[Product],[DataField],[MXVal],[MNVal],[Reason],[FinishTime],[AppVal1],AppVal2 FROM [Insite].[dbo].[SHTOLAnalyzer] where AppVal1 <> 'TESTISSUE'  order by FinishTime desc,SN";
+            if (!string.IsNullOrEmpty(all))
+            {  sql = "SELECT [SN],[Product],[DataField],[MXVal],[MNVal],[Reason],[FinishTime],[AppVal1],AppVal2 FROM [Insite].[dbo].[SHTOLAnalyzer] order by FinishTime desc,SN"; }
+
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
@@ -195,6 +254,7 @@ namespace WAT.Models
                 tempvm.Reason = UT.O2S(line[5]);
                 tempvm.FinishTime = UT.T2S(line[6]);
                 tempvm.CFM = UT.O2S(line[7]);
+                tempvm.Tester = UT.O2S(line[8]);
                 ret.Add(tempvm);
             }
             return ret;
@@ -262,6 +322,7 @@ namespace WAT.Models
             CreateTime = "1982-05-06 10:30:00";
             FinishTime = "1982-05-06 10:30:00";
             CFM = "";
+            Tester = "";
         }
 
 
@@ -274,5 +335,6 @@ namespace WAT.Models
         public string CreateTime { set; get; }
         public string FinishTime { set; get; }
         public string CFM { set; get; }
+        public string Tester { set; get; }
     }
 }
