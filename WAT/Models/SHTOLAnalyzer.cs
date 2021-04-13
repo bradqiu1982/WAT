@@ -95,7 +95,7 @@ namespace WAT.Models
         private static List<string> GetSNRxFields(string sn)
         {
             var ret = new List<string>();
-            var sql = @"select distinct valname FROM [Insite].[dbo].[SHTOLvm] where sn = @sn  and valname like '%RX%' and ValName like '%POWER%' and (Stat = 'Done' or Stat = 'PAUSE')";
+            var sql = @"select distinct valname FROM [Insite].[dbo].[SHTOLvm] where sn = @sn  and valname like '%RX%' and ValName like '%POWER%' ";
             var dict = new Dictionary<string, string>();
             dict.Add("@sn", sn);
             var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
