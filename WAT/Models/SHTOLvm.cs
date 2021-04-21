@@ -44,7 +44,7 @@ namespace WAT.Models
             var retlist = new List<SHTOLvm>();
             var sql = @"select bu.SN,bu.[Type] as Product,bu.[State],bu.Result,bd.[Name],bd.[Value],bu.Create_Time,bd.Load_Time from [DB_BMS].[dbo].[BI_Unit] bu (nolock)
                         left join [DB_BMS].[dbo].[BI_Data] bd on bu.Data_Set_ID = bd.Data_Set_ID
-                        where bd.Load_Time > '" + starttime + "' and bd.Load_Time < '" + endtime + "' and bd.[Name] not like '%MEDIA%'";
+                        where bd.Load_Time > '" + starttime + "' and bd.Load_Time < '" + endtime + "' ";
             var dbret = DBUtility.ExeOvenSqlWithRes(tester, sql);
             foreach (var line in dbret)
             {
