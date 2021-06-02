@@ -375,7 +375,7 @@ namespace WAT.Models
                 title.Add("Wafer");title.Add("Priority"); title.Add("Product"); title.Add("PN"); title.Add("EXP-INC"); title.Add("TraceID"); title.Add("ArriveDate"); title.Add("Action");
                 var line = new List<string>();
                 line.Add(wtrace.WaferNum);line.Add(wtrace.Priority); line.Add(wtrace.Product);line.Add(wtrace.PN);line.Add(wtrace.TraceCompany); line.Add(wtrace.TraceID);line.Add(UT.O2T(wtrace.ArriveDate).ToString("yyyy-MM-dd"));
-                line.Add("<a href='http://wuxinpi.china.ads.finisar.com:9090/Main/StartWATJO?wf="+WebUtility.UrlEncode(wtrace.WaferNum)+"' target='_blank'>DONE</a>");
+                line.Add("<a href='http://wuxinpi.chn.ii-vi.net:9090/Main/StartWATJO?wf="+WebUtility.UrlEncode(wtrace.WaferNum)+"' target='_blank'>DONE</a>");
                 var cnt = new List<List<string>>();
                 cnt.Add(title);cnt.Add(line);
                 var cstr = EmailUtility.CreateTableHtml("Hi Planner", "Below are wafers which arrive in recent time, Would you mind to start JO for them?", "", cnt);

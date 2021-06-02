@@ -2,7 +2,7 @@
 
 SHAREFOLDERUSER:::brad.qiu
 SHAREFOLDERDOMIN:::chn
-SHAREFOLDERPWD:::wangle@4567891
+SHAREFOLDERPWD:::wangle@4567892
 
 APPEMAILADRESS:::WXNPI.Trace@II-VI.COM
 APPEMAILPWD:::abc@12345
@@ -14,14 +14,14 @@ EMAILSSL:::FALSE
 DIESORTWARINGLIST:::brad.qiu@II-VI.COM;tyler.zhang@II-VI.COM;mick.wang@II-VI.COM;jintao.yao@II-VI.COM;sean.huang@II-VI.COM
 
 DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
-DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
-DIESORTSHARE:::\\wux-engsys01.china.ads.finisar.com\DieSortingNew
-PDSHAREFOLDER:::\\wux-engsys01.china.ads.finisar.com\PDShareFolder
-DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
-DIESORTIPOH:::\\wux-engsys01.china.ads.finisar.com\DieSortIpoh
+DIESORTREVIEW:::\\wux-engsys01.chn.ii-vi.net\DieSortingReview
+DIESORTSHARE:::\\wux-engsys01.chn.ii-vi.net\DieSortingNew
+PDSHAREFOLDER:::\\wux-engsys01.chn.ii-vi.net\PDShareFolder
+DIESORT100PCT:::\\wux-engsys01.chn.ii-vi.net\DieSort100PCT
+DIESORTIPOH:::\\wux-engsys01.chn.ii-vi.net\DieSortIpoh
 
-IIVIMAPFILE:::\\wux-engsys01.china.ads.finisar.com\mapfile26
-IIVISAMPLEPICK:::\\wux-engsys01.china.ads.finisar.com\samplepick26
+IIVIMAPFILE:::\\wux-engsys01.chn.ii-vi.net\mapfile26
+IIVISAMPLEPICK:::\\wux-engsys01.chn.ii-vi.net\samplepick26
 
 
 DIESORTSAMPLE1X1_4INCH:::470
@@ -57,13 +57,13 @@ IIVIPDPN:::APA1201040005;APA4601010004;APA4301120006;APA1301040003
 
 
 
-WAFERQUALREPORT:::\\wux-engsys01.china.ads.finisar.com
+WAFERQUALREPORT:::\\wux-engsys01.chn.ii-vi.net
 
 FromConnect:::Server=TEX-CSSQL.texas.ads.finisar.com;User ID=jmpuser;Password=UhnWNcgHo;Database=EngrData;Connection Timeout=120;
-ToConnect:::Server=wuxinpi.china.ads.finisar.com;User ID=WATApp;Password=WATApp@123;Database=EngrData;Connection Timeout=120;
+ToConnect:::Server=wuxinpi.chn.ii-vi.net;User ID=WATApp;Password=WATApp@123;Database=EngrData;Connection Timeout=120;
 MOVETABLELIST:::[EngrData].[insite].[FinEvalJobStartInfo]
 
-OGPCONNSTR:::Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
+OGPCONNSTR:::Server=Wux-Parallel.chn.ii-vi.net;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
 
 BVR_LD_A:::0:2e-8
 PO_LD_W:::0.001:0.005

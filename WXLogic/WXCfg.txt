@@ -15,12 +15,12 @@ PRLL_POST_HTOL4_TEST:::5
 
 SHARETOALLEN:::TRUE
 
-OGPCONNSTR:::Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
+OGPCONNSTR:::Server=Wux-Parallel.chn.ii-vi.net;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;
 OGPSQLSTR:::select distinct SN,[Index],X,Y from [AIProjects].[dbo].[CouponData] where SN like '<coupongroup>%' and X <> '' and Y <> '' and X is not null and Y is not null
 
-DIESORTREVIEW:::\\wux-engsys01.china.ads.finisar.com\DieSortingReview
+DIESORTREVIEW:::\\wux-engsys01.chn.ii-vi.net\DieSortingReview
 DIESORTFOLDER:::\\shm-cifs.texas.ads.finisar.com\Department\ShermanData\AUTO_PROCESSING\Wuxi_XML
-DIESORT100PCT:::\\wux-engsys01.china.ads.finisar.com\DieSort100PCT
+DIESORT100PCT:::\\wux-engsys01.chn.ii-vi.net\DieSort100PCT
 SHAREFOLDERPWD:::wangle@4567891
 SHAREFOLDERUSER:::brad.qiu
 SHAREFOLDERDOMIN:::chn
