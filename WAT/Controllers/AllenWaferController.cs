@@ -10,7 +10,7 @@ namespace WAT.Controllers
 {
     public class AllenWaferController : ApiController
     {
-        ////http://wuxinpi.chn.ii-vi.net:9090/api/allenwafer/GetWaferArray?wafer=172015-30
+        ////http://wux-engsys01.chn.ii-vi.net:9090/api/allenwafer/GetWaferArray?wafer=172015-30
 
         [HttpGet]
         public string GetWaferArray(string WAFER)
@@ -21,7 +21,7 @@ namespace WAT.Controllers
             return WXLogic.WATSampleXY.GetArrayFromAllenSherman(WAFER.Trim());
         }
 
-        //http://wuxinpi.chn.ii-vi.net:9090/api/allenwafer/GetWaferCoordinate?wafernum=191418-20
+        //http://wux-engsys01.chn.ii-vi.net:9090/api/allenwafer/GetWaferCoordinate?wafernum=191418-20
         [HttpGet]
         public string GetWaferCoordinate(string WAFERNUM)
         {

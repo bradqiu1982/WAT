@@ -63,11 +63,11 @@ namespace WXLogic
                 //conn.ConnectionString = "Data Source = (LocalDb)\\MSSQLLocalDB; AttachDbFilename = ~\\App_Data\\Prometheus.mdf; Integrated Security = True";
                 if (IsDebug())
                 {
-                    conn.ConnectionString = "Server=wuxinpi;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
+                    conn.ConnectionString = "Server=wux-engsys01;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
                 }
                 else
                 {
-                    conn.ConnectionString = "Server=wuxinpi;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
+                    conn.ConnectionString = "Server=wux-engsys01;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
                 }
 
                 conn.Open();
@@ -859,7 +859,7 @@ namespace WXLogic
             var conn = new SqlConnection();
             try
             {
-                conn.ConnectionString = @"Server=wuxinpi;User ID=NPI;Password=NPI@NPI;Database=NPITrace;Connection Timeout=120;";
+                conn.ConnectionString = @"Server=wux-engsys01;User ID=NPI;Password=NPI@NPI;Database=NPITrace;Connection Timeout=120;";
                 conn.Open();
                 return conn;
             }
@@ -1019,7 +1019,7 @@ namespace WXLogic
             var conn = new SqlConnection();
             try
             {
-                conn.ConnectionString = @"Server=wuxinpi;User ID=NebulaNPI;Password=abc@123;Database=NebulaTrace;Connection Timeout=120;";
+                conn.ConnectionString = @"Server=wux-engsys01;User ID=NebulaNPI;Password=abc@123;Database=NebulaTrace;Connection Timeout=120;";
                 conn.Open();
                 return conn;
             }

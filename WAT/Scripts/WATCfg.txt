@@ -60,7 +60,7 @@ IIVIPDPN:::APA1201040005;APA4601010004;APA4301120006;APA1301040003
 WAFERQUALREPORT:::\\wux-engsys01.chn.ii-vi.net
 
 FromConnect:::Server=TEX-CSSQL.texas.ads.finisar.com;User ID=jmpuser;Password=UhnWNcgHo;Database=EngrData;Connection Timeout=120;
-ToConnect:::Server=wuxinpi.chn.ii-vi.net;User ID=WATApp;Password=WATApp@123;Database=EngrData;Connection Timeout=120;
+ToConnect:::Server=wux-engsys01.chn.ii-vi.net;User ID=WATApp;Password=WATApp@123;Database=EngrData;Connection Timeout=120;
 MOVETABLELIST:::[EngrData].[insite].[FinEvalJobStartInfo]
 
 OGPCONNSTR:::Server=Wux-Parallel.chn.ii-vi.net;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;

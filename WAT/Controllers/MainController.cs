@@ -155,7 +155,7 @@ namespace WAT.Controllers
                         if (!WATJobCheckVM.WATCheckDone())
                         {
                             var msg = "Todays WAT JOB CHECKING is not done:\r\n";
-                            msg += "http://wuxinpi.chn.ii-vi.net:9090/DashBoard/WATJOBCheck";
+                            msg += "http://wux-engsys01.chn.ii-vi.net:9090/DashBoard/WATJOBCheck";
                             var towho = syscfg["WATJOBCHECKLIST"].Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries).ToList();
                             EmailUtility.SendEmail(this, "WAT JOB CHECK IS NOT DONE", towho, msg);
                             new System.Threading.ManualResetEvent(false).WaitOne(500);
