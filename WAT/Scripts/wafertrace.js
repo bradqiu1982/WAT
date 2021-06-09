@@ -132,6 +132,8 @@
                     else
                     { tempstr += '<td>' + val.TestStuatus + '</td>'; }
 
+                    tempstr += '<td>' + val.ECD + '</td>';
+
                     tempstr += '</tr>';
                     $("#watdatacontent").append(tempstr);
                 });

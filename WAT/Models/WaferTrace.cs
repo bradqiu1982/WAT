@@ -254,7 +254,7 @@ namespace WAT.Models
 
             var ret = new List<WaferTrace>();
 
-            var sql = "select WaferNum,Priority,Product,PN,TraceID,TraceCompany,DeliverStatus,ArriveDate,Assemblyed,TestStuatus from  [WAT].[dbo].[WaferTrace] order by UpdateTime desc";
+            var sql = "select WaferNum,Priority,Product,PN,TraceID,TraceCompany,DeliverStatus,ArriveDate,Assemblyed,TestStuatus,Appv_6 from  [WAT].[dbo].[WaferTrace] order by UpdateTime desc";
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
@@ -271,6 +271,7 @@ namespace WAT.Models
                 tempvm.TestStuatus = UT.O2S(line[9]);
                 if (prodtype.ContainsKey(tempvm.Product))
                 { tempvm.VType = prodtype[tempvm.Product]; }
+                tempvm.ECD = UT.O2S(line[10]);
                 ret.Add(tempvm);
             }
 
@@ -345,13 +346,36 @@ namespace WAT.Models
             return false;
         }
 
+        public static void UpdateDueDate(string wafer)
+        {
+            var sql = "select min(TestTimeStamp) from [Insite].[dbo].[ProductionResult] where Containername like '<wafernum>%'";
+            sql = sql.Replace("<wafernum>", wafer.Replace("'", ""));
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            if (dbret.Count > 0)
+            {
+                var WF = wafer.ToUpper();
+                var duedate = UT.O2T(dbret[0][0]).AddHours(340).ToString("yyyy-MM-dd");
+                if (WF.Contains("E09") || WF.Contains("R09") || WF.Contains("T09"))
+                { duedate = UT.O2T(dbret[0][0]).AddHours(1080).ToString("yyyy-MM-dd"); }
+
+                sql = "update [WAT].[dbo].[WaferTrace] set Appv_6 = @duedate where WaferNum = @WaferNum and Appv_6=''";
+                var dict = new Dictionary<string, string>();
+                dict.Add("@WaferNum", wafer);
+                dict.Add("@duedate", duedate);
+                DBUtility.ExeLocalSqlNoRes(sql, dict);
+            }
+         }
+
         public static bool CheckTesting(string wafer)
         {
             var sql = "select top 1 containername from [Insite].[dbo].[ProductionResult] where Containername like '<wafernum>%'";
             sql = sql.Replace("<wafernum>", wafer.Replace("'", ""));
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             if (dbret.Count > 0)
-            { return true; }
+            {
+                UpdateDueDate(wafer);
+                return true;
+            }
             return false;
         }
 
@@ -492,6 +516,7 @@ namespace WAT.Models
             Assemblyed = "";
             TestStuatus = "";
             VType = "";
+            ECD = "";
         }
 
         public string WaferNum { set; get; }
@@ -506,5 +531,6 @@ namespace WAT.Models
         public string TestStuatus { set; get; }
 
         public string VType { set; get; }
+        public string ECD { set; get; }
     }
 }

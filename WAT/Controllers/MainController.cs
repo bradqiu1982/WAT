@@ -1665,17 +1665,17 @@ namespace WAT.Controllers
             if (prodpndict.ContainsKey(prod))
             { pn = prodpndict[prod]; }
 
-            if (string.IsNullOrEmpty(prod))
-            {
-                var ret = new JsonResult();
-                ret.MaxJsonLength = Int32.MaxValue;
-                ret.Data = new
-                {
-                    res = false,
-                    msg = "failed to get part number from prod:"+prod+"."
-                };
-                return ret;
-            }
+            //if (string.IsNullOrEmpty(pn))
+            //{
+            //    var ret = new JsonResult();
+            //    ret.MaxJsonLength = Int32.MaxValue;
+            //    ret.Data = new
+            //    {
+            //        res = false,
+            //        msg = "failed to get part number from prod:"+prod+"."
+            //    };
+            //    return ret;
+            //}
 
             var traceinfo = WaferTrace.GetTraceStatus(traceid, this);
             if (string.IsNullOrEmpty(traceinfo[0]))
